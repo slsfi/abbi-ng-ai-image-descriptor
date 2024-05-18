@@ -1,0 +1,199 @@
+.banner {
+  align-items: center;
+  background-color: #dab9df;
+  display: flex;
+  height: auto;
+  padding: 0;
+  margin: 3rem 0;
+  width: 100%;
+
+  h1 {
+    font-size: 5rem;
+    font-weight: bold;
+    margin-bottom: 2.5rem;
+    position: relative;
+    top: 1rem;
+  }
+
+  p {
+    font-size: 2rem;
+    line-height: 1.25;
+    margin: 0;
+  }
+}
+
+.banner-content-wrapper,
+.main-wrapper {
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 0 1.5rem;
+  width: calc(100% - 3rem);
+}
+
+.banner-content-wrapper {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 3rem 1.5rem 3rem 1.5rem;
+}
+
+.intro-wrapper {
+  margin-bottom: 3rem;
+  max-width: 750px;
+
+  p {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+}
+
+mat-card {
+  margin-bottom: 1.5rem;
+}
+
+.parameters-wrapper {
+  > mat-form-field,
+  > .form-field-wrapper {
+    margin-bottom: 1rem;
+  }
+}
+
+.image-select-wrapper {
+  file-input {
+    margin-bottom: 1.5rem;
+  }
+}
+
+.form-field-wrapper {
+  align-items: center;
+  display: flex;
+
+  mat-form-field {
+    width: 248px;
+  }
+
+  > :not(:first-child) {
+    margin-top: -1.325rem;
+    padding-left: 1rem;
+  }
+
+  > .adj-button {
+    margin-left: 1rem;
+  }
+
+  .form-field-error {
+    color: red;
+  }
+
+  .slider-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: 280px;
+    width: 100%;
+
+    .slider-label-wrapper {
+      display: flex;
+      font-size: 1rem;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    mat-slider {
+      margin: 0;
+    }
+  }
+}
+
+.file-input {
+  display: block;
+}
+
+.buttons-row {
+  align-items: center;;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin: 1.5rem 0;
+
+  .image-count {
+    font-size: 1rem;
+    margin-right: auto;
+  }
+}
+
+table {
+  border-collapse: collapse;
+  font-size: 1rem;
+  margin: 2rem 0;
+  width: 100%;
+}
+
+th,
+td {
+  border-bottom: 1px solid #a1a1a1;
+  line-height: 1.5;
+  padding: 0.75rem 2rem 0.75rem 0;
+}
+
+th {
+  border-bottom: 1px solid #000;
+}
+
+tfoot td {
+  border-bottom: 0;
+  font-style: italic;
+  text-align: right;
+}
+
+th:last-of-type,
+td:last-of-type {
+  padding-right: 0;
+}
+
+th {
+  font-weight: 500;
+  text-align: left;
+}
+
+td {
+  &.preview-img {
+    min-width: 200px;
+
+    img {
+      display: block;
+      height: auto;
+      max-width: 200px;
+      width: 100%;
+    }
+
+    .filename {
+      display: block;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+    }
+  }
+
+  &.description {
+    width: 100%;
+
+    .not-generated {
+      color: #4e4e4e;
+      font-style: italic;
+    }
+
+    .loading-wrapper {
+      display: flex;
+      align-items: center;
+
+      .spinner-label {
+        padding-left: 0.75rem;
+      }
+    }
+  }
+
+  &.actions {
+    button + button {
+      margin-top: 0.5rem;
+    }
+  }
+}
