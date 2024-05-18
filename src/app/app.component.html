@@ -14,21 +14,23 @@
     <p>Start by defining your parameters for the process, then select image files from your computer, and finally generate descriptions for them. You can download the descriptions as a CSV-file or copy them to the clipboard individually.</p>
   </div>
 
-  <mat-card>
-    <mat-card-content>
-      <h2>1. Configure settings</h2>
-      <div class="parameters-wrapper">
-        <div class="form-field-wrapper">
-          <mat-form-field appearance="outline">
-            <mat-label>AI-model</mat-label>
-            <mat-select [(ngModel)]="selectedModel" name="model">
-              @for (model of availableModels; track model.id) {
-                <mat-option [value]="model">{{model.provider}} {{model.name}}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-        </div>
-    
+  <mat-stepper orientation="vertical" [linear]="true" #stepper>
+    <mat-step label="Configure AI-model settings">
+      <mat-form-field appearance="outline">
+        <mat-label>AI-model</mat-label>
+        <mat-select [(ngModel)]="selectedModel" name="model">
+          @for (model of availableModels; track model.id) {
+            <mat-option [value]="model">{{model.provider}} {{model.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <div>
+        <button mat-button matStepperNext>Next</button>
+      </div>
+    </mat-step>
+
+    <mat-step label="Configure image description settings">
+      <div class="parameters-wrapper">   
         <div class="form-field-wrapper">
           <mat-form-field appearance="outline">
             <mat-label>Description language</mat-label>
@@ -69,40 +71,56 @@
           <button class="adj-button" mat-stroked-button>Edit prompt</button>
         </div>
       </div>
-    </mat-card-content>
-  </mat-card>
-
-  <mat-card>
-    <mat-card-content>
-      <h2>2. Enter API key</h2>
-      <div class="form-field-wrapper">
-        <mat-form-field appearance="outline">
-          <mat-label>Your API key</mat-label>
-          <input matInput required
-                [type]="hideApiKey ? 'password' : 'text'"
-                [value]="apiKey"
-                [formControl]="apiKeyFC"
-                (change)="updateApiKey($event)"
-          >
-          <button mat-icon-button matSuffix (click)="hideApiKey = !hideApiKey" [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hideApiKey">
-            <mat-icon>{{hideApiKey ? 'visibility_off' : 'visibility'}}</mat-icon>
-          </button>
-          @if (apiKeyFC.invalid) {
-            <mat-error>{{ apiKeyErrorMessage }}</mat-error>
-          }
-        </mat-form-field>
-        <file-input
-              label="Load from file (TXT)"
-              acceptedFileTypes="text/plain"
-              appearence="stroked"
-              (filesSelected)="loadApiKeyFromFile($event)"
-        ></file-input>
-        @if (!apiKey && apiError) {
-          <span class="form-field-error">You must enter a valid API key</span>
-        }
+      <div>
+        <button mat-button matStepperPrevious>Back</button>
+        <button mat-button matStepperNext>Next</button>
       </div>
-    </mat-card-content>
-  </mat-card>
+    </mat-step>
+
+    <mat-step [stepControl]="apiKeyFormGroup">
+      <form [formGroup]="apiKeyFormGroup">
+        <ng-template matStepLabel>Enter your {{ selectedModel?.provider || '' }} API key</ng-template>
+        <div class="form-field-wrapper">
+          <mat-form-field appearance="outline">
+            <mat-label>Your API key</mat-label>
+            <input matInput required
+                  [type]="hideApiKey ? 'password' : 'text'"
+                  formControlName="apiKeyFC"
+                  (change)="updateApiKey($event)"
+            >
+            <button mat-icon-button matSuffix (click)="hideApiKey = !hideApiKey" [attr.aria-label]="'Hide API key'" [attr.aria-pressed]="hideApiKey">
+              <mat-icon>{{hideApiKey ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            @if (apiKeyFormGroup.invalid) {
+              <mat-error>You must enter an API key</mat-error>
+            }
+          </mat-form-field>
+          <file-input
+                label="Load from file (TXT)"
+                acceptedFileTypes="text/plain"
+                appearence="stroked"
+                (filesSelected)="loadApiKeyFromFile($event)"
+          ></file-input>
+          @if (!apiKey && apiError) {
+            <span class="form-field-error">You must enter a valid API key</span>
+          }
+        </div>
+        <div>
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-button matStepperNext>Next</button>
+        </div>
+      </form>
+    </mat-step>
+
+    <mat-step>
+      <ng-template matStepLabel>Done</ng-template>
+      <p>{{apiKeyFC?.value}}</p>
+      <div>
+        <button mat-button matStepperPrevious>Back</button>
+        <button mat-button (click)="stepper.reset()">Reset</button>
+      </div>
+    </mat-step>
+  </mat-stepper>
 
   @if (apiKey) {
     <mat-card>

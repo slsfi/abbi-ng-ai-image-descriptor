@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,6 +12,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSliderModule } from '@angular/material/slider';
+import { MatStepperModule } from '@angular/material/stepper';
 import { merge } from 'rxjs';
 
 import { models } from '../assets/models';
@@ -22,7 +23,7 @@ import { OpenaiService } from './services/openai.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatCardModule, MatIconModule, MatInputModule, MatFormFieldModule, MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, FileInputComponent],
+  imports: [FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatCardModule, MatIconModule, MatInputModule, MatFormFieldModule, MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, MatStepperModule, FileInputComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
@@ -42,19 +43,26 @@ export class AppComponent implements OnInit {
   selectedModel: Model | null = null;
   selectedPromptTemplate: string = 'altText';
 
-  apiKeyFC: FormControl = new FormControl('', [Validators.required]);
+  //apiKeyFC: FormControl = new FormControl('', [Validators.required]);
   apiKeyErrorMessage: string = '';
+
+  apiKeyFormGroup = this._formBuilder.group({
+    apiKeyFC: new FormControl(this.apiKey, [Validators.required])
+  });
   
   constructor(
+    private _formBuilder: FormBuilder,
     private openaiService: OpenaiService
   ) {
     this.availableModels = models;
     // Set preselected model to first of available models with default property set to true
     this.selectedModel = this.availableModels.filter((model) => model.default)[0];
 
+    /*
     merge(this.apiKeyFC.statusChanges, this.apiKeyFC.valueChanges)
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.updateApiKeyErrorMessage());
+      */
   }
 
   ngOnInit() {
@@ -199,10 +207,11 @@ export class AppComponent implements OnInit {
         this.openaiService.updateClient(newKey);
       }
     }
-
+    this.apiKeyFormGroup.patchValue({apiKeyFC: newKey});
     this.apiKey = newKey;
   }
 
+  /*
   updateApiKeyErrorMessage() {
     if (this.apiKeyFC.hasError('required')) {
       this.apiKeyErrorMessage = 'You must enter an API key';
@@ -210,6 +219,7 @@ export class AppComponent implements OnInit {
       this.apiKeyErrorMessage = '';
     }
   }
+  */
 
   removeImage(imageObj: any) {
     let indexToRemove = -1;
@@ -223,6 +233,10 @@ export class AppComponent implements OnInit {
     if (indexToRemove > -1 && indexToRemove < this.imageFiles.length) {
       this.imageFiles.splice(indexToRemove, 1);
     }
+  }
+
+  get apiKeyFC() {
+    return this.apiKeyFormGroup.get('apiKeyFC');
   }
 
 }
