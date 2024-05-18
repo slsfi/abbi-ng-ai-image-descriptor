@@ -16,41 +16,14 @@
 
   <mat-card>
     <mat-card-content>
-      <h2>1. Define parameters</h2>
+      <h2>1. Configure settings</h2>
       <div class="parameters-wrapper">
-        <div class="form-field-wrapper">
-          <mat-form-field appearance="outline">
-            <mat-label>Enter your API key</mat-label>
-            <input matInput required
-                  [type]="hideApiKey ? 'password' : 'text'"
-                  [value]="apiKey"
-                  [formControl]="apiKeyFC"
-                  (change)="updateApiKey($event)"
-            >
-            <button mat-icon-button matSuffix (click)="hideApiKey = !hideApiKey" [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hideApiKey">
-              <mat-icon>{{hideApiKey ? 'visibility_off' : 'visibility'}}</mat-icon>
-            </button>
-            @if (apiKeyFC.invalid) {
-              <mat-error>{{ apiKeyErrorMessage }}</mat-error>
-            }
-          </mat-form-field>
-          <file-input
-                label="Load from file (TXT)"
-                acceptedFileTypes="text/plain"
-                appearence="stroked"
-                (filesSelected)="loadApiKeyFromFile($event)"
-          ></file-input>
-          @if (!apiKey && apiError) {
-            <span class="form-field-error">You must enter a valid API key</span>
-          }
-        </div>
-      
         <div class="form-field-wrapper">
           <mat-form-field appearance="outline">
             <mat-label>AI-model</mat-label>
             <mat-select [(ngModel)]="selectedModel" name="model">
               @for (model of availableModels; track model.id) {
-                <mat-option [value]="model">{{model.name}}</mat-option>
+                <mat-option [value]="model">{{model.provider}} {{model.name}}</mat-option>
               }
             </mat-select>
           </mat-form-field>
@@ -99,10 +72,42 @@
     </mat-card-content>
   </mat-card>
 
+  <mat-card>
+    <mat-card-content>
+      <h2>2. Enter API key</h2>
+      <div class="form-field-wrapper">
+        <mat-form-field appearance="outline">
+          <mat-label>Your API key</mat-label>
+          <input matInput required
+                [type]="hideApiKey ? 'password' : 'text'"
+                [value]="apiKey"
+                [formControl]="apiKeyFC"
+                (change)="updateApiKey($event)"
+          >
+          <button mat-icon-button matSuffix (click)="hideApiKey = !hideApiKey" [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hideApiKey">
+            <mat-icon>{{hideApiKey ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          @if (apiKeyFC.invalid) {
+            <mat-error>{{ apiKeyErrorMessage }}</mat-error>
+          }
+        </mat-form-field>
+        <file-input
+              label="Load from file (TXT)"
+              acceptedFileTypes="text/plain"
+              appearence="stroked"
+              (filesSelected)="loadApiKeyFromFile($event)"
+        ></file-input>
+        @if (!apiKey && apiError) {
+          <span class="form-field-error">You must enter a valid API key</span>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+
   @if (apiKey) {
     <mat-card>
       <mat-card-content>
-        <h2>2. Select images</h2>
+        <h2>3. Select images</h2>
         <div class="image-select-wrapper">
           <file-input
                 label="Add image files (JPG, PNG)"
@@ -110,6 +115,13 @@
                 [multiple]="true"
                 (filesSelected)="addImageFiles($event)"
           ></file-input>
+          @if (addingImages || true) {
+          <div class="progress-wrapper">
+            <mat-label>Progress:</mat-label>
+            <mat-progress-bar mode="determinate" [value]="addImagesProgress"></mat-progress-bar>
+            <span>{{ addImagesProgress }} %</span>
+          </div>
+          }
         </div>
       </mat-card-content>
     </mat-card>
@@ -118,12 +130,13 @@
   @if (apiKey && imageFiles.length) {
     <mat-card>
       <mat-card-content>
-        <h2>3. Generate image descriptions</h2>
+        <h2>4. Generate image descriptions</h2>
         <div class="generate-desc-wrapper">
           <div class="buttons-row">
-            <span class="image-count">Images: {{ imageFiles.length }}</span>
-            <button mat-flat-button color="primary" [disabled]="generating">Generate descriptions</button>
-            <button mat-stroked-button [disabled]="generating">Download (CSV)</button>
+            <button mat-flat-button color="primary" [disabled]="generating">Generate all ({{ imageFiles.length }} {{ imageFiles.length > 1 ? 'images' : 'image' }})</button>
+            <div class="export-buttons">
+              <button mat-stroked-button [disabled]="generating">Export (CSV)</button>
+            </div>
           </div>
           <table>
             <thead>
@@ -134,7 +147,7 @@
               </tr>
             </thead>
             <tbody>
-            @for (file of imageFiles; track file.filename) {
+            @for (file of imageFiles; track file?.filename) {
               <tr>
                 <td class="preview-img">
                   <img [src]="file.base64Image" [height]="file.height" [width]="file.width">

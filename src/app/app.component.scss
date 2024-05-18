@@ -62,6 +62,24 @@ mat-card {
   file-input {
     margin-bottom: 1.5rem;
   }
+
+  .progress-wrapper {
+    align-items: center;
+    display: flex;
+    margin-top: 2rem;
+
+    mat-label {
+      padding-right: 0.75rem;
+    }
+
+    mat-progress-bar {
+      max-width: 300px;
+    }
+
+    span {
+      padding-left: 0.75rem;
+    }
+  }
 }
 
 .form-field-wrapper {
@@ -112,12 +130,10 @@ mat-card {
   align-items: center;;
   display: flex;
   gap: 1rem;
-  justify-content: flex-end;
   margin: 1.5rem 0;
 
-  .image-count {
-    font-size: 1rem;
-    margin-right: auto;
+  .export-buttons {
+    margin-left: auto;
   }
 }
 

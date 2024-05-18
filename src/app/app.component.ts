@@ -8,6 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSliderModule } from '@angular/material/slider';
@@ -21,11 +22,13 @@ import { OpenaiService } from './services/openai.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatCardModule, MatIconModule, MatInputModule, MatFormFieldModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, FileInputComponent],
+  imports: [FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatCardModule, MatIconModule, MatInputModule, MatFormFieldModule, MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, FileInputComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
+  addImagesProgress: number = 0;
+  addingImages: boolean = false;
   apiError: boolean = false;
   apiKey: string = '';
   availableModels: Models = [];
@@ -70,30 +73,49 @@ export class AppComponent implements OnInit {
 
   addImageFiles(files: File[]): void {
     if (files.length) {
-      // Process the selected files
-      for (let i = 0; i < files.length; i++) {
-        const file: File = files[i];
-        const img = new Image();
-        const reader = new FileReader();
+      this.addImagesProgress = 0;
+      this.addingImages = true;
+      // Initialize a counter for processed files
+      let processedFilesCount = 0;
+      const totalFiles = files.length;
+      const processedFiles: any[] = [];
 
-        reader.onload = (e: any) => {
-          img.src = e.target.result;
-          img.onload = () => {
-            const resizedImgDetails = this.resizeImage(img);
-            this.imageFiles.push(
-              {
+      // Process the selected files
+      const promises = Array.from(files).map((file, index) => {
+        return new Promise<void>((resolve) => {
+          const img = new Image();
+          const reader = new FileReader();
+
+          reader.onload = (e: any) => {
+            img.src = e.target.result;
+            img.onload = () => {
+              const resizedImgDetails = this.resizeImage(img);
+              processedFiles[index] = {
                 filename: file.name,
                 base64Image: resizedImgDetails.base64,
                 height: resizedImgDetails.height,
                 width: resizedImgDetails.width,
                 description: '',
                 generating: false
-              }
-            );
+              };
+              
+              // Increment the counter and update the progress bar
+              processedFilesCount++;
+              this.addImagesProgress = Math.round((processedFilesCount / totalFiles) * 100);
+
+              resolve();
+            };
           };
-        };
-        reader.readAsDataURL(file);
-      }
+          reader.readAsDataURL(file);
+        });
+      });
+
+      Promise.all(promises).then(() => {
+        // Optionally, you can handle further actions after all images are processed
+        this.imageFiles.push(...processedFiles);
+        this.addingImages = false;
+        console.log('All images have been processed and added in order.');
+      });
     }
   }
 
