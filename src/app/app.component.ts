@@ -1,10 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -12,23 +11,27 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSliderModule } from '@angular/material/slider';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatStepperModule } from '@angular/material/stepper';
-import { merge } from 'rxjs';
 
 import { models } from '../assets/models';
 import { Model, Models } from './types/modelTypes';
+import { RequestSettings } from './types/settingsTypes';
 import { FileInputComponent } from './components/file-input/file-input.component';
 import { OpenaiService } from './services/openai.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatCardModule, MatIconModule, MatInputModule, MatFormFieldModule, MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, MatStepperModule, FileInputComponent],
+  imports: [FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatExpansionModule, MatIconModule, MatInputModule, MatFormFieldModule, MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, MatSlideToggleModule, MatStepperModule, FileInputComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
+  addImagesIdCounter: number = 0;
+  addImagesProcessedCount: number = 0;
   addImagesProgress: number = 0;
+  addImagesTotalFiles: number = 0;
   addingImages: boolean = false;
   apiError: boolean = false;
   apiKey: string = '';
@@ -38,12 +41,15 @@ export class AppComponent implements OnInit {
   generating: boolean = false;
   hideApiKey: boolean = true;
   imageFiles: any[] = [];
+  includeFilename: boolean = true;
   selectedDescLength: number = 300;
   selectedLanguage: string = 'sv';
   selectedModel: Model | null = null;
   selectedPromptTemplate: string = 'altText';
+  selectedTemperature: number = 1.0;
+  temperatureMax: number = 2.0;
+  temperatureMin: number = 0.0;
 
-  //apiKeyFC: FormControl = new FormControl('', [Validators.required]);
   apiKeyErrorMessage: string = '';
 
   apiKeyFormGroup = this._formBuilder.group({
@@ -55,14 +61,9 @@ export class AppComponent implements OnInit {
     private openaiService: OpenaiService
   ) {
     this.availableModels = models;
-    // Set preselected model to first of available models with default property set to true
+    // Set preselected model to first of available models with
+    // default property set to true
     this.selectedModel = this.availableModels.filter((model) => model.default)[0];
-
-    /*
-    merge(this.apiKeyFC.statusChanges, this.apiKeyFC.valueChanges)
-      .pipe(takeUntilDestroyed())
-      .subscribe(() => this.updateApiKeyErrorMessage());
-      */
   }
 
   ngOnInit() {
@@ -81,11 +82,10 @@ export class AppComponent implements OnInit {
 
   addImageFiles(files: File[]): void {
     if (files.length) {
+      this.addImagesProcessedCount = 0;
+      this.addImagesTotalFiles = files.length;
       this.addImagesProgress = 0;
       this.addingImages = true;
-      // Initialize a counter for processed files
-      let processedFilesCount = 0;
-      const totalFiles = files.length;
       const processedFiles: any[] = [];
 
       // Process the selected files
@@ -99,6 +99,7 @@ export class AppComponent implements OnInit {
             img.onload = () => {
               const resizedImgDetails = this.resizeImage(img);
               processedFiles[index] = {
+                id: this.addImagesIdCounter++,
                 filename: file.name,
                 base64Image: resizedImgDetails.base64,
                 height: resizedImgDetails.height,
@@ -107,9 +108,9 @@ export class AppComponent implements OnInit {
                 generating: false
               };
               
-              // Increment the counter and update the progress bar
-              processedFilesCount++;
-              this.addImagesProgress = Math.round((processedFilesCount / totalFiles) * 100);
+              // Update progress bar
+              this.addImagesProcessedCount++;
+              this.addImagesProgress = Math.round((this.addImagesProcessedCount / this.addImagesTotalFiles) * 100);
 
               resolve();
             };
@@ -119,10 +120,9 @@ export class AppComponent implements OnInit {
       });
 
       Promise.all(promises).then(() => {
-        // Optionally, you can handle further actions after all images are processed
+        // Add the added, processed images to the images array
         this.imageFiles.push(...processedFiles);
         this.addingImages = false;
-        console.log('All images have been processed and added in order.');
       });
     }
   }
@@ -131,9 +131,11 @@ export class AppComponent implements OnInit {
     this.apiError = false;
     imageObj.generating = true;
     this.generating = true;
-    const response = await this.openaiService.describeImage(imageObj.base64Image);
+    const settings: RequestSettings = this.getSettings();
+    const response = await this.openaiService.describeImage(settings, imageObj.base64Image);
     imageObj.generating = false;
     this.generating = false;
+    console.log(response);
     const respContent = response?.choices?.[0]?.message?.content ?? null;
     if (!respContent) {
       this.apiError = true;
@@ -205,6 +207,7 @@ export class AppComponent implements OnInit {
     if (newKey) {
       if (newKey !== this.apiKey) {
         this.openaiService.updateClient(newKey);
+        //this.openaiService.isValidApiKey(newKey);
       }
     }
     this.apiKeyFormGroup.patchValue({apiKeyFC: newKey});
@@ -224,7 +227,7 @@ export class AppComponent implements OnInit {
   removeImage(imageObj: any) {
     let indexToRemove = -1;
     for (let i = 0; i < this.imageFiles.length; i++) {
-      if (imageObj.filename == this.imageFiles[i].filename) {
+      if (imageObj.id == this.imageFiles[i].id) {
         indexToRemove = i;
         break;
       }
@@ -233,6 +236,17 @@ export class AppComponent implements OnInit {
     if (indexToRemove > -1 && indexToRemove < this.imageFiles.length) {
       this.imageFiles.splice(indexToRemove, 1);
     }
+  }
+
+  private getSettings(): RequestSettings {
+    const settings: RequestSettings = {
+      model: this.selectedModel,
+      temperature: this.selectedTemperature,
+      language: this.selectedLanguage,
+      maxLength: this.selectedDescLength,
+      promptTemplate: this.selectedPromptTemplate
+    }
+    return settings;
   }
 
   get apiKeyFC() {

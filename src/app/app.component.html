@@ -14,75 +14,114 @@
     <p>Start by defining your parameters for the process, then select image files from your computer, and finally generate descriptions for them. You can download the descriptions as a CSV-file or copy them to the clipboard individually.</p>
   </div>
 
-  <mat-stepper orientation="vertical" [linear]="true" #stepper>
-    <mat-step label="Configure AI-model settings">
-      <mat-form-field appearance="outline">
-        <mat-label>AI-model</mat-label>
-        <mat-select [(ngModel)]="selectedModel" name="model">
-          @for (model of availableModels; track model.id) {
-            <mat-option [value]="model">{{model.provider}} {{model.name}}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <div>
-        <button mat-button matStepperNext>Next</button>
-      </div>
-    </mat-step>
+  <mat-stepper orientation="horizontal" [linear]="true" #stepper>
 
-    <mat-step label="Configure image description settings">
-      <div class="parameters-wrapper">   
-        <div class="form-field-wrapper">
-          <mat-form-field appearance="outline">
-            <mat-label>Description language</mat-label>
-            <mat-select [(ngModel)]="selectedLanguage" name="language">
-              <mat-option value="sv">Svenska</mat-option>
-              <mat-option value="fi">Suomi</mat-option>
-              <mat-option value="en">English</mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
-    
-        <div class="form-field-wrapper">
-          <div class="slider-wrapper">
-            <div class="slider-label-wrapper">
-              <label id="slider-label" class="slider-label">Description length:</label>
-              <label class="slider-value-label">{{descLengthSlider.value}} characters</label>
+    <!-- Step: Configure settings -->
+    <mat-step label="Configure settings">
+      <h2>Configure settings</h2>
+
+      <div class="settings-column-wrapper">
+        <div class="parameters-wrapper">
+          <h3>Model settings</h3>
+          <div class="form-field-wrapper">
+            <mat-form-field appearance="outline">
+              <mat-label>AI-model</mat-label>
+              <mat-select [(ngModel)]="selectedModel" name="model">
+                @for (model of availableModels; track model.id) {
+                  <mat-option [value]="model">{{model.provider}} {{model.name}}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="form-field-wrapper">
+            <mat-form-field appearance="outline">
+              <mat-label>Prompt template</mat-label>
+              <mat-select [(ngModel)]="selectedPromptTemplate" name="promptTemplate">
+                <mat-option value="altText">Alt text</mat-option>
+                <mat-option value="metadata">Metadata</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <!--
+            <button class="adj-button" mat-stroked-button>Edit prompt</button>
+            -->
+          </div>
+
+          <div class="form-field-wrapper">
+            <mat-slide-toggle color="primary" [(ngModel)]="includeFilename">Include image filename in prompt</mat-slide-toggle>
+          </div>
+
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                Advanced model settings
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <div class="form-field-wrapper">
+              <div class="slider-wrapper">
+                <div class="slider-label-wrapper">
+                  <label id="temp-slider-label" class="slider-label">Temperature:</label>
+                  <label class="slider-value-label">{{temperatureSlider.value}}</label>
+                </div>
+                <mat-slider
+                    [max]="temperatureMax"
+                    [min]="temperatureMin"
+                    [step]="0.1"
+                    [discrete]="true"
+                    [showTickMarks]="true"
+                >
+                  <input matSliderThumb [(ngModel)]="selectedTemperature" #temperatureSlider>
+                </mat-slider>
+              </div>
             </div>
-            <mat-slider
-                [max]="descLengthMax"
-                [min]="descLengthMin"
-                [step]="25"
-                [discrete]="true"
-                [showTickMarks]="true"
-            >
-              <input matSliderThumb [(ngModel)]="selectedDescLength" #descLengthSlider>
-            </mat-slider>
+          </mat-expansion-panel>
+        </div>
+
+        <div class="parameters-wrapper">
+          <h3>Image description settings</h3>
+          <div class="form-field-wrapper">
+            <mat-form-field appearance="outline">
+              <mat-label>Language</mat-label>
+              <mat-select [(ngModel)]="selectedLanguage" name="language">
+                <mat-option value="sv">Svenska</mat-option>
+                <mat-option value="fi">Suomi</mat-option>
+                <mat-option value="en">English</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+      
+          <div class="form-field-wrapper">
+            <div class="slider-wrapper">
+              <div class="slider-label-wrapper">
+                <label id="len-slider-label" class="slider-label">Max length:</label>
+                <label class="slider-value-label">{{descLengthSlider.value}} characters</label>
+              </div>
+              <mat-slider
+                  [max]="descLengthMax"
+                  [min]="descLengthMin"
+                  [step]="25"
+                  [discrete]="true"
+                  [showTickMarks]="true"
+              >
+                <input matSliderThumb [(ngModel)]="selectedDescLength" #descLengthSlider>
+              </mat-slider>
+            </div>
           </div>
         </div>
-    
-        <div class="form-field-wrapper">
-          <mat-form-field appearance="outline">
-            <mat-label>Prompt template</mat-label>
-            <mat-select [(ngModel)]="selectedPromptTemplate" name="promptTemplate">
-              <mat-option value="altText">Alt text</mat-option>
-              <mat-option value="metadata">Metadata</mat-option>
-            </mat-select>
-          </mat-form-field>
-          <button class="adj-button" mat-stroked-button>Edit prompt</button>
-        </div>
       </div>
-      <div>
-        <button mat-button matStepperPrevious>Back</button>
-        <button mat-button matStepperNext>Next</button>
+
+      <div class="stepper-nav">
+        <button mat-button color="primary" matStepperNext>Next</button>
       </div>
     </mat-step>
 
-    <mat-step [stepControl]="apiKeyFormGroup">
+    <!-- Step: Enter API key -->
+    <mat-step [stepControl]="apiKeyFormGroup" label="Enter API key">
+      <h2>Enter your {{ selectedModel?.provider || '' }} API key</h2>
       <form [formGroup]="apiKeyFormGroup">
-        <ng-template matStepLabel>Enter your {{ selectedModel?.provider || '' }} API key</ng-template>
         <div class="form-field-wrapper">
           <mat-form-field appearance="outline">
-            <mat-label>Your API key</mat-label>
+            <mat-label>{{ selectedModel?.provider || '' }} API key</mat-label>
             <input matInput required
                   [type]="hideApiKey ? 'password' : 'text'"
                   formControlName="apiKeyFC"
@@ -105,94 +144,90 @@
             <span class="form-field-error">You must enter a valid API key</span>
           }
         </div>
-        <div>
-          <button mat-button matStepperPrevious>Back</button>
-          <button mat-button matStepperNext>Next</button>
+        <div class="stepper-nav">
+          <button mat-button color="primary" matStepperPrevious>Back</button>
+          <button mat-button color="primary" matStepperNext>Next</button>
         </div>
       </form>
     </mat-step>
 
-    <mat-step>
-      <ng-template matStepLabel>Done</ng-template>
+    <!-- Step: Add images -->
+    <mat-step label="Add images" [completed]="imageFiles.length > 0 && !addingImages">
+      <h2>Add images</h2>
+      <div class="image-select-wrapper">
+        <file-input
+              label="Select image files (JPG, PNG)"
+              acceptedFileTypes="image/png, image/jpeg"
+              [multiple]="true"
+              (filesSelected)="addImageFiles($event)"
+        ></file-input>
+        @if (addImagesTotalFiles > 0) {
+        <div class="progress-wrapper">
+          <mat-label>Progress:</mat-label>
+          <mat-progress-bar mode="determinate" [value]="addImagesProgress"></mat-progress-bar>
+          <span>{{ addImagesProcessedCount }} / {{ addImagesTotalFiles }}</span>
+        </div>
+        }
+      </div>
+      <div class="stepper-nav">
+        <button mat-button color="primary" matStepperPrevious>Back</button>
+        <button mat-button color="primary" matStepperNext>Next</button>
+      </div>
+    </mat-step>
+
+    <!-- Step: Generate image descriptions -->
+    <mat-step label="Generate descriptions">
+      <h2>Generate image descriptions</h2>
       <p>{{apiKeyFC?.value}}</p>
-      <div>
-        <button mat-button matStepperPrevious>Back</button>
-        <button mat-button (click)="stepper.reset()">Reset</button>
+      <div class="generate-desc-wrapper">
+        <div class="buttons-row">
+          <button mat-flat-button color="primary" [disabled]="generating">Generate all ({{ imageFiles.length }} {{ imageFiles.length > 1 ? 'images' : 'image' }})</button>
+          <div class="export-buttons">
+            <button mat-stroked-button [disabled]="generating">Export (CSV)</button>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Image preview</th>
+              <th scope="col">Generated description</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          @for (file of imageFiles; track file?.id) {
+            <tr>
+              <td class="preview-img">
+                <img [src]="file.base64Image" [height]="file.height" [width]="file.width">
+                <span class="filename">{{ file.filename }}</span>
+              </td>
+              <td class="description">
+                @if (file.generating) {
+                  <span class="loading-wrapper">
+                    <mat-spinner [diameter]="32"></mat-spinner><span class="spinner-label">Generating image description ...</span>
+                  </span>
+                } @else if (!file.description) {
+                  <span class="not-generated">No description generated yet.</span>
+                } @else {
+                  {{ file.description }}
+                }
+              </td>
+              <td class="actions">
+                <button mat-stroked-button (click)="generateImageDescription(file)" [disabled]="generating" [innerHTML]="file.description ? 'Regenerate' : 'Generate'"></button>
+                <button mat-stroked-button [cdkCopyToClipboard]="file.description" [disabled]="generating || !file.description">Copy</button>
+                <button mat-stroked-button color="warn" (click)="removeImage(file)" [disabled]="generating">Remove image</button>
+              </td>
+            </tr>
+          }
+          </tbody>
+        </table>
+      </div>
+      <div class="stepper-nav">
+        <button mat-button color="primary" matStepperPrevious>Back</button>
+        <button mat-button color="primary" (click)="stepper.reset()">Reset</button>
       </div>
     </mat-step>
   </mat-stepper>
 
-  @if (apiKey) {
-    <mat-card>
-      <mat-card-content>
-        <h2>3. Select images</h2>
-        <div class="image-select-wrapper">
-          <file-input
-                label="Add image files (JPG, PNG)"
-                acceptedFileTypes="image/png, image/jpeg"
-                [multiple]="true"
-                (filesSelected)="addImageFiles($event)"
-          ></file-input>
-          @if (addingImages || true) {
-          <div class="progress-wrapper">
-            <mat-label>Progress:</mat-label>
-            <mat-progress-bar mode="determinate" [value]="addImagesProgress"></mat-progress-bar>
-            <span>{{ addImagesProgress }} %</span>
-          </div>
-          }
-        </div>
-      </mat-card-content>
-    </mat-card>
-  }
-
-  @if (apiKey && imageFiles.length) {
-    <mat-card>
-      <mat-card-content>
-        <h2>4. Generate image descriptions</h2>
-        <div class="generate-desc-wrapper">
-          <div class="buttons-row">
-            <button mat-flat-button color="primary" [disabled]="generating">Generate all ({{ imageFiles.length }} {{ imageFiles.length > 1 ? 'images' : 'image' }})</button>
-            <div class="export-buttons">
-              <button mat-stroked-button [disabled]="generating">Export (CSV)</button>
-            </div>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">Image preview</th>
-                <th scope="col">Generated description</th>
-                <th scope="col">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-            @for (file of imageFiles; track file?.filename) {
-              <tr>
-                <td class="preview-img">
-                  <img [src]="file.base64Image" [height]="file.height" [width]="file.width">
-                  <span class="filename">{{ file.filename }}</span>
-                </td>
-                <td class="description">
-                  @if (file.generating) {
-                    <span class="loading-wrapper">
-                      <mat-spinner [diameter]="32"></mat-spinner><span class="spinner-label">Generating image description ...</span>
-                    </span>
-                  } @else if (!file.description) {
-                    <span class="not-generated">No description generated yet.</span>
-                  } @else {
-                    {{ file.description }}
-                  }
-                </td>
-                <td class="actions">
-                  <button mat-stroked-button (click)="generateImageDescription(file)" [disabled]="generating" [innerHTML]="file.description ? 'Regenerate' : 'Generate'"></button>
-                  <button mat-stroked-button [cdkCopyToClipboard]="file.description" [disabled]="generating || !file.description">Copy</button>
-                  <button mat-stroked-button color="warn" (click)="removeImage(file)" [disabled]="generating">Remove image</button>
-                </td>
-              </tr>
-            }
-            </tbody>
-          </table>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  }
 </div>
