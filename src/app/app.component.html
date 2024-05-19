@@ -178,10 +178,10 @@
     <!-- Step: Generate image descriptions -->
     <mat-step label="Generate descriptions">
       <h2>Generate image descriptions</h2>
-      <p>{{apiKeyFC?.value}}</p>
+      <!--<p>{{apiKeyFC?.value}}</p>-->
       <div class="generate-desc-wrapper">
         <div class="buttons-row">
-          <button mat-flat-button color="primary" [disabled]="generating">Generate all ({{ imageFiles.length }} {{ imageFiles.length > 1 ? 'images' : 'image' }})</button>
+          <button mat-flat-button color="primary" (click)="generateImageDescriptionsAll()" [disabled]="generating">Generate all ({{ imageFiles.length }} {{ imageFiles.length > 1 ? 'images' : 'image' }})</button>
           <div class="export-buttons">
             <button mat-stroked-button [disabled]="generating">Export (CSV)</button>
           </div>
@@ -210,7 +210,10 @@
                 } @else if (!file.description) {
                   <span class="not-generated">No description generated yet.</span>
                 } @else {
-                  {{ file.description }}
+                  <span class="description-text">
+                    {{ file.description }}
+                  </span>
+                  <span class="description-metadata">Length: {{ file.description | characterCount }} characters</span>
                 }
               </td>
               <td class="actions">

@@ -216,6 +216,18 @@ td {
   &.description {
     width: 100%;
 
+    .description-text,
+    .description-metadata {
+      display: block;
+    }
+
+    .description-metadata {
+      color: #575757;
+      font-size: 0.875rem;
+      margin-top: 0.375rem;
+      text-align: right;
+    }
+
     .not-generated {
       color: #4e4e4e;
       font-style: italic;

@@ -15,15 +15,16 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatStepperModule } from '@angular/material/stepper';
 
 import { models } from '../assets/models';
+import { FileInputComponent } from './components/file-input/file-input.component';
+import { CharacterCountPipe } from './pipes/character-count.pipe';
+import { OpenaiService } from './services/openai.service';
 import { Model, Models } from './types/modelTypes';
 import { RequestSettings } from './types/settingsTypes';
-import { FileInputComponent } from './components/file-input/file-input.component';
-import { OpenaiService } from './services/openai.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatExpansionModule, MatIconModule, MatInputModule, MatFormFieldModule, MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, MatSlideToggleModule, MatStepperModule, FileInputComponent],
+  imports: [FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatExpansionModule, MatIconModule, MatInputModule, MatFormFieldModule, MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, MatSlideToggleModule, MatStepperModule, FileInputComponent, CharacterCountPipe],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
@@ -143,6 +144,34 @@ export class AppComponent implements OnInit {
     imageObj.description = respContent ?? '';
   }
 
+  async generateImageDescriptionsAll() {
+    this.apiError = false;
+    this.generating = true;
+    const settings: RequestSettings = this.getSettings();
+
+    for (const imageObj of this.imageFiles) {
+      imageObj.generating = true;
+      try {
+        const response = await this.openaiService.describeImage(settings, imageObj.base64Image);
+        console.log(response);
+        const respContent = response?.choices?.[0]?.message?.content ?? null;
+        if (!respContent) {
+          this.apiError = true;
+        }
+        imageObj.description = respContent ?? '';
+        // Handle the response as needed
+      } catch (error) {
+        this.apiError = true;
+        console.error('Error describing image:', error);
+        break;
+      } finally {
+        imageObj.generating = false;
+      }
+    }
+  
+    this.generating = false;
+  }
+
   private setApiKeyFromFile(file: File): void {
     const reader = new FileReader();
     reader.onload = () => {
@@ -188,7 +217,7 @@ export class AppComponent implements OnInit {
       }
     }
 
-    const canvas = document.createElement('canvas');
+    let canvas: HTMLCanvasElement | null = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     canvas.width = newWidth;
     canvas.height = newHeight;
@@ -198,6 +227,7 @@ export class AppComponent implements OnInit {
       height: newHeight,
       width: newWidth
     }
+    canvas = null;
     return imgDetails;
   }
 

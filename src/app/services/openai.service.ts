@@ -38,7 +38,7 @@ export class OpenaiService {
   async describeImage(settings: RequestSettings, base64Image: string): Promise<any> {
     try {
       const payload = {
-        model: settings?.model?.id ?? 'gpt-3.5-turbo',
+        model: settings?.model?.id ?? 'gpt-4o',
         messages: [
           {
             role: 'user',
