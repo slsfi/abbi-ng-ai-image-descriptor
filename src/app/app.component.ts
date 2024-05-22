@@ -15,7 +15,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatStepperModule } from '@angular/material/stepper';
-import { catchError, debounceTime, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, debounceTime, Observable, of, switchMap } from 'rxjs';
 
 import { models } from '../assets/models';
 import { ConfirmActionDialogComponent } from './components/confirm-action-dialog/confirm-action-dialog.component';
@@ -39,7 +39,6 @@ export class AppComponent implements OnInit {
   addImagesTotalFiles: number = 0;
   addingImages: boolean = false;
   apiError: boolean = false;
-  apiKey: string = '';
   apiKeyValidationMessage: string | null = null;
   availableModels: Models = [];
   descLengthMax: number = 450;
@@ -59,7 +58,7 @@ export class AppComponent implements OnInit {
   apiKeyErrorMessage: string = '';
 
   apiKeyFormGroup = this._formBuilder.group({
-    apiKeyFC: new FormControl(this.apiKey, {
+    apiKeyFC: new FormControl('', {
       validators: [Validators.required],
       asyncValidators: [this.apiKeyValidator.bind(this)],
       updateOn: 'blur' // Run async validator when the control loses focus
@@ -320,7 +319,6 @@ export class AppComponent implements OnInit {
       reader.onload = () => {
         const newKey = String(reader.result).trim();
         this.apiKeyFormGroup.patchValue({apiKeyFC: newKey});
-        this.apiKey = newKey;
       };
       reader.readAsText(file);
     }

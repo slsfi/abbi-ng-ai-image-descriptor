@@ -27,6 +27,7 @@ export class FileInputComponent implements OnInit {
     if (input.files) {
       this.selectedFiles = Array.from(input.files);
       this.filesSelected.emit(this.selectedFiles);
+      input.value = ''; // Reset the input value to allow selecting the same file again
     }
   }
 }

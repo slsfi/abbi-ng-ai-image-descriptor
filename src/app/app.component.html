@@ -172,7 +172,7 @@
           <mat-progress-bar mode="determinate" [value]="addImagesProgress"></mat-progress-bar>
           <span>{{ addImagesProcessedCount }} / {{ addImagesTotalFiles }}</span>
         </div>
-        <p class="image-sum" [class.hide]="imageFiles.length < 1">Total number of images in set: {{ imageFiles.length }}</p>
+        <p class="image-sum" [class.hide]="imageFiles.length < 1">Added images, total: {{ imageFiles.length }}</p>
       </div>
       <div class="stepper-nav">
         <button mat-button color="primary" matStepperPrevious>Back</button>
