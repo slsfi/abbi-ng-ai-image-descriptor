@@ -125,13 +125,22 @@
             <input matInput required
                   [type]="hideApiKey ? 'password' : 'text'"
                   formControlName="apiKeyFC"
-                  (change)="updateApiKey($event)"
             >
             <button mat-icon-button matSuffix (click)="hideApiKey = !hideApiKey" [attr.aria-label]="'Hide API key'" [attr.aria-pressed]="hideApiKey">
               <mat-icon>{{hideApiKey ? 'visibility_off' : 'visibility'}}</mat-icon>
             </button>
-            @if (apiKeyFormGroup.invalid) {
+            @if (apiKeyFC?.hasError('required')) {
               <mat-error>You must enter an API key</mat-error>
+            } @else if (apiKeyFC?.hasError('invalidApiKey')) {
+              <mat-error>Invalid API key</mat-error>
+            }
+            @if (apiKeyValidationMessage) {
+              <mat-hint [class.valid-api-key]="apiKeyFormGroup.valid">
+                @if (apiKeyFormGroup.valid) {
+                  <mat-icon aria-hidden="true" fontIcon="check"></mat-icon>
+                }
+                {{ apiKeyValidationMessage }}
+              </mat-hint>
             }
           </mat-form-field>
           <file-input
@@ -140,9 +149,6 @@
                 appearence="stroked"
                 (filesSelected)="loadApiKeyFromFile($event)"
           ></file-input>
-          @if (!apiKey && apiError) {
-            <span class="form-field-error">You must enter a valid API key</span>
-          }
         </div>
         <div class="stepper-nav">
           <button mat-button color="primary" matStepperPrevious>Back</button>

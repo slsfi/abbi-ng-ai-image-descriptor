@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,6 +15,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatStepperModule } from '@angular/material/stepper';
+import { catchError, debounceTime, map, Observable, of, switchMap } from 'rxjs';
 
 import { models } from '../assets/models';
 import { ConfirmActionDialogComponent } from './components/confirm-action-dialog/confirm-action-dialog.component';
@@ -39,6 +40,7 @@ export class AppComponent implements OnInit {
   addingImages: boolean = false;
   apiError: boolean = false;
   apiKey: string = '';
+  apiKeyValidationMessage: string | null = null;
   availableModels: Models = [];
   descLengthMax: number = 450;
   descLengthMin: number = 150;
@@ -57,7 +59,11 @@ export class AppComponent implements OnInit {
   apiKeyErrorMessage: string = '';
 
   apiKeyFormGroup = this._formBuilder.group({
-    apiKeyFC: new FormControl(this.apiKey, [Validators.required])
+    apiKeyFC: new FormControl(this.apiKey, {
+      validators: [Validators.required],
+      asyncValidators: [this.apiKeyValidator.bind(this)],
+      updateOn: 'blur' // Run async validator when the control loses focus
+    })
   });
   
   constructor(
@@ -73,17 +79,21 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-
-  }
-
-  loadApiKeyFromFile(files: File[]): void {
-    if (files.length) {
-      this.apiError = false;
-      const file: File = files[0];
-      this.setApiKeyFromFile(file);
-    } else {
-      this.apiError = true;
-    }
+    // Update the API key and OpenAI client in the OpenaiService
+    // when the value of the API key form field changes and the
+    // entered key is valid.
+    this.apiKeyFC?.statusChanges.subscribe(status => {
+      if (this.apiKeyFC?.value) {
+        if (status === 'PENDING') {
+          this.apiKeyValidationMessage = 'Validating API key ...';
+        } else if (status === 'VALID') {
+          this.apiKeyValidationMessage = 'The API key is valid.';
+          this.openaiService.updateClient(this.apiKeyFC.value as string);
+        } else {
+          this.apiKeyValidationMessage = null;
+        }
+      }
+    });
   }
 
   addImageFiles(files: File[]): void {
@@ -195,16 +205,6 @@ export class AppComponent implements OnInit {
     snackBarRef.dismiss();
   }
 
-  private setApiKeyFromFile(file: File): void {
-    const reader = new FileReader();
-    reader.onload = () => {
-      let key = String(reader.result);
-      this.updateApiKey(null, key.trim());
-      // this.apiKey = key.trim();
-    };
-    reader.readAsText(file);
-  }
-
   private resizeImage(img: HTMLImageElement): any {
     // Resize image to fit into the image dimension requirements of the high-detail
     // setting of OpenAI's vision models.
@@ -253,29 +253,6 @@ export class AppComponent implements OnInit {
     canvas = null;
     return imgDetails;
   }
-
-  updateApiKey(event: any, key?: string) {
-    const newKey = key ? key : event?.target?.value ?? '';
-
-    if (newKey) {
-      if (newKey !== this.apiKey) {
-        this.openaiService.updateClient(newKey);
-        //this.openaiService.isValidApiKey(newKey);
-      }
-    }
-    this.apiKeyFormGroup.patchValue({apiKeyFC: newKey});
-    this.apiKey = newKey;
-  }
-
-  /*
-  updateApiKeyErrorMessage() {
-    if (this.apiKeyFC.hasError('required')) {
-      this.apiKeyErrorMessage = 'You must enter an API key';
-    } else {
-      this.apiKeyErrorMessage = '';
-    }
-  }
-  */
 
   removeImage(imageObj: any): void {
     const dialogRef = this.dialog.open(ConfirmActionDialogComponent, {
@@ -334,6 +311,32 @@ export class AppComponent implements OnInit {
 
   get apiKeyFC() {
     return this.apiKeyFormGroup.get('apiKeyFC');
+  }
+
+  loadApiKeyFromFile(files: File[]): void {
+    if (files.length) {
+      const file: File = files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        const newKey = String(reader.result).trim();
+        this.apiKeyFormGroup.patchValue({apiKeyFC: newKey});
+        this.apiKey = newKey;
+      };
+      reader.readAsText(file);
+    }
+  }
+
+  private apiKeyValidator(control: AbstractControl): Observable<ValidationErrors | null> {
+    if (!control.value) {
+      return of(null);
+    }
+    return this.openaiService.isValidApiKey(control.value).pipe(
+      debounceTime(500),
+      switchMap(isValid => {
+        return isValid ? of(null) : of({ invalidApiKey: true });
+      }),
+      catchError(() => of({ invalidApiKey: true }))
+    );
   }
 
 }

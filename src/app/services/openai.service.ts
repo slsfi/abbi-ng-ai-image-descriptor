@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { from, Observable } from 'rxjs';
 import OpenAI from 'openai';
 
 import { RequestSettings } from '../types/settingsTypes';
@@ -7,33 +8,29 @@ import { RequestSettings } from '../types/settingsTypes';
   providedIn: 'root'
 })
 export class OpenaiService {
+  apiKey: string = '';
   client: any = null;
 
-  constructor() { }
+  constructor() {}
 
   updateClient(apiKey: string, orgKey?: string) {
-    this.client = new OpenAI({
-      apiKey: apiKey,
-      dangerouslyAllowBrowser: true,
-      ...(orgKey && { organization: orgKey })
-    });
+    if (apiKey !== this.apiKey) {
+      this.apiKey = apiKey;
+      this.client = new OpenAI({
+        apiKey: apiKey,
+        dangerouslyAllowBrowser: true,
+        ...(orgKey && { organization: orgKey })
+      });
+    }
   }
 
-  async isValidApiKey(apiKey: string): Promise<boolean> {
+  isValidApiKey(apiKey: string): Observable<boolean> {
     const client = new OpenAI({
       apiKey: apiKey,
       dangerouslyAllowBrowser: true
     });
 
-    try {
-      const list = await client.models.list();
-      console.log(list);
-      this.client = client;
-      return true;
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
+    return from(client.models.list().then(() => true).catch(() => false));
   }
 
   async describeImage(settings: RequestSettings, base64Image: string): Promise<any> {
