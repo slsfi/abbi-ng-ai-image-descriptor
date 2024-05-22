@@ -3,6 +3,7 @@ import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators 
 import { RouterOutlet } from '@angular/router';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,9 +13,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatStepperModule } from '@angular/material/stepper';
 
 import { models } from '../assets/models';
+import { ConfirmActionDialogComponent } from './components/confirm-action-dialog/confirm-action-dialog.component';
 import { FileInputComponent } from './components/file-input/file-input.component';
 import { CharacterCountPipe } from './pipes/character-count.pipe';
 import { OpenaiService } from './services/openai.service';
@@ -58,7 +61,9 @@ export class AppComponent implements OnInit {
   });
   
   constructor(
+    public dialog: MatDialog,
     private _formBuilder: FormBuilder,
+    private _snackBar: MatSnackBar,
     private openaiService: OpenaiService
   ) {
     this.availableModels = models;
@@ -124,6 +129,12 @@ export class AppComponent implements OnInit {
         // Add the added, processed images to the images array
         this.imageFiles.push(...processedFiles);
         this.addingImages = false;
+        setTimeout(() => {
+          this.addImagesTotalFiles = 0;
+          this.addImagesProcessedCount = 0;
+          this.addImagesProgress = 0;
+        }, 1500);
+        
       });
     }
   }
@@ -147,9 +158,20 @@ export class AppComponent implements OnInit {
   async generateImageDescriptionsAll() {
     this.apiError = false;
     this.generating = true;
+
+    let snackBarRef = this._snackBar.open('Generating ' + this.imageFiles.length + ' image description' + (this.imageFiles.length > 1 ? 's' : ''), 'Stop');
+
+    snackBarRef.onAction().subscribe(() => {
+      this.generating = false;
+    });
+
     const settings: RequestSettings = this.getSettings();
 
     for (const imageObj of this.imageFiles) {
+      if (!this.generating) {
+        // Generation has been stopped by user
+        break;
+      }
       imageObj.generating = true;
       try {
         const response = await this.openaiService.describeImage(settings, imageObj.base64Image);
@@ -170,6 +192,7 @@ export class AppComponent implements OnInit {
     }
   
     this.generating = false;
+    snackBarRef.dismiss();
   }
 
   private setApiKeyFromFile(file: File): void {
@@ -254,18 +277,48 @@ export class AppComponent implements OnInit {
   }
   */
 
-  removeImage(imageObj: any) {
-    let indexToRemove = -1;
-    for (let i = 0; i < this.imageFiles.length; i++) {
-      if (imageObj.id == this.imageFiles[i].id) {
-        indexToRemove = i;
-        break;
-      }
-    }
+  removeImage(imageObj: any): void {
+    const dialogRef = this.dialog.open(ConfirmActionDialogComponent, {
+      data: {
+        title: 'Remove image?',
+        body: 'This action cannot be undone.',
+        cancelLabel: 'Cancel',
+        confirmLabel: 'Remove'
+      },
+    });
 
-    if (indexToRemove > -1 && indexToRemove < this.imageFiles.length) {
-      this.imageFiles.splice(indexToRemove, 1);
-    }
+    dialogRef.afterClosed().subscribe((remove: boolean) => {
+      if (remove) {
+        let indexToRemove = -1;
+        for (let i = 0; i < this.imageFiles.length; i++) {
+          if (imageObj.id == this.imageFiles[i].id) {
+            indexToRemove = i;
+            break;
+          }
+        }
+
+        if (indexToRemove > -1 && indexToRemove < this.imageFiles.length) {
+          this.imageFiles.splice(indexToRemove, 1);
+        }
+      }
+    });
+  }
+
+  removeAllImages(): void {
+    const dialogRef = this.dialog.open(ConfirmActionDialogComponent, {
+      data: {
+        title: 'Remove all images?',
+        body: 'This action cannot be undone.',
+        cancelLabel: 'Cancel',
+        confirmLabel: 'Remove'
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((remove: boolean) => {
+      if (remove) {
+        this.imageFiles = [];
+      }
+    });
   }
 
   private getSettings(): RequestSettings {

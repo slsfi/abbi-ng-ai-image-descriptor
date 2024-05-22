@@ -27,6 +27,7 @@ export class OpenaiService {
 
     try {
       const list = await client.models.list();
+      console.log(list);
       this.client = client;
       return true;
     } catch (e) {
