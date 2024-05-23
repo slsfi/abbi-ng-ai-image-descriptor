@@ -17,7 +17,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatStepperModule } from '@angular/material/stepper';
 import { catchError, debounceTime, Observable, of, switchMap } from 'rxjs';
 
-import { models } from '../assets/models';
+import { models } from '../assets/config/models';
+import { prompts } from '../assets/config/prompts';
 import { ConfirmActionDialogComponent } from './components/confirm-action-dialog/confirm-action-dialog.component';
 import { FileInputComponent } from './components/file-input/file-input.component';
 import { CharacterCountPipe } from './pipes/character-count.pipe';

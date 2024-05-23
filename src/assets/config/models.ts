@@ -1,4 +1,4 @@
-import { Models } from '../app/types/model.types'
+import { Models } from '../../app/types/model.types'
 
 // provider = name of model creator
 // name = display name of the model
