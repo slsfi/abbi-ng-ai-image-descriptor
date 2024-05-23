@@ -22,14 +22,14 @@
 
       <div class="settings-column-wrapper">
         <div class="parameters-wrapper">
-          <h3>Image description settings</h3>
+          <h3>a) Image description settings</h3>
           <div class="form-field-wrapper">
             <mat-form-field appearance="outline">
               <mat-label>Language</mat-label>
-              <mat-select [(ngModel)]="selectedLanguage" name="language">
-                <mat-option value="sv">Svenska</mat-option>
-                <mat-option value="fi">Suomi</mat-option>
-                <mat-option value="en">English</mat-option>
+              <mat-select [(ngModel)]="selectedLanguage" (selectionChange)="onLanguageChange()" name="language">
+                @for (language of languages; track language.code) {
+                  <mat-option [value]="language.code">{{ language.name }}</mat-option>
+                }
               </mat-select>
             </mat-form-field>
           </div>
@@ -54,13 +54,14 @@
         </div>
 
         <div class="parameters-wrapper">
-          <h3>Prompt settings</h3>
+          <h3>b) Prompt settings</h3>
           <div class="form-field-wrapper">
             <mat-form-field appearance="outline">
               <mat-label>Prompt template</mat-label>
               <mat-select [(ngModel)]="selectedPromptTemplate" name="promptTemplate">
-                <mat-option value="altText">Alt text</mat-option>
-                <mat-option value="metadata">Metadata</mat-option>
+                @for (template of promptTemplates; track template.type) {
+                  <mat-option [value]="template.type">{{ template.type }}</mat-option>
+                }
               </mat-select>
             </mat-form-field>
             <!--
@@ -74,7 +75,7 @@
         </div>
 
         <div class="parameters-wrapper">
-          <h3>Model settings</h3>
+          <h3>c) Model settings</h3>
           <div class="form-field-wrapper">
             <mat-form-field appearance="outline">
               <mat-label>AI-model</mat-label>

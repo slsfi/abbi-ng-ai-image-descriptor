@@ -48,10 +48,12 @@ export class AppComponent implements OnInit {
   hideApiKey: boolean = true;
   imageFiles: any[] = [];
   includeFilename: boolean = true;
+  languages: any[] = [];
+  promptTemplates: any[] = [];
   selectedDescLength: number = 300;
   selectedLanguage: string = 'sv';
   selectedModel: Model | null = null;
-  selectedPromptTemplate: string = 'altText';
+  selectedPromptTemplate: string = 'Alt text';
   selectedTemperature: number = 1.0;
   temperatureMax: number = 2.0;
   temperatureMin: number = 0.0;
@@ -79,6 +81,10 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Get the available languages from prompts array
+    this.languages = prompts.map(p => ({ code: p.languageCode, name: p.languageDisplayName }));
+    this.initializePromptTemplates();
+
     // Update the API key and OpenAI client in the OpenaiService
     // when the value of the API key form field changes and the
     // entered key is valid.
@@ -94,6 +100,24 @@ export class AppComponent implements OnInit {
         }
       }
     });
+  }
+
+  private initializePromptTemplates() {
+    const defaultLanguagePrompt = prompts.find(p => p.languageCode === this.selectedLanguage);
+    if (defaultLanguagePrompt) {
+      this.promptTemplates = defaultLanguagePrompt.promptOptions;
+      const defaultTemplate = defaultLanguagePrompt.promptOptions.find(t => t.type === 'Alt text');
+      this.selectedPromptTemplate = defaultTemplate ? 'Alt text' : defaultLanguagePrompt.promptOptions[0].type;
+    }
+  }
+
+  onLanguageChange() {
+    const selectedPrompt = prompts.find(p => p.languageCode === this.selectedLanguage);
+    if (selectedPrompt) {
+      this.promptTemplates = selectedPrompt.promptOptions;
+      const defaultTemplate = selectedPrompt.promptOptions.find(t => t.type === 'Alt text');
+      this.selectedPromptTemplate = defaultTemplate ? 'Alt text' : selectedPrompt.promptOptions[0].type;
+    }
   }
 
   addImageFiles(files: File[]): void {

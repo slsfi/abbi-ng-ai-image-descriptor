@@ -3,7 +3,7 @@ import { Prompts } from "../../app/types/prompt.types"
 export const prompts: Prompts = [
   {
     languageCode: 'sv',
-    languageDisplayName: 'Svenska',
+    languageDisplayName: 'Swedish (sv)',
     filenamePrompt: 'Bildens filnamn är {{FILENAME}}. Filnamnet kan innehålla värdefulla nyckelord, men observera att det saknar diakritiska tecken och kan innehålla irrelevanta sifferserier.',
     promptOptions: [
       {
@@ -18,7 +18,7 @@ export const prompts: Prompts = [
   },
   {
     languageCode: 'fi',
-    languageDisplayName: 'Suomi',
+    languageDisplayName: 'Finnish (fi)',
     filenamePrompt: 'Kuvan tiedostonimi on {{FILENAME}}. Tiedostonimi saattaa sisältää arvokkaita avainsanoja, mutta huomaa, ettei se sisälla diakriittisiä merkkejä ja voi sisältää irrelevantteja numerosarjoja.',
     promptOptions: [
       {
@@ -31,4 +31,15 @@ export const prompts: Prompts = [
       }
     ]
   },
+  {
+    languageCode: 'en',
+    languageDisplayName: 'English (en)',
+    filenamePrompt: 'Bildens filnamn är {{FILENAME}}. Filnamnet kan innehålla värdefulla nyckelord, men observera att det saknar diakritiska tecken och kan innehålla irrelevanta sifferserier.',
+    promptOptions: [
+      {
+        type: 'ISAD(G) metadata',
+        prompt: 'Beskriv på svenska vad bilden föreställer med högst {{MAX_LENGTH}} tecken, gärna kortare om möjligt. Beskrivningen ska fungera som metadata i ett arkivsystem så att bilden blir sökbar. Instruktioner: 1) Svara endast med själva beskrivningen av bilden, utan förklaringar eller konversation. 2) Börja inte med "Bilden föreställer" eller någon dylik fras, utan berätta vilken typ av bild det är, t.ex. ett foto (underförstått i färg), svartvitt foto, en målning, en ritning, en gravyr eller liknande. 3) Beskrivningen ska vara så kortfattad som möjlig, men samtidigt så detaljerad som bilden kräver. 4) Koncentrera dig på det centrala i bilden. 5) Undvik att tolka och spekulera.'
+      }
+    ]
+  }
 ]
