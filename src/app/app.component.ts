@@ -21,7 +21,7 @@ import { models } from '../assets/models';
 import { ConfirmActionDialogComponent } from './components/confirm-action-dialog/confirm-action-dialog.component';
 import { FileInputComponent } from './components/file-input/file-input.component';
 import { CharacterCountPipe } from './pipes/character-count.pipe';
-import { OpenaiService } from './services/openai.service';
+import { OpenAiService } from './services/openai.service';
 import { Model, Models } from './types/modelTypes';
 import { RequestSettings } from './types/settingsTypes';
 
@@ -69,7 +69,7 @@ export class AppComponent implements OnInit {
     public dialog: MatDialog,
     private _formBuilder: FormBuilder,
     private _snackBar: MatSnackBar,
-    private openaiService: OpenaiService
+    private openaiService: OpenAiService
   ) {
     this.availableModels = models;
     // Set preselected model to first of available models with

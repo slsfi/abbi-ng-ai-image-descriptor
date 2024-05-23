@@ -7,9 +7,10 @@ import { RequestSettings } from '../types/settingsTypes';
 @Injectable({
   providedIn: 'root'
 })
-export class OpenaiService {
+export class OpenAiService {
   apiKey: string = '';
   client: any = null;
+  modelList: any[] = [];
 
   constructor() {}
 
@@ -30,7 +31,15 @@ export class OpenaiService {
       dangerouslyAllowBrowser: true
     });
 
-    return from(client.models.list().then(() => true).catch(() => false));
+    return from(
+      client.models.list().then(
+        (result: any) => {
+          this.modelList = result.data;
+          // console.log(this.modelList);
+          return true;
+        }
+      ).catch(() => false)
+    );
   }
 
   async describeImage(settings: RequestSettings, base64Image: string): Promise<any> {
