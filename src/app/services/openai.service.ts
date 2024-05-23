@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { from, Observable } from 'rxjs';
 import OpenAI from 'openai';
 
-import { RequestSettings } from '../types/settingsTypes';
+import { RequestSettings } from '../types/settings.types';
 
 @Injectable({
   providedIn: 'root'

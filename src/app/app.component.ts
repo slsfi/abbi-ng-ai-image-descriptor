@@ -22,8 +22,8 @@ import { ConfirmActionDialogComponent } from './components/confirm-action-dialog
 import { FileInputComponent } from './components/file-input/file-input.component';
 import { CharacterCountPipe } from './pipes/character-count.pipe';
 import { OpenAiService } from './services/openai.service';
-import { Model, Models } from './types/modelTypes';
-import { RequestSettings } from './types/settingsTypes';
+import { Model, Models } from './types/model.types';
+import { RequestSettings } from './types/settings.types';
 
 @Component({
   selector: 'app-root',
@@ -303,7 +303,8 @@ export class AppComponent implements OnInit {
       temperature: this.selectedTemperature,
       language: this.selectedLanguage,
       maxLength: this.selectedDescLength,
-      promptTemplate: this.selectedPromptTemplate
+      promptTemplate: this.selectedPromptTemplate,
+      includeFilename: this.includeFilename
     }
     return settings;
   }
