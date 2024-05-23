@@ -22,62 +22,6 @@
 
       <div class="settings-column-wrapper">
         <div class="parameters-wrapper">
-          <h3>Model settings</h3>
-          <div class="form-field-wrapper">
-            <mat-form-field appearance="outline">
-              <mat-label>AI-model</mat-label>
-              <mat-select [(ngModel)]="selectedModel" name="model">
-                @for (model of availableModels; track model.id) {
-                  <mat-option [value]="model">{{model.provider}} {{model.name}}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-          </div>
-
-          <div class="form-field-wrapper">
-            <mat-form-field appearance="outline">
-              <mat-label>Prompt template</mat-label>
-              <mat-select [(ngModel)]="selectedPromptTemplate" name="promptTemplate">
-                <mat-option value="altText">Alt text</mat-option>
-                <mat-option value="metadata">Metadata</mat-option>
-              </mat-select>
-            </mat-form-field>
-            <!--
-            <button class="adj-button" mat-stroked-button>Edit prompt</button>
-            -->
-          </div>
-
-          <div class="form-field-wrapper">
-            <mat-slide-toggle color="primary" [(ngModel)]="includeFilename">Include image filename in prompt</mat-slide-toggle>
-          </div>
-
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                Advanced model settings
-              </mat-panel-title>
-            </mat-expansion-panel-header>
-            <div class="form-field-wrapper">
-              <div class="slider-wrapper">
-                <div class="slider-label-wrapper">
-                  <label id="temp-slider-label" class="slider-label">Temperature:</label>
-                  <label class="slider-value-label">{{temperatureSlider.value}}</label>
-                </div>
-                <mat-slider
-                    [max]="temperatureMax"
-                    [min]="temperatureMin"
-                    [step]="0.1"
-                    [discrete]="true"
-                    [showTickMarks]="true"
-                >
-                  <input matSliderThumb [(ngModel)]="selectedTemperature" #temperatureSlider>
-                </mat-slider>
-              </div>
-            </div>
-          </mat-expansion-panel>
-        </div>
-
-        <div class="parameters-wrapper">
           <h3>Image description settings</h3>
           <div class="form-field-wrapper">
             <mat-form-field appearance="outline">
@@ -107,6 +51,65 @@
               </mat-slider>
             </div>
           </div>
+        </div>
+
+        <div class="parameters-wrapper">
+          <h3>Prompt settings</h3>
+          <div class="form-field-wrapper">
+            <mat-form-field appearance="outline">
+              <mat-label>Prompt template</mat-label>
+              <mat-select [(ngModel)]="selectedPromptTemplate" name="promptTemplate">
+                <mat-option value="altText">Alt text</mat-option>
+                <mat-option value="metadata">Metadata</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <!--
+            <button class="adj-button" mat-stroked-button>Edit prompt</button>
+            -->
+          </div>
+
+          <div class="form-field-wrapper">
+            <mat-slide-toggle color="primary" [(ngModel)]="includeFilename">Include image filename in prompt</mat-slide-toggle>
+          </div>
+        </div>
+
+        <div class="parameters-wrapper">
+          <h3>Model settings</h3>
+          <div class="form-field-wrapper">
+            <mat-form-field appearance="outline">
+              <mat-label>AI-model</mat-label>
+              <mat-select [(ngModel)]="selectedModel" name="model">
+                @for (model of availableModels; track model.id) {
+                  <mat-option [value]="model">{{model.provider}} {{model.name}}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                Advanced model settings
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <div class="form-field-wrapper">
+              <div class="slider-wrapper">
+                <div class="slider-label-wrapper">
+                  <label id="temp-slider-label" class="slider-label">Temperature:</label>
+                  <label class="slider-value-label">{{temperatureSlider.value}}</label>
+                </div>
+                <mat-slider
+                    [max]="temperatureMax"
+                    [min]="temperatureMin"
+                    [step]="0.1"
+                    [discrete]="true"
+                    [showTickMarks]="true"
+                >
+                  <input matSliderThumb [(ngModel)]="selectedTemperature" #temperatureSlider>
+                </mat-slider>
+              </div>
+            </div>
+          </mat-expansion-panel>
         </div>
       </div>
 

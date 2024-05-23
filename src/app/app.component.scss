@@ -70,16 +70,25 @@ mat-slide-toggle.mat-mdc-slide-toggle {
 }
 
 .settings-column-wrapper {
+  column-gap: 3rem;
   display: flex;
   flex-flow: row wrap;
-  column-gap: 8rem;
+  justify-content: space-between;
   row-gap: 0;
+
+  @media (max-width: 1110px) {
+    justify-content: flex-start;
+  }
 }
 
 .parameters-wrapper {
   > mat-form-field,
   > .form-field-wrapper {
     margin-bottom: 1rem;
+
+    + mat-expansion-panel.mat-expansion-panel {
+      margin-top: -1rem;
+    }
   }
 }
 
