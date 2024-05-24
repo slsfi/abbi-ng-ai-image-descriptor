@@ -69,7 +69,7 @@ export class OpenAiService {
           }
         ],
         temperature: settings?.temperature ?? null,
-        max_tokens: settings?.maxLength ? settings?.maxLength + 100 : null
+        max_tokens: settings?.descriptionLength ? settings?.descriptionLength + 100 : null
       };
       console.log(payload);
       const response = await this.client.chat.completions.create(payload);

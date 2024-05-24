@@ -1,10 +1,10 @@
 import { Model } from "./model.types";
 
 export type RequestSettings = {
-  model: Model | null;
+  model?: Model;
   temperature: number;
   language: string;
-  maxLength: number;
+  descriptionLength: number;
   promptTemplate: string;
   includeFilename: boolean;
 };

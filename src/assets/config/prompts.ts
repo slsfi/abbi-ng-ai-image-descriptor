@@ -3,7 +3,7 @@ import { Prompts } from "../../app/types/prompt.types"
 export const prompts: Prompts = [
   {
     languageCode: 'sv',
-    languageDisplayName: 'Swedish (sv)',
+    languageDisplayName: 'Swedish',
     filenamePrompt: 'Bildens filnamn är {{FILENAME}}. Filnamnet kan innehålla användbara namn eller nyckelord, men observera att det saknar diakritiska tecken och kan innehålla irrelevanta sifferserier.',
     promptOptions: [
       {
@@ -18,7 +18,7 @@ export const prompts: Prompts = [
   },
   {
     languageCode: 'fi',
-    languageDisplayName: 'Finnish (fi)',
+    languageDisplayName: 'Finnish',
     filenamePrompt: 'Kuvan tiedostonimi on {{FILENAME}}. Tiedostonimi saattaa sisältää arvokkaita avainsanoja, mutta huomaa, ettei se sisälla diakriittisiä merkkejä ja voi sisältää irrelevantteja numerosarjoja.',
     promptOptions: [
       {
@@ -33,7 +33,7 @@ export const prompts: Prompts = [
   },
   {
     languageCode: 'en',
-    languageDisplayName: 'English (en)',
+    languageDisplayName: 'English',
     filenamePrompt: 'The filename of the image is {{FILENAME}}. The filename can contain useful names or keywords, but notice that the letters lack diacritics and the filename can contain irrelevant series of numbers.',
     promptOptions: [
       {

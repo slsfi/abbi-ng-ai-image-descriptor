@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { AbstractControl, FormBuilder, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -23,6 +24,8 @@ import { ConfirmActionDialogComponent } from './components/confirm-action-dialog
 import { FileInputComponent } from './components/file-input/file-input.component';
 import { CharacterCountPipe } from './pipes/character-count.pipe';
 import { OpenAiService } from './services/openai.service';
+import { descriptionData } from './types/description-data.types';
+import { imageData } from './types/image-data.types';
 import { Model, Models } from './types/model.types';
 import { Prompt, PromptOption } from './types/prompt.types';
 import { RequestSettings } from './types/settings.types';
@@ -30,7 +33,7 @@ import { RequestSettings } from './types/settings.types';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatExpansionModule, MatIconModule, MatInputModule, MatFormFieldModule, MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, MatSlideToggleModule, MatStepperModule, FileInputComponent, CharacterCountPipe],
+  imports: [DecimalPipe, FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatExpansionModule, MatIconModule, MatInputModule, MatFormFieldModule, MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, MatSlideToggleModule, MatStepperModule, FileInputComponent, CharacterCountPipe],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
@@ -47,17 +50,18 @@ export class AppComponent implements OnInit {
   descLengthMin: number = 150;
   generating: boolean = false;
   hideApiKey: boolean = true;
-  imageFiles: any[] = [];
+  imageFiles: imageData[] = [];
   includeFilename: boolean = true;
   languages: any[] = [];
   promptTemplates: any[] = [];
   selectedDescLength: number = 300;
   selectedLanguage: string = 'sv';
-  selectedModel: Model | null = null;
+  selectedModel?: Model = undefined;
   selectedPromptTemplate: string = 'Alt text';
   selectedTemperature: number = 1.0;
   temperatureMax: number = 2.0;
   temperatureMin: number = 0.0;
+  totalCost: number = 0;
 
   apiKeyErrorMessage: string = '';
 
@@ -127,7 +131,7 @@ export class AppComponent implements OnInit {
       this.addImagesTotalFiles = files.length;
       this.addImagesProgress = 0;
       this.addingImages = true;
-      const processedFiles: any[] = [];
+      const processedFiles: imageData[] = [];
 
       // Process the selected files
       const promises = Array.from(files).map((file, index) => {
@@ -145,13 +149,14 @@ export class AppComponent implements OnInit {
                 base64Image: resizedImgDetails.base64,
                 height: resizedImgDetails.height,
                 width: resizedImgDetails.width,
-                description: '',
+                descriptions: [],
+                activeDescriptionIndex: 0,
                 generating: false
               };
               
               // Update progress bar
               this.addImagesProcessedCount++;
-              this.addImagesProgress = Math.round((this.addImagesProcessedCount / this.addImagesTotalFiles) * 100);
+              this.addImagesProgress = Math.ceil((this.addImagesProcessedCount / this.addImagesTotalFiles) * 100);
 
               resolve();
             };
@@ -174,7 +179,7 @@ export class AppComponent implements OnInit {
     }
   }
 
-  async generateImageDescription(imageObj: any) {
+  async generateImageDescription(imageObj: imageData) {
     this.apiError = false;
     imageObj.generating = true;
     this.generating = true;
@@ -184,11 +189,22 @@ export class AppComponent implements OnInit {
 
     const response = await this.openaiService.describeImage(settings, prompt, imageObj.base64Image);
     console.log(response);
-    const respContent = response?.choices?.[0]?.message?.content ?? null;
+    const respContent = response?.choices?.[0]?.message?.content ?? '';
     if (!respContent) {
       this.apiError = true;
+    } else {
+      const cost = this.calculateCostFromResponse(settings.model, response?.usage);
+      this.totalCost += cost;
+      const newDescription: descriptionData = {
+        description: respContent,
+        model: settings.model?.id ?? '',
+        inputTokens: response?.usage?.prompt_tokens ?? 0,
+        outputTokens: response?.usage?.completion_tokens ?? 0,
+        cost: cost
+      };
+      imageObj.descriptions.push(newDescription);
+      imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
     }
-    imageObj.description = respContent ?? '';
 
     imageObj.generating = false;
     this.generating = false;
@@ -217,11 +233,22 @@ export class AppComponent implements OnInit {
         const prompt: string = this.constructPrompt(promptTemplate, imageObj);
         const response = await this.openaiService.describeImage(settings, prompt, imageObj.base64Image);
         console.log(response);
-        const respContent = response?.choices?.[0]?.message?.content ?? null;
+        const respContent = response?.choices?.[0]?.message?.content ?? '';
         if (!respContent) {
           this.apiError = true;
+        } else {
+          const cost = this.calculateCostFromResponse(settings.model, response?.usage);
+          this.totalCost += cost;
+          const newDescription: descriptionData = {
+            description: respContent,
+            model: settings.model?.id ?? '',
+            inputTokens: response?.usage?.prompt_tokens ?? 0,
+            outputTokens: response?.usage?.completion_tokens ?? 0,
+            cost: cost
+          };
+          imageObj.descriptions.push(newDescription);
+          imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
         }
-        imageObj.description = respContent ?? '';
         // Handle the response as needed
       } catch (error) {
         this.apiError = true;
@@ -334,7 +361,7 @@ export class AppComponent implements OnInit {
       model: this.selectedModel,
       temperature: this.selectedTemperature,
       language: this.selectedLanguage,
-      maxLength: this.selectedDescLength,
+      descriptionLength: this.selectedDescLength,
       promptTemplate: this.selectedPromptTemplate,
       includeFilename: this.includeFilename
     }
@@ -360,6 +387,16 @@ export class AppComponent implements OnInit {
       prompt = prompt.replaceAll('{{FILENAME}}', imageObj.filename);
     }
     return prompt;
+  }
+
+  private calculateCostFromResponse(model?: Model, usage?: any): number {
+    if (model && usage) {
+      const inputCost: number = ((usage.prompt_tokens ?? 0) / 1000000.0) * model.inputPrice;
+      const outputCost: number = ((usage.completion_tokens ?? 0) / 1000000.0) * model.outputPrice;
+      return inputCost + outputCost;
+    } else {
+      return 0;
+    }
   }
 
   loadApiKeyFromFile(files: File[]): void {

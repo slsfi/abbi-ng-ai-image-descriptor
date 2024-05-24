@@ -13,7 +13,7 @@
   <div class="main-wrapper">
     <div class="intro-wrapper">
       <p>aBBi (“AI-bildbeskrivningar”) is a web app for generating image descriptions (e.g. alt texts) using AI.</p>
-      <p>Start by defining your parameters for the process, then select image files from your computer, and finally generate descriptions for them. You can download the descriptions as a CSV-file or copy them to the clipboard individually.</p>
+      <p>Start by defining your settings for the process and providing your API key, then select image files from your computer, and finally generate descriptions of them. You can download the descriptions in different formats or copy them to the clipboard individually.</p>
     </div>
   
     <mat-stepper orientation="horizontal" [linear]="true" #stepper>
@@ -191,7 +191,10 @@
         <h2>Generate image descriptions</h2>
         <!--<p>{{apiKeyFC?.value}}</p>-->
         <div class="generate-desc-wrapper">
-          <button mat-flat-button color="primary" (click)="generateImageDescriptionsAll()" [disabled]="generating || imageFiles.length < 1">Generate all ({{ imageFiles.length }} {{ imageFiles.length > 1 ? 'images' : 'image' }})</button>
+          <div class="buttons-row">
+            <button mat-flat-button color="primary" (click)="generateImageDescriptionsAll()" [disabled]="generating || imageFiles.length < 1">Generate all ({{ imageFiles.length }} {{ imageFiles.length > 1 ? 'images' : 'image' }})</button>
+            <div class="right-aligned">Cumulative cost: ${{ this.totalCost | number }}</div>
+          </div>
   
           <div class="buttons-row">
             <div class="export-buttons">
@@ -220,18 +223,18 @@
                     <span class="loading-wrapper">
                       <mat-spinner [diameter]="32"></mat-spinner><span class="spinner-label">Generating image description ...</span>
                     </span>
-                  } @else if (!file.description) {
+                  } @else if (file.descriptions.length < 1) {
                     <span class="not-generated">No description generated.</span>
                   } @else {
                     <span class="description-text">
-                      {{ file.description }}
+                      {{ file.descriptions[file.activeDescriptionIndex].description }}
                     </span>
-                    <span class="description-metadata">Length: {{ file.description | characterCount }} characters</span>
+                    <span class="description-metadata">Length: {{ file.descriptions[file.activeDescriptionIndex].description | characterCount }} characters</span>
                   }
                 </td>
                 <td class="actions">
-                  <button mat-stroked-button (click)="generateImageDescription(file)" [disabled]="generating" [innerHTML]="file.description ? 'Regenerate' : 'Generate'"></button>
-                  <button mat-stroked-button [cdkCopyToClipboard]="file.description" [disabled]="generating || !file.description">Copy</button>
+                  <button mat-stroked-button (click)="generateImageDescription(file)" [disabled]="generating" [innerHTML]="file.descriptions.length > 0 ? 'Regenerate' : 'Generate'"></button>
+                  <button mat-stroked-button [cdkCopyToClipboard]="file.descriptions.length > 0 ? file.descriptions[file.activeDescriptionIndex].description : ''" [disabled]="generating || file.descriptions.length < 1">Copy</button>
                   <button mat-stroked-button color="warn" (click)="removeImage(file)" [disabled]="generating">Remove image</button>
                 </td>
               </tr>
