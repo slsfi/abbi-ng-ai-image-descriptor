@@ -24,6 +24,7 @@ import { FileInputComponent } from './components/file-input/file-input.component
 import { CharacterCountPipe } from './pipes/character-count.pipe';
 import { OpenAiService } from './services/openai.service';
 import { Model, Models } from './types/model.types';
+import { Prompt, PromptOption } from './types/prompt.types';
 import { RequestSettings } from './types/settings.types';
 
 @Component({
@@ -178,28 +179,33 @@ export class AppComponent implements OnInit {
     imageObj.generating = true;
     this.generating = true;
     const settings: RequestSettings = this.getSettings();
-    const response = await this.openaiService.describeImage(settings, imageObj.base64Image);
-    imageObj.generating = false;
-    this.generating = false;
+    const promptTemplate: string = this.constructPromptTemplate();
+    const prompt: string = this.constructPrompt(promptTemplate, imageObj);
+
+    const response = await this.openaiService.describeImage(settings, prompt, imageObj.base64Image);
     console.log(response);
     const respContent = response?.choices?.[0]?.message?.content ?? null;
     if (!respContent) {
       this.apiError = true;
     }
     imageObj.description = respContent ?? '';
+
+    imageObj.generating = false;
+    this.generating = false;
   }
 
   async generateImageDescriptionsAll() {
     this.apiError = false;
     this.generating = true;
 
+    const settings: RequestSettings = this.getSettings();
+    const promptTemplate: string = this.constructPromptTemplate();
+
     let snackBarRef = this._snackBar.open('Generating ' + this.imageFiles.length + ' image description' + (this.imageFiles.length > 1 ? 's' : ''), 'Stop');
 
     snackBarRef.onAction().subscribe(() => {
       this.generating = false;
     });
-
-    const settings: RequestSettings = this.getSettings();
 
     for (const imageObj of this.imageFiles) {
       if (!this.generating) {
@@ -208,7 +214,8 @@ export class AppComponent implements OnInit {
       }
       imageObj.generating = true;
       try {
-        const response = await this.openaiService.describeImage(settings, imageObj.base64Image);
+        const prompt: string = this.constructPrompt(promptTemplate, imageObj);
+        const response = await this.openaiService.describeImage(settings, prompt, imageObj.base64Image);
         console.log(response);
         const respContent = response?.choices?.[0]?.message?.content ?? null;
         if (!respContent) {
@@ -334,8 +341,25 @@ export class AppComponent implements OnInit {
     return settings;
   }
 
-  get apiKeyFC() {
-    return this.apiKeyFormGroup.get('apiKeyFC');
+  private constructPromptTemplate(): string {
+    let promptTemplate: string = '';
+    const promptData: Prompt | null = prompts.find(p => p.languageCode === this.selectedLanguage) || null;
+    if (promptData) {
+      const selectedPromptOption = promptData.promptOptions.find((t: PromptOption) => t.type === this.selectedPromptTemplate);
+      promptTemplate = selectedPromptOption?.prompt ?? '';
+      if (this.includeFilename && promptTemplate) {
+        promptTemplate = promptTemplate + ' ' + promptData.filenamePrompt;
+      }
+    }
+    return promptTemplate;
+  }
+
+  private constructPrompt(prontTemplate: string, imageObj: any): string {
+    let prompt: string = prontTemplate.replaceAll('{{DESC_LENGTH}}', String(this.selectedDescLength));
+    if (this.includeFilename && prompt) {
+      prompt = prompt.replaceAll('{{FILENAME}}', imageObj.filename);
+    }
+    return prompt;
   }
 
   loadApiKeyFromFile(files: File[]): void {
@@ -361,6 +385,10 @@ export class AppComponent implements OnInit {
       }),
       catchError(() => of({ invalidApiKey: true }))
     );
+  }
+
+  get apiKeyFC() {
+    return this.apiKeyFormGroup.get('apiKeyFC');
   }
 
 }

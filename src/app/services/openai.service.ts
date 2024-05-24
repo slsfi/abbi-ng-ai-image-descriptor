@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { from, Observable } from 'rxjs';
 import OpenAI from 'openai';
 
+import { Prompt } from '../types/prompt.types';
 import { RequestSettings } from '../types/settings.types';
 
 @Injectable({
@@ -42,7 +43,11 @@ export class OpenAiService {
     );
   }
 
-  async describeImage(settings: RequestSettings, base64Image: string): Promise<any> {
+  async describeImage(settings: RequestSettings, prompt: string, base64Image: string): Promise<any> {
+    console.log('Prompt:', prompt);
+    if (!prompt) {
+      return { error: 'Missing prompt' }
+    }
     try {
       const payload = {
         model: settings?.model?.id ?? 'gpt-4o',
@@ -52,7 +57,7 @@ export class OpenAiService {
             content: [
               {
                 type: 'text',
-                text: 'Describe what this image depicts in about 300 characters.' },
+                text: prompt },
               {
                 type: 'image_url',
                 image_url: {

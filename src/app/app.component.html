@@ -37,7 +37,7 @@
           <div class="form-field-wrapper">
             <div class="slider-wrapper">
               <div class="slider-label-wrapper">
-                <label id="len-slider-label" class="slider-label">Max length:</label>
+                <label id="len-slider-label" class="slider-label">Approximate length:</label>
                 <label class="slider-value-label">{{descLengthSlider.value}} characters</label>
               </div>
               <mat-slider
@@ -219,7 +219,7 @@
                     <mat-spinner [diameter]="32"></mat-spinner><span class="spinner-label">Generating image description ...</span>
                   </span>
                 } @else if (!file.description) {
-                  <span class="not-generated">No description generated yet.</span>
+                  <span class="not-generated">No description generated.</span>
                 } @else {
                   <span class="description-text">
                     {{ file.description }}
