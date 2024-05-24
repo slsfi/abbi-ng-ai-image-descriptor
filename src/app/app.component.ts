@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
+import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -16,6 +16,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatStepperModule } from '@angular/material/stepper';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { catchError, debounceTime, Observable, of, switchMap } from 'rxjs';
 
 import { models } from '../assets/config/models';
@@ -33,7 +34,7 @@ import { RequestSettings } from './types/settings.types';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatExpansionModule, MatIconModule, MatInputModule, MatFormFieldModule, MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, MatSlideToggleModule, MatStepperModule, FileInputComponent, CharacterCountPipe],
+  imports: [DecimalPipe, FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatExpansionModule, MatIconModule, MatInputModule, MatFormFieldModule, MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, MatSlideToggleModule, MatStepperModule, MatTooltipModule, FileInputComponent, CharacterCountPipe],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
@@ -46,7 +47,7 @@ export class AppComponent implements OnInit {
   apiError: boolean = false;
   apiKeyValidationMessage: string | null = null;
   availableModels: Models = [];
-  descLengthMax: number = 450;
+  descLengthMax: number = 350;
   descLengthMin: number = 150;
   generating: boolean = false;
   hideApiKey: boolean = true;
@@ -54,7 +55,7 @@ export class AppComponent implements OnInit {
   includeFilename: boolean = true;
   languages: any[] = [];
   promptTemplates: any[] = [];
-  selectedDescLength: number = 300;
+  selectedDescLength: number = 250;
   selectedLanguage: string = 'sv';
   selectedModel?: Model = undefined;
   selectedPromptTemplate: string = 'Alt text';
@@ -76,6 +77,7 @@ export class AppComponent implements OnInit {
   constructor(
     public dialog: MatDialog,
     private _formBuilder: FormBuilder,
+    private matIconReg: MatIconRegistry,
     private _snackBar: MatSnackBar,
     private openaiService: OpenAiService
   ) {
@@ -86,6 +88,9 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Set Angular Material to use the new Material Symbols icon font
+    this.matIconReg.setDefaultFontSetClass('material-symbols-outlined');
+
     // Get the available languages from prompts array
     this.languages = prompts.map(p => ({ code: p.languageCode, name: p.languageDisplayName }));
     this.initializePromptTemplates();
@@ -217,17 +222,23 @@ export class AppComponent implements OnInit {
     const settings: RequestSettings = this.getSettings();
     const promptTemplate: string = this.constructPromptTemplate();
 
-    let snackBarRef = this._snackBar.open('Generating ' + this.imageFiles.length + ' image description' + (this.imageFiles.length > 1 ? 's' : ''), 'Stop');
+    let snackBarRef = null;
 
-    snackBarRef.onAction().subscribe(() => {
-      this.generating = false;
-    });
+    let counter = 0;
 
     for (const imageObj of this.imageFiles) {
       if (!this.generating) {
         // Generation has been stopped by user
         break;
       }
+
+      counter++;
+      snackBarRef?.dismiss();
+      snackBarRef = this._snackBar.open('Generating image description ' + counter + '/' + this.imageFiles.length, 'Stop');
+      snackBarRef.onAction().subscribe(() => {
+        this.generating = false;
+      });
+
       imageObj.generating = true;
       try {
         const prompt: string = this.constructPrompt(promptTemplate, imageObj);
@@ -260,7 +271,7 @@ export class AppComponent implements OnInit {
     }
   
     this.generating = false;
-    snackBarRef.dismiss();
+    snackBarRef?.dismiss();
   }
 
   private resizeImage(img: HTMLImageElement): any {
@@ -352,6 +363,41 @@ export class AppComponent implements OnInit {
     dialogRef.afterClosed().subscribe((remove: boolean) => {
       if (remove) {
         this.imageFiles = [];
+      }
+    });
+  }
+
+  previousDescription(imageObj: imageData) {
+    if (imageObj.activeDescriptionIndex > 0) {
+      imageObj.activeDescriptionIndex--;
+    }
+  }
+
+  nextDescription(imageObj: imageData) {
+    if (imageObj.activeDescriptionIndex < imageObj.descriptions.length - 1) {
+      imageObj.activeDescriptionIndex++;
+    }
+  }
+
+  deleteDescription(imageObj: imageData) {
+    const dialogRef = this.dialog.open(ConfirmActionDialogComponent, {
+      data: {
+        title: 'Delete this description?',
+        body: 'This action cannot be undone.',
+        cancelLabel: 'Cancel',
+        confirmLabel: 'Delete'
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((remove: boolean) => {
+      if (remove) {
+        if (imageObj.descriptions.length > 0) {
+          const indexToRemove = imageObj.activeDescriptionIndex;
+          if (indexToRemove > -1 && indexToRemove < imageObj.descriptions.length) {
+            imageObj.descriptions.splice(indexToRemove, 1);
+            imageObj.activeDescriptionIndex = indexToRemove < 1 ? 0 : (indexToRemove > imageObj.descriptions.length - 1 ? indexToRemove - 1 : indexToRemove);
+          }
+        }
       }
     });
   }

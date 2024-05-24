@@ -143,7 +143,7 @@
               @if (apiKeyValidationMessage) {
                 <mat-hint [class.valid-api-key]="apiKeyFormGroup.valid">
                   @if (apiKeyFormGroup.valid) {
-                    <mat-icon aria-hidden="true" fontIcon="check"></mat-icon>
+                    <mat-icon aria-hidden="true">check</mat-icon>
                   }
                   {{ apiKeyValidationMessage }}
                 </mat-hint>
@@ -219,22 +219,67 @@
                   <span class="filename">{{ file.filename }}</span>
                 </td>
                 <td class="description">
-                  @if (file.generating) {
-                    <span class="loading-wrapper">
-                      <mat-spinner [diameter]="32"></mat-spinner><span class="spinner-label">Generating image description ...</span>
+                  <div class="description-wrapper" [class.actions-row]="file.descriptions.length > 0 && !file.generating">
+                    @if (file.descriptions.length > 0 && !file.generating) {
+                      <span class="description-actions" [class.hide]="file.generating || file.descriptions.length < 1">
+                        @if (file.descriptions.length > 1) {
+                          <button mat-icon-button color="primary"
+                                matTooltip="Show previous description"
+                                matTooltipPosition="above"
+                                aria-label="Previous description"
+                                [disabled]="file.activeDescriptionIndex < 1"
+                                (click)="previousDescription(file)"
+                          >
+                            <mat-icon>chevron_left</mat-icon>
+                          </button>
+                          <button mat-icon-button color="primary"
+                                matTooltip="Show next description"
+                                matTooltipPosition="above"
+                                aria-label="Next description"
+                                [disabled]="file.activeDescriptionIndex > file.descriptions.length - 2"
+                                (click)="nextDescription(file)"
+                          >
+                            <mat-icon>chevron_right</mat-icon>
+                          </button>
+                        }
+                        <button mat-icon-button color="primary"
+                              matTooltip="Copy description to clipboard"
+                              matTooltipPosition="above"
+                              class="copy-button"
+                              aria-label="Copy description to clipboard"
+                              [cdkCopyToClipboard]="file.descriptions.length > 0 ? file.descriptions[file.activeDescriptionIndex].description : ''"
+                        >
+                          <mat-icon>content_copy</mat-icon>
+                        </button>
+                        <button mat-icon-button
+                              matTooltip="Delete description"
+                              matTooltipPosition="above"
+                              class="right-aligned"
+                              aria-label="Delete description"
+                              (click)="deleteDescription(file)"
+                        >
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </span>
+                    }
+                    <span class="description-data">
+                      @if (file.generating) {
+                        <span class="loading-wrapper">
+                          <mat-spinner [diameter]="32"></mat-spinner><span class="spinner-label">Generating image description ...</span>
+                        </span>
+                      } @else if (file.descriptions.length < 1) {
+                        <span class="not-generated">No description generated.</span>
+                      } @else {
+                        <span class="description-text">
+                          {{ file.descriptions[file.activeDescriptionIndex].description }}
+                        </span>
+                        <span class="description-metadata">Length: {{ file.descriptions[file.activeDescriptionIndex].description | characterCount }} characters</span>
+                      }
                     </span>
-                  } @else if (file.descriptions.length < 1) {
-                    <span class="not-generated">No description generated.</span>
-                  } @else {
-                    <span class="description-text">
-                      {{ file.descriptions[file.activeDescriptionIndex].description }}
-                    </span>
-                    <span class="description-metadata">Length: {{ file.descriptions[file.activeDescriptionIndex].description | characterCount }} characters</span>
-                  }
+                  </div>
                 </td>
                 <td class="actions">
                   <button mat-stroked-button (click)="generateImageDescription(file)" [disabled]="generating" [innerHTML]="file.descriptions.length > 0 ? 'Regenerate' : 'Generate'"></button>
-                  <button mat-stroked-button [cdkCopyToClipboard]="file.descriptions.length > 0 ? file.descriptions[file.activeDescriptionIndex].description : ''" [disabled]="generating || file.descriptions.length < 1">Copy</button>
                   <button mat-stroked-button color="warn" (click)="removeImage(file)" [disabled]="generating">Remove image</button>
                 </td>
               </tr>

@@ -254,9 +254,33 @@ td {
   &.description {
     width: 100%;
 
+    .description-actions,
+    .description-data,
+    .not-generated,
     .description-text,
     .description-metadata {
       display: block;
+    }
+
+    .description-actions {
+      align-items: center;
+      display: flex;
+
+      &.hide {
+        opacity: 0;
+      }
+
+      .right-aligned {
+        margin-left: auto;
+      }
+
+      .copy-button:first-child {
+        margin-left: 0.25rem;
+      }
+    }
+
+    .description-data {
+      margin: 0 1.25rem;
     }
 
     .description-metadata {
