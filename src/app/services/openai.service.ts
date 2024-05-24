@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { from, Observable } from 'rxjs';
 import OpenAI from 'openai';
 
-import { Prompt } from '../types/prompt.types';
 import { RequestSettings } from '../types/settings.types';
 
 @Injectable({
@@ -13,7 +12,7 @@ export class OpenAiService {
   client: any = null;
   modelList: any[] = [];
 
-  constructor() {}
+  constructor() { }
 
   updateClient(apiKey: string, orgKey?: string) {
     if (apiKey !== this.apiKey) {

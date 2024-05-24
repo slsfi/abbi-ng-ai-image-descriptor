@@ -24,6 +24,7 @@ import { prompts } from '../assets/config/prompts';
 import { ConfirmActionDialogComponent } from './components/confirm-action-dialog/confirm-action-dialog.component';
 import { FileInputComponent } from './components/file-input/file-input.component';
 import { CharacterCountPipe } from './pipes/character-count.pipe';
+import { ExportService } from './services/export.service';
 import { OpenAiService } from './services/openai.service';
 import { descriptionData } from './types/description-data.types';
 import { imageData } from './types/image-data.types';
@@ -79,6 +80,7 @@ export class AppComponent implements OnInit {
     private _formBuilder: FormBuilder,
     private matIconReg: MatIconRegistry,
     private _snackBar: MatSnackBar,
+    private exportService: ExportService,
     private openaiService: OpenAiService
   ) {
     this.availableModels = models;
@@ -400,6 +402,16 @@ export class AppComponent implements OnInit {
         }
       }
     });
+  }
+
+  export(filetype: string) {
+    if (filetype == 'docx') {
+      this.exportService.generateDOCX(this.imageFiles);
+    } else if (filetype == 'csv') {
+      this.exportService.generateCSV(this.imageFiles);
+    } else if (filetype == 'tab') {
+      this.exportService.generateTAB(this.imageFiles);
+    }
   }
 
   private getSettings(): RequestSettings {
