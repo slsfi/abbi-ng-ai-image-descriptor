@@ -255,39 +255,55 @@ td {
     width: 100%;
 
     .description-actions,
-    .description-data,
-    .not-generated,
-    .description-text,
-    .description-metadata {
-      display: block;
+    .description-buttons-wrapper {
+      align-items: center;
+      display: flex;
     }
 
     .description-actions {
-      align-items: center;
-      display: flex;
+      column-gap: 2rem;
+      flex-wrap: wrap;
+      margin-top: 0.375rem;
 
-      &.hide {
-        opacity: 0;
-      }
-
-      .right-aligned {
-        margin-left: auto;
+      .description-counter {
+        color: #575757;
+        font-size: 0.875rem;
       }
 
       .copy-button:first-child {
         margin-left: 0.25rem;
       }
+
+      button.mdc-icon-button {
+        /* Reduces the size of mat-icon-buttons */
+        align-items: center;
+        display: flex;
+        height: 32px;
+        justify-content: center;
+        width: 32px;
+        padding: 0;
+
+        mat-icon {
+          font-size: 20px;
+          height: 20px;
+          width: 20px;
+          --mdc-icon-button-state-layer-size: 20px;
+        }
+
+        &.delete-button mat-icon {
+          color: #df0000;
+        }
+      }
     }
 
     .description-data {
-      margin: 0 1.25rem;
+      margin: 0 0.75rem;
     }
 
-    .description-metadata {
+    .description-length {
       color: #575757;
       font-size: 0.875rem;
-      margin-top: 0.375rem;
-      text-align: right;
+      margin: 0 0.75rem 0 auto;
     }
 
     .not-generated {
