@@ -1,0 +1,43 @@
+.file-upload {
+  margin: 1rem 0;
+
+  label {
+    background-color: rgb(63, 81, 181);
+    border-radius: 4px;
+    border-width: 0;
+    color: rgb(255, 255, 255);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    height: auto;
+    letter-spacing: 1.25px;
+    padding: 9.5px 16px;
+
+    &:hover {
+      background-color: rgba(63, 81, 181, 0.96);
+    }
+
+    &:active {
+      background-color: rgba(63, 81, 181, 0.88);
+    }
+
+    &.stroked {
+      background-color: transparent;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #000;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+      }
+  
+      &:active {
+        background-color: rgba(0, 0, 0, 0.12);
+      }
+    }
+  }
+
+  input[type="file"] {
+    opacity: 0;
+  }
+}

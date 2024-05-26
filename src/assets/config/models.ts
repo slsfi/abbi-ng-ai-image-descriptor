@@ -1,0 +1,28 @@
+import { Models } from '../../app/types/model.types'
+
+// provider = name of model creator
+// name = display name of the model
+// id = the API id or name of the model
+// inputPrice = $/1M tokens in prompt
+// outputPrice = $/1M tokens in model output
+// rpm = max requests per minute the model accepts at current usage tier
+// default = (optional) boolena indicating which model is the default
+export const models: Models = [
+  {
+    provider: "OpenAI",
+    name: "GPT-4o",
+    id: "gpt-4o",
+    inputPrice: 5.0,
+    outputPrice: 15.0,
+    rpm: 5000,
+    default: true
+  },
+  {
+    provider: "OpenAI",
+    name: "GPT-4-turbo (legacy)",
+    id: "gpt-4-turbo",
+    inputPrice: 10.0,
+    outputPrice: 30.0,
+    rpm: 500
+  }
+]

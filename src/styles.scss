@@ -1,1 +1,51 @@
 /* You can add global styles to this file, and also import other style files */
+
+html, body {
+  box-sizing: border-box;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background-color: #f2f3fc;
+}
+
+body {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+app-root {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.content-wrapper {
+  flex-grow: 1;
+}
+
+.footer-wrapper {
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+
+footer {
+  color: #313131;
+  font-size: 0.875rem;
+  margin: 0 auto;
+  max-width: 1200px;
+  text-align: center;
+  width: 100%;
+}
+
+/*
+  Allows aligning buttons vertically on the same row as a select by setting the select's
+  "hint and error" area below the select to zero height.   
+*/
+.buttons-row {
+  .mat-mdc-form-field-subscript-wrapper {
+    height: 0;
+  }
+}
