@@ -39,3 +39,13 @@ footer {
   text-align: center;
   width: 100%;
 }
+
+/*
+  Allows aligning buttons vertically on the same row as a select by setting the select's
+  "hint and error" area below the select to zero height.   
+*/
+.buttons-row {
+  .mat-mdc-form-field-subscript-wrapper {
+    height: 0;
+  }
+}

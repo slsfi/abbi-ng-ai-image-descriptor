@@ -197,19 +197,18 @@
           </div>
   
           <div class="buttons-row">
-            <div class="export-buttons">
-              <button mat-stroked-button
-                    [disabled]="generating || imageFiles.length < 1"
-              >Export (CSV)</button>
-              <button mat-stroked-button
-                    [disabled]="generating || imageFiles.length < 1"
-                    (click)="export('tab')"
-              >Export (TAB)</button>
-              <button mat-stroked-button
-                    [disabled]="generating || imageFiles.length < 1"
-                    (click)="export('docx')"
-              >Export (DOCX)</button>
-            </div>
+            <mat-form-field appearance="outline">
+              <mat-label>Export format</mat-label>
+              <mat-select [(ngModel)]="selectedExportFormat" name="exportFormat">
+                <mat-option value="docx">DOCX</mat-option>
+                <mat-option value="tab">TAB</mat-option>
+                <mat-option value="csv">CSV</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <button mat-stroked-button
+                  [disabled]="generating || imageFiles.length < 1"
+                  (click)="export()"
+            >Export</button>
             <button class="right-aligned" mat-stroked-button color="warn" [disabled]="generating" (click)="removeAllImages()">Remove all</button>
           </div>
   

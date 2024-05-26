@@ -14,14 +14,35 @@ export class ExportService {
   generateDOCX(imageFiles: imageData[], filename: string = 'image-descriptions.docx'): void {
     // Provide an options object with sections
     const doc = new Document({
+      styles: {
+        paragraphStyles: [
+          {
+            id: 'paragraph',
+            name: 'Paragraph',
+            next: 'paragraph',
+            quickFormat: true,
+            run: {
+              font: 'Cambria',
+              size: 24 // 12pt font size (24 half-points)
+            },
+            paragraph: {
+              spacing: {
+                after: 240, // 12pt spacing below (240 twips)
+                line: 300 // 1.25 line height (1.0 = 240)
+              }
+            }
+          }
+        ]
+      },
       sections: [{
         properties: {},
         children: imageFiles.map((imageObj: imageData) => {
           const descriptionObj = this.getActiveDescription(imageObj);
             return new Paragraph({
               children: [
-                new TextRun(imageObj.filename + ': ' + (descriptionObj?.description ?? ''))
+                new TextRun(imageObj.filename + ':\t' + (descriptionObj?.description ?? ''))
               ],
+              style: 'paragraph'
             });
           }
         )
@@ -34,39 +55,43 @@ export class ExportService {
   }
 
   generateCSV(imageFiles: imageData[], filename: string = 'image-descriptions.csv'): void {
-    const csvData = this.convertToCSV(imageFiles);
-    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8' });
+    const data = this.convertToDelimited(imageFiles, ',');
+    const blob = new Blob([data], { type: 'text/csv;charset=UTF-8' });
     this.initiateDownload(blob, filename);
   }
 
   generateTAB(imageFiles: imageData[], filename: string = 'image-descriptions.tab'): void {
-    let dataString = '';
-    imageFiles.forEach((imageObj: imageData) => {
-      const descriptionObj = this.getActiveDescription(imageObj);
-      const row = imageObj.filename + '\t' + (descriptionObj?.description ?? '') + '\n';
-      dataString += row;
-    });
-    const blob = new Blob([dataString], { type: 'text/tab-separated-values;charset=utf-8' });
+    const data = this.convertToDelimited(imageFiles, '\t');
+    const blob = new Blob([data], { type: 'text/tab-separated-values;charset=UTF-8' });
     this.initiateDownload(blob, filename);
   }
 
-  private convertToCSV(data: any[]): string {
-    const array = [Object.keys(data[0])].concat(data);
-    return array.map(row => this.convertRowToCSV(row)).join('\n');
+  private convertToDelimited(imageFiles: imageData[], delimiter: string): string {
+    // We are only interested in the image filename and description properties
+    let contentStr = '';
+    imageFiles.forEach((imageObj: imageData) => {
+      let description = this.getActiveDescription(imageObj)?.description ?? '';
+      description = description.replaceAll('"', '”');
+      description = this.escapeDelimitedValue(description, delimiter);
+      const filename = this.escapeDelimitedValue(imageObj.filename, delimiter);
+      contentStr += filename + delimiter + description + '\n';
+    });
+    return contentStr;
   }
 
-  private convertRowToCSV(row: any): string {
-    return Object.values(row).map(value => this.escapeCSVValue(value)).join(',');
-  }
-
-  private escapeCSVValue(value: any): string {
+  private escapeDelimitedValue(value: any, delimiter: string): string {
     if (value === null || value === undefined) {
       return '';
     }
 
-    let valueStr = value.toString();
-    if (valueStr.includes(',') || valueStr.includes('\n') || valueStr.includes('"')) {
-      valueStr = `"${valueStr.replace(/"/g, '""')}"`;
+    let valueStr = value.toString().replaceAll('\r', '').replaceAll('\n', ' ').replaceAll('\t', ' ');
+    if (
+      delimiter != '\t' &&
+      (
+        valueStr.includes(delimiter) || valueStr.includes('"')
+      )
+    ) {
+      valueStr = `"${valueStr.replaceAll('"', '""')}"`;
     }
 
     return valueStr;

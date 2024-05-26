@@ -57,6 +57,7 @@ export class AppComponent implements OnInit {
   languages: any[] = [];
   promptTemplates: any[] = [];
   selectedDescLength: number = 250;
+  selectedExportFormat: string = 'docx';
   selectedLanguage: string = 'sv';
   selectedModel?: Model = undefined;
   selectedPromptTemplate: string = 'Alt text';
@@ -404,12 +405,12 @@ export class AppComponent implements OnInit {
     });
   }
 
-  export(filetype: string) {
-    if (filetype == 'docx') {
+  export(): void {
+    if (this.selectedExportFormat == 'docx') {
       this.exportService.generateDOCX(this.imageFiles);
-    } else if (filetype == 'csv') {
+    } else if (this.selectedExportFormat == 'csv') {
       this.exportService.generateCSV(this.imageFiles);
-    } else if (filetype == 'tab') {
+    } else if (this.selectedExportFormat == 'tab') {
       this.exportService.generateTAB(this.imageFiles);
     }
   }
