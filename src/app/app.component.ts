@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { AbstractControl, FormBuilder, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
@@ -9,6 +9,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
@@ -16,8 +17,9 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatStepperModule } from '@angular/material/stepper';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { catchError, debounceTime, Observable, of, switchMap } from 'rxjs';
+import { catchError, debounceTime, Observable, of, Subscription, switchMap } from 'rxjs';
 
 import { models } from '../assets/config/models';
 import { prompts } from '../assets/config/prompts';
@@ -35,11 +37,11 @@ import { RequestSettings } from './types/settings.types';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatExpansionModule, MatIconModule, MatInputModule, MatFormFieldModule, MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, MatSlideToggleModule, MatStepperModule, MatTooltipModule, FileInputComponent, CharacterCountPipe],
+  imports: [DecimalPipe, FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatExpansionModule, MatIconModule, MatInputModule, MatFormFieldModule, MatPaginatorModule, MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, MatSlideToggleModule, MatStepperModule, MatTableModule, MatTooltipModule, FileInputComponent, CharacterCountPipe],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   addImagesIdCounter: number = 0;
   addImagesProcessedCount: number = 0;
   addImagesProgress: number = 0;
@@ -75,8 +77,15 @@ export class AppComponent implements OnInit {
       updateOn: 'blur' // Run async validator when the control loses focus
     })
   });
+
+  displayedColumns: string[] = ['imagePreview', 'description', 'actions'];
+  dataSource = new MatTableDataSource<imageData>(this.imageFiles);
+
+  private paginatorSubscription!: Subscription;
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
   
   constructor(
+    private cdr: ChangeDetectorRef,
     public dialog: MatDialog,
     private _formBuilder: FormBuilder,
     private matIconReg: MatIconRegistry,
@@ -113,6 +122,18 @@ export class AppComponent implements OnInit {
         }
       }
     });
+  }
+
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+    this.paginatorSubscription = this.paginator.page.subscribe((event: PageEvent) => {
+      console.log(event);
+      this.scrollToTableTop();
+    });
+  }
+
+  ngOnDestroy() {
+    this.paginatorSubscription?.unsubscribe();
   }
 
   private initializePromptTemplates() {
@@ -164,7 +185,7 @@ export class AppComponent implements OnInit {
               
               // Update progress bar
               this.addImagesProcessedCount++;
-              this.addImagesProgress = Math.ceil((this.addImagesProcessedCount / this.addImagesTotalFiles) * 100);
+              this.addImagesProgress = (this.addImagesProcessedCount / this.addImagesTotalFiles) * 100.0;
 
               resolve();
             };
@@ -176,6 +197,7 @@ export class AppComponent implements OnInit {
       Promise.all(promises).then(() => {
         // Add the added, processed images to the images array
         this.imageFiles.push(...processedFiles);
+        this.updateDataSource();
         this.addingImages = false;
         setTimeout(() => {
           this.addImagesTotalFiles = 0;
@@ -348,6 +370,7 @@ export class AppComponent implements OnInit {
 
         if (indexToRemove > -1 && indexToRemove < this.imageFiles.length) {
           this.imageFiles.splice(indexToRemove, 1);
+          this.updateDataSource();
         }
       }
     });
@@ -366,6 +389,7 @@ export class AppComponent implements OnInit {
     dialogRef.afterClosed().subscribe((remove: boolean) => {
       if (remove) {
         this.imageFiles = [];
+        this.updateDataSource();
       }
     });
   }
@@ -412,6 +436,18 @@ export class AppComponent implements OnInit {
       this.exportService.generateCSV(this.imageFiles);
     } else if (this.selectedExportFormat == 'tab') {
       this.exportService.generateTAB(this.imageFiles);
+    }
+  }
+
+  private updateDataSource(): void {
+    this.dataSource.data = [...this.imageFiles];
+    this.cdr.detectChanges();
+  }
+
+  private scrollToTableTop(): void {
+    const tableElement = document.querySelector('.table-wrapper');
+    if (tableElement) {
+      tableElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
 

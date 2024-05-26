@@ -189,10 +189,14 @@
       <!-- Step: Generate image descriptions -->
       <mat-step label="Generate descriptions">
         <h2>Generate image descriptions</h2>
-        <!--<p>{{apiKeyFC?.value}}</p>-->
-        <div class="generate-desc-wrapper">
+      
+        <div class="generate-desc-wrapper" [class.hide]="imageFiles.length < 1">
           <div class="buttons-row">
-            <button mat-flat-button color="primary" (click)="generateImageDescriptionsAll()" [disabled]="generating || imageFiles.length < 1">Generate all ({{ imageFiles.length }} {{ imageFiles.length > 1 ? 'images' : 'image' }})</button>
+            <button mat-flat-button
+                  color="primary"
+                  (click)="generateImageDescriptionsAll()"
+                  [disabled]="generating || imageFiles.length < 1"
+            >Generate all ({{ imageFiles.length }} {{ imageFiles.length > 1 ? 'images' : 'image' }})</button>
             <div class="right-aligned">Cumulative cost: ${{ this.totalCost | number }}</div>
           </div>
   
@@ -209,25 +213,29 @@
                   [disabled]="generating || imageFiles.length < 1"
                   (click)="export()"
             >Export</button>
-            <button class="right-aligned" mat-stroked-button color="warn" [disabled]="generating" (click)="removeAllImages()">Remove all</button>
+            <button mat-stroked-button
+                  class="right-aligned"
+                  color="warn"
+                  [disabled]="generating || imageFiles.length < 1"
+                  (click)="removeAllImages()"
+            >Remove all</button>
           </div>
-  
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">Image preview</th>
-                <th scope="col">Generated description</th>
-                <th scope="col">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-            @for (file of imageFiles; track file?.id) {
-              <tr>
-                <td class="preview-img">
+
+          <div class="table-wrapper">
+            <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 main-table">
+              <!-- Image preview column -->
+              <ng-container matColumnDef="imagePreview">
+                <th mat-header-cell *matHeaderCellDef>Image preview</th>
+                <td mat-cell *matCellDef="let file">
                   <img [src]="file.base64Image" [height]="file.height" [width]="file.width">
                   <span class="filename">{{ file.filename }}</span>
                 </td>
-                <td class="description">
+              </ng-container>
+  
+              <!-- Description column -->
+              <ng-container matColumnDef="description">
+                <th mat-header-cell *matHeaderCellDef>Generated description</th>
+                <td mat-cell *matCellDef="let file">
                   <div class="description-data">
                     @if (file.generating) {
                       <span class="loading-wrapper">
@@ -286,18 +294,34 @@
                     </div>
                   }
                 </td>
-                <td class="actions">
-                  <button mat-stroked-button (click)="generateImageDescription(file)" [disabled]="generating" [innerHTML]="file.descriptions.length > 0 ? 'Regenerate' : 'Generate'"></button>
-                  <button mat-stroked-button color="warn" (click)="removeImage(file)" [disabled]="generating">Remove image</button>
+              </ng-container>
+  
+              <!-- Actions column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let file">
+                  <button mat-stroked-button
+                        (click)="generateImageDescription(file)"
+                        [disabled]="generating"
+                        [innerHTML]="file.descriptions.length > 0 ? 'Regenerate' : 'Generate'"
+                  ></button>
+                  <button mat-stroked-button
+                        color="warn"
+                        (click)="removeImage(file)"
+                        [disabled]="generating"
+                  >Remove image</button>
                 </td>
-              </tr>
-            }
-            </tbody>
-          </table>
-          @if (imageFiles.length < 1) {
-            <p class="no-images">Go back to the previous step to add images</p>
-          }
+              </ng-container>
+  
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+            <mat-paginator [pageSizeOptions]="[10, 20, 50]" showFirstLastButtons aria-label="Select page"></mat-paginator>
+          </div>
         </div>
+        @if (imageFiles.length < 1) {
+          <p class="no-images">No images. Go back to the previous step to add some!</p>
+        }
         <div class="stepper-nav">
           <button mat-button color="primary" matStepperPrevious>Back</button>
           <button mat-button color="primary" (click)="stepper.reset()">Reset</button>
