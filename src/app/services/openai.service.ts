@@ -45,36 +45,42 @@ export class OpenAiService {
   async describeImage(settings: RequestSettings, prompt: string, base64Image: string): Promise<any> {
     // console.log('Prompt:', prompt);
     if (!prompt) {
-      return { error: 'Missing prompt' }
+      return { error: { status: 400, message: 'Missing prompt' }};
     }
-    try {
-      const payload = {
-        model: settings?.model?.id ?? 'gpt-4o',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: prompt },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: base64Image,
-                  detail: 'high'
-                },
+    const payload = {
+      model: settings?.model?.id ?? 'gpt-4o',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: prompt },
+            {
+              type: 'image_url',
+              image_url: {
+                url: base64Image,
+                detail: 'high'
               },
-            ],
-          }
-        ],
-        temperature: settings?.temperature ?? null,
-        max_tokens: settings?.descriptionLength ? settings?.descriptionLength + 100 : null
-      };
-      // console.log(payload);
-      const response = await this.client.chat.completions.create(payload);
-      return response;
-    } catch (e: any) {
-      return { error: e }
-    }
+            },
+          ],
+        }
+      ],
+      temperature: settings?.temperature ?? null,
+      max_tokens: settings?.descriptionLength ? settings?.descriptionLength + 100 : null
+    };
+    // console.log(payload);
+    const response = await this.client.chat.completions
+      .create(payload)
+      .catch(async (err: any) => {
+        if (err instanceof OpenAI.APIError) {
+          console.error('API Error:', err.status, err.name, err.headers);
+          return { error: { status: err.status, message: err.name }};
+        } else {
+          console.error('Unexpected Error:', err);
+          return { error: { status: 500, message: 'Internal Server Error' }};
+        }
+      });
+    return response;
   }
 }
