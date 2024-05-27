@@ -23,7 +23,7 @@ export class ExportService {
             quickFormat: true,
             run: {
               font: 'Cambria',
-              size: 24 // 12pt font size (24 half-points)
+              size: 22 // 11pt font size (22 half-points)
             },
             paragraph: {
               spacing: {
@@ -40,7 +40,11 @@ export class ExportService {
           const descriptionObj = this.getActiveDescription(imageObj);
             return new Paragraph({
               children: [
-                new TextRun(imageObj.filename + ':\t' + (descriptionObj?.description ?? ''))
+                new TextRun({
+                  text: imageObj.filename + ':',
+                  bold: true
+                }),
+                new TextRun(' ' + (descriptionObj?.description ?? ''))
               ],
               style: 'paragraph'
             });
