@@ -47,8 +47,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   addImagesProgress: number = 0;
   addImagesTotalFiles: number = 0;
   addingImages: boolean = false;
-  apiError: boolean = false;
-  apiKeyErrorMessage: string = '';
   apiKeyValidationMessage: string | null = null;
   availableModels: Models = [];
   currentPaginatorSize: number = 10;
@@ -200,45 +198,49 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   async generateImageDescription(imageObj: imageData) {
-    this.apiError = false;
     imageObj.generating = true;
     this.generating = true;
     const settings: RequestSettings = this.getSettings();
     const promptTemplate: string = this.constructPromptTemplate();
     const prompt: string = this.constructPrompt(promptTemplate, imageObj);
 
-    const response = await this.openaiService.describeImage(settings, prompt, imageObj.base64Image);
-    // console.log(response);
-    const respContent = response?.choices?.[0]?.message?.content ?? '';
-    if (!respContent) {
-      this.apiError = true;
-    } else {
-      const cost = this.calculateCostFromResponse(settings.model, response?.usage);
-      this.totalCost += cost;
-      const newDescription: descriptionData = {
-        description: respContent,
-        model: settings.model?.id ?? '',
-        inputTokens: response?.usage?.prompt_tokens ?? 0,
-        outputTokens: response?.usage?.completion_tokens ?? 0,
-        cost: cost
-      };
-      imageObj.descriptions.push(newDescription);
-      imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
-    }
+    try {
+      const response = await this.openaiService.describeImage(settings, prompt, imageObj.base64Image);
+      // console.log(response);
 
-    imageObj.generating = false;
-    this.generating = false;
+      const respContent = response?.choices?.[0]?.message?.content ?? '';
+      if (!respContent && response?.error) {
+        const e = response.error;
+        const eMessage = `Error communicating with the ${this.selectedModel?.provider} API: ${e.status} ${e.message}`;
+        this.showAPIErrorMessage(eMessage);
+      } else {
+        const cost = this.calculateCostFromResponse(settings.model, response?.usage);
+        this.totalCost += cost;
+        const newDescription: descriptionData = {
+          description: respContent,
+          model: settings.model?.id ?? '',
+          inputTokens: response?.usage?.prompt_tokens ?? 0,
+          outputTokens: response?.usage?.completion_tokens ?? 0,
+          cost: cost
+        };
+        imageObj.descriptions.push(newDescription);
+        imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
+      }
+    } catch (e: any) {
+      console.error(e);
+      this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${this.selectedModel?.provider} API.`);
+    } finally {
+      imageObj.generating = false;
+      this.generating = false;
+    }
   }
 
   async generateImageDescriptionsAll() {
-    this.apiError = false;
     this.generating = true;
-
     const settings: RequestSettings = this.getSettings();
     const promptTemplate: string = this.constructPromptTemplate();
 
     let snackBarRef = null;
-
     let counter = 0;
 
     for (const imageObj of this.imageFiles) {
@@ -255,13 +257,18 @@ export class AppComponent implements OnInit, AfterViewInit {
       });
 
       imageObj.generating = true;
+      const prompt: string = this.constructPrompt(promptTemplate, imageObj);
+
       try {
-        const prompt: string = this.constructPrompt(promptTemplate, imageObj);
         const response = await this.openaiService.describeImage(settings, prompt, imageObj.base64Image);
         // console.log(response);
+
         const respContent = response?.choices?.[0]?.message?.content ?? '';
-        if (!respContent) {
-          this.apiError = true;
+        if (!respContent && response?.error) {
+          const e = response.error;
+          const eMessage = `Error communicating with the ${this.selectedModel?.provider} API: ${e.status} ${e.message}`;
+          this.showAPIErrorMessage(eMessage);
+          this.generating = false;
         } else {
           const cost = this.calculateCostFromResponse(settings.model, response?.usage);
           this.totalCost += cost;
@@ -275,11 +282,10 @@ export class AppComponent implements OnInit, AfterViewInit {
           imageObj.descriptions.push(newDescription);
           imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
         }
-        // Handle the response as needed
-      } catch (error) {
-        this.apiError = true;
-        console.error('Error describing image:', error);
-        break;
+      } catch (e: any) {
+        console.error(e);
+        this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${this.selectedModel?.provider} API.`);
+        this.generating = false;
       } finally {
         imageObj.generating = false;
       }
@@ -498,6 +504,15 @@ export class AppComponent implements OnInit, AfterViewInit {
     } else {
       return 0;
     }
+  }
+
+  private showAPIErrorMessage(message: string): void {
+    const snackBarRef = this._snackBar.open(message, 'Dismiss', {
+      duration: 5000
+    });
+    snackBarRef?.onAction().subscribe(() => {
+      snackBarRef.dismiss();
+    });
   }
 
   loadApiKeyFromFile(files: File[]): void {
