@@ -453,7 +453,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private scrollToTableTop(): void {
     // Timeout necessary for the table data to be updated before scrolling window.
     setTimeout(() => {
-      const tableElement = document.querySelector('.table-wrapper');
+      const tableElement = document.querySelector('#generate-step-title');
       if (tableElement) {
         const y = Math.floor(
           tableElement.getBoundingClientRect().top
