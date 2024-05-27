@@ -43,7 +43,7 @@ export class OpenAiService {
   }
 
   async describeImage(settings: RequestSettings, prompt: string, base64Image: string): Promise<any> {
-    console.log('Prompt:', prompt);
+    // console.log('Prompt:', prompt);
     if (!prompt) {
       return { error: 'Missing prompt' }
     }
@@ -70,7 +70,7 @@ export class OpenAiService {
         temperature: settings?.temperature ?? null,
         max_tokens: settings?.descriptionLength ? settings?.descriptionLength + 100 : null
       };
-      console.log(payload);
+      // console.log(payload);
       const response = await this.client.chat.completions.create(payload);
       return response;
     } catch (e: any) {
