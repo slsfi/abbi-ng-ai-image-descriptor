@@ -316,7 +316,11 @@
               <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
             </table>
-            <mat-paginator [pageSizeOptions]="[10, 20, 50]" showFirstLastButtons aria-label="Select page"></mat-paginator>
+            <mat-paginator [pageSizeOptions]="[10, 20, 50]"
+                  showFirstLastButtons
+                  aria-label="Select page"
+                  (page)="onPageChange($event)"
+            ></mat-paginator>
           </div>
         </div>
         @if (imageFiles.length < 1) {

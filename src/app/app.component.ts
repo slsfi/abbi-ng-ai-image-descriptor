@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { AbstractControl, FormBuilder, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
@@ -19,7 +19,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { catchError, debounceTime, Observable, of, Subscription, switchMap } from 'rxjs';
+import { catchError, debounceTime, Observable, of, switchMap } from 'rxjs';
 
 import { models } from '../assets/config/models';
 import { prompts } from '../assets/config/prompts';
@@ -41,15 +41,17 @@ import { RequestSettings } from './types/settings.types';
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
+export class AppComponent implements OnInit, AfterViewInit {
   addImagesIdCounter: number = 0;
   addImagesProcessedCount: number = 0;
   addImagesProgress: number = 0;
   addImagesTotalFiles: number = 0;
   addingImages: boolean = false;
   apiError: boolean = false;
+  apiKeyErrorMessage: string = '';
   apiKeyValidationMessage: string | null = null;
   availableModels: Models = [];
+  currentPaginatorSize: number = 10;
   descLengthMax: number = 350;
   descLengthMin: number = 150;
   generating: boolean = false;
@@ -68,8 +70,6 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   temperatureMin: number = 0.0;
   totalCost: number = 0;
 
-  apiKeyErrorMessage: string = '';
-
   apiKeyFormGroup = this._formBuilder.group({
     apiKeyFC: new FormControl('', {
       validators: [Validators.required],
@@ -81,11 +81,9 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   displayedColumns: string[] = ['imagePreview', 'description', 'actions'];
   dataSource = new MatTableDataSource<imageData>(this.imageFiles);
 
-  private paginatorSubscription!: Subscription;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   
   constructor(
-    private cdr: ChangeDetectorRef,
     public dialog: MatDialog,
     private _formBuilder: FormBuilder,
     private matIconReg: MatIconRegistry,
@@ -126,14 +124,6 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
-    this.paginatorSubscription = this.paginator.page.subscribe((event: PageEvent) => {
-      console.log(event);
-      this.scrollToTableTop();
-    });
-  }
-
-  ngOnDestroy() {
-    this.paginatorSubscription?.unsubscribe();
   }
 
   private initializePromptTemplates() {
@@ -218,7 +208,7 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     const prompt: string = this.constructPrompt(promptTemplate, imageObj);
 
     const response = await this.openaiService.describeImage(settings, prompt, imageObj.base64Image);
-    console.log(response);
+    // console.log(response);
     const respContent = response?.choices?.[0]?.message?.content ?? '';
     if (!respContent) {
       this.apiError = true;
@@ -268,7 +258,7 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
       try {
         const prompt: string = this.constructPrompt(promptTemplate, imageObj);
         const response = await this.openaiService.describeImage(settings, prompt, imageObj.base64Image);
-        console.log(response);
+        // console.log(response);
         const respContent = response?.choices?.[0]?.message?.content ?? '';
         if (!respContent) {
           this.apiError = true;
@@ -441,14 +431,30 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private updateDataSource(): void {
     this.dataSource.data = [...this.imageFiles];
-    this.cdr.detectChanges();
+  }
+
+  /**
+   * When the page changes in the table paginator, scroll window to top of table.
+   */
+  onPageChange(event: PageEvent): void {
+    if (event.pageSize !== this.currentPaginatorSize) {
+      this.currentPaginatorSize = event.pageSize;
+    } else {
+      this.scrollToTableTop();
+    }
   }
 
   private scrollToTableTop(): void {
-    const tableElement = document.querySelector('.table-wrapper');
-    if (tableElement) {
-      tableElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    // Timeout necessary for the table data to be updated before scrolling window.
+    setTimeout(() => {
+      const tableElement = document.querySelector('.table-wrapper');
+      if (tableElement) {
+        const y = Math.floor(
+          tableElement.getBoundingClientRect().top
+        );
+        window.scrollBy({top: y, behavior: 'smooth'});
+      }
+    }, 500);
   }
 
   private getSettings(): RequestSettings {
