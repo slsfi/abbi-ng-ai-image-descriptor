@@ -2,37 +2,37 @@
   margin: 1rem 0;
 
   label {
-    background-color: rgb(63, 81, 181);
-    border-radius: 4px;
+    background-color: var(--mdc-filled-button-container-color);
+    border-radius: var(--mdc-filled-button-container-shape);
     border-width: 0;
-    color: rgb(255, 255, 255);
+    color: var(--mdc-filled-button-label-text-color);
     cursor: pointer;
-    font-family: inherit;
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-family: var(--mdc-filled-button-label-text-font);
+    font-size: var(--mdc-filled-button-label-text-size);
+    font-weight: var(--mdc-filled-button-label-text-weight);
     height: auto;
-    letter-spacing: 1.25px;
-    padding: 9.5px 16px;
+    letter-spacing: var(--mdc-filled-button-label-text-tracking);
+    padding: 10.5px 24px;
 
     &:hover {
-      background-color: rgba(63, 81, 181, 0.96);
+      opacity: 0.92;
     }
 
     &:active {
-      background-color: rgba(63, 81, 181, 0.88);
+      opacity: 0.84;
     }
 
     &.stroked {
       background-color: transparent;
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      color: #000;
+      border: 1px solid var(--mdc-outlined-button-outline-color);
+      color: var(--mdc-outlined-button-label-text-color);
 
       &:hover {
-        background-color: rgba(0, 0, 0, 0.04);
+        background-color: var(--mat-slider-hover-state-layer-color);
       }
   
       &:active {
-        background-color: rgba(0, 0, 0, 0.12);
+        background-color: var(--mat-outlined-button-ripple-color);
       }
     }
   }

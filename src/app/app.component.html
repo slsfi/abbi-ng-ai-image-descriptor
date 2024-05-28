@@ -201,7 +201,7 @@
                   (click)="generateImageDescriptionsAll()"
                   [disabled]="generating || imageFiles.length < 1"
             >Generate all ({{ imageFiles.length }} {{ imageFiles.length > 1 ? 'images' : 'image' }})</button>
-            <div class="right-aligned">Cumulative cost: ${{ this.totalCost | number }}</div>
+            <div class="cost right-aligned">Cumulative cost: ${{ this.totalCost | number }}</div>
           </div>
   
           <div class="buttons-row">
@@ -307,8 +307,7 @@
                   <button mat-stroked-button
                         (click)="generateImageDescription(file)"
                         [disabled]="generating"
-                        [innerHTML]="file.descriptions.length > 0 ? 'Regenerate' : 'Generate'"
-                  ></button>
+                  >{{ file.descriptions.length > 0 ? 'Regenerate' : 'Generate' }}</button>
                   <button mat-stroked-button
                         color="warn"
                         (click)="removeImage(file)"
