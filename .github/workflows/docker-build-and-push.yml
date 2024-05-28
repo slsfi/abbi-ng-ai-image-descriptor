@@ -1,0 +1,77 @@
+name: "Build and push docker image"
+
+# Run this workflow when a new commit in the "main" branch
+# or release/tag is pushed.
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+
+  # Allow this workflow to be manually triggered from the actions
+  # tab (for debugging).
+  workflow_dispatch:
+
+# Allow job to read repository and write image/package to ghcr.io.
+permissions:
+    contents: read
+    packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    env:
+      # Define tag of official Node.js image to be used as the base image
+      # for the build, this is passed as a build argument to Dockerfile
+      # https://hub.docker.com/_/node/.
+      NODE_IMAGE_TAG: 20-alpine
+      # Define tag of official nginx image to be used as the final image
+      # for the build, this is passed as a build argument to Dockerfile
+      # https://hub.docker.com/_/nginx
+      NGINX_IMAGE_TAG: 1.26.0-alpine
+
+    steps:
+      # Check out repository.
+      - uses: actions/checkout@v4
+
+      # Log in with GitHub token credentials.
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Pull latest Node image with tag defined above, otherwise an older
+      # cached image might be used.
+      - name: Pull latest Node.js image
+        run: docker pull node:${{ env.NODE_IMAGE_TAG }}
+
+      # Pull latest nginx image with tag defined above, otherwise an older
+      # cached image might be used.
+      - name: Pull latest nginx image
+        run: docker pull nginx:${{ env.NGINX_IMAGE_TAG }}
+
+      # Pull metadata from GitHub events (so we can use release version
+      # number).
+      - name: Pull metadata from GitHub
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+
+      # Build image, tagging with the release tag and "latest" on a release, 
+      # or with "main" if built against main (commit push) or built using
+      # workflow_dispatch.
+      - name: Build and push docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          file: Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NODE_IMAGE_TAG=${{ env.NODE_IMAGE_TAG }}
+            NGINX_IMAGE_TAG=${{ env.NGINX_IMAGE_TAG }}
