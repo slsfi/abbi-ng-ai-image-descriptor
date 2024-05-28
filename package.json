@@ -1,6 +1,10 @@
 {
-  "name": "ng-ai-image-descriptor",
+  "name": "abbi-ng-ai-image-descriptor",
   "version": "0.0.0",
+  "description": "Angular web app for AI-generated image descriptions",
+  "homepage": "https://github.com/slsfi/abbi-ng-ai-image-descriptor#readme",
+  "license": "MIT",
+  "private": true,
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -9,7 +13,6 @@
     "test": "ng test",
     "test:watch": "ng test --watch"
   },
-  "private": true,
   "dependencies": {
     "@angular/animations": "^18.0.0",
     "@angular/cdk": "^18.0.0",

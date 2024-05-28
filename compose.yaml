@@ -4,8 +4,3 @@ services:
     ports:
       - "80:80"
     restart: unless-stopped
-    networks:
-      - webnet
-
-networks:
-  webnet:
