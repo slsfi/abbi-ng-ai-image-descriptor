@@ -175,7 +175,11 @@
           ></file-input>
           <div class="progress-wrapper">
             <mat-label>Progress:</mat-label>
-            <mat-progress-bar mode="determinate" [value]="addImagesProgress"></mat-progress-bar>
+            <mat-progress-bar
+                  mode="determinate"
+                  [value]="addImagesProgress"
+                  [class.finished]="addImagesTotalFiles > 0 && addImagesProcessedCount == addImagesTotalFiles"
+            ></mat-progress-bar>
             <span>{{ addImagesProcessedCount }} / {{ addImagesTotalFiles }}</span>
           </div>
           <p class="image-sum" [class.hide]="imageFiles.length < 1">Added images, total: {{ imageFiles.length }}</p>
