@@ -110,6 +110,10 @@ mat-slide-toggle.mat-mdc-slide-toggle {
 
     mat-progress-bar {
       max-width: 300px;
+
+      &.finished {
+        --mdc-linear-progress-active-indicator-color: #3a963a;
+      }
     }
 
     span {
