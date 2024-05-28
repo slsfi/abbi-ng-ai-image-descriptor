@@ -22,10 +22,6 @@
   }
 }
 
-h3 {
-  font-weight: 500;
-}
-
 .banner-content-wrapper,
 .main-wrapper {
   margin: 0 auto;
@@ -89,7 +85,11 @@ mat-slide-toggle.mat-mdc-slide-toggle {
     margin-bottom: 1rem;
 
     + mat-expansion-panel.mat-expansion-panel {
-      margin-top: -1rem;
+      margin-top: -0.875rem;
+    }
+
+    mat-slide-toggle.mat-mdc-slide-toggle {
+      margin-top: -0.325rem;
     }
   }
 }
@@ -196,6 +196,10 @@ mat-slide-toggle.mat-mdc-slide-toggle {
 
   .right-aligned {
     margin-left: auto;
+  }
+
+  .cost {
+    font-size: 0.9375rem;
   }
 }
 

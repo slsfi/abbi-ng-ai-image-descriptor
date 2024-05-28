@@ -13,6 +13,22 @@ html {
 
 body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
+
+  &.mat-typography {
+    letter-spacing: .015625rem;
+
+    h2 {
+      font: 500 1.25rem/2rem Roboto, sans-serif;
+      letter-spacing: .0125em;
+      margin: 0 0 1rem;
+    }
+
+    h3 {
+      font: 500 1rem/1.75rem Roboto, sans-serif;
+      letter-spacing: .009375em;
+      margin: 0 0 1rem;
+    }
+  }
 }
 
 app-root {
