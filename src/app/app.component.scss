@@ -144,24 +144,6 @@ mat-slide-toggle.mat-mdc-slide-toggle {
     padding-left: 1rem;
   }
 
-  > .adj-button {
-    margin-left: 1rem;
-  }
-
-  mat-hint {
-    min-height: 22px;
-    
-    &.valid-api-key {
-      align-items: center;
-      color: #257925;
-      display: flex;
-
-      mat-icon {
-        padding-right: 0.5em;
-      }
-    }
-  }
-
   .slider-wrapper {
     display: flex;
     flex-direction: column;
@@ -178,10 +160,6 @@ mat-slide-toggle.mat-mdc-slide-toggle {
       margin: 0;
     }
   }
-}
-
-.file-input {
-  display: block;
 }
 
 .buttons-row {

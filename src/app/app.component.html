@@ -66,9 +66,6 @@
                   }
                 </mat-select>
               </mat-form-field>
-              <!--
-              <button class="adj-button" mat-stroked-button>Edit prompt</button>
-              -->
             </div>
   
             <div class="form-field-wrapper">
@@ -124,43 +121,14 @@
       <!-- Step: Enter API key -->
       <mat-step [stepControl]="apiKeyFormGroup" label="Enter API key">
         <h2>Enter your {{ selectedModel?.provider || '' }} API key</h2>
-        <form [formGroup]="apiKeyFormGroup">
-          <div class="form-field-wrapper">
-            <mat-form-field appearance="outline">
-              <mat-label>{{ selectedModel?.provider || '' }} API key</mat-label>
-              <input matInput required
-                    [type]="hideApiKey ? 'password' : 'text'"
-                    formControlName="apiKeyFC"
-              >
-              <button mat-icon-button matSuffix (click)="hideApiKey = !hideApiKey" [attr.aria-label]="'Hide API key'" [attr.aria-pressed]="hideApiKey">
-                <mat-icon>{{hideApiKey ? 'visibility_off' : 'visibility'}}</mat-icon>
-              </button>
-              @if (apiKeyFC?.hasError('required')) {
-                <mat-error>You must enter an API key</mat-error>
-              } @else if (apiKeyFC?.hasError('invalidApiKey')) {
-                <mat-error>Invalid API key</mat-error>
-              }
-              @if (apiKeyValidationMessage) {
-                <mat-hint [class.valid-api-key]="apiKeyFormGroup.valid">
-                  @if (apiKeyFormGroup.valid) {
-                    <mat-icon aria-hidden="true">check</mat-icon>
-                  }
-                  {{ apiKeyValidationMessage }}
-                </mat-hint>
-              }
-            </mat-form-field>
-            <file-input
-                  label="Load from file (TXT)"
-                  acceptedFileTypes="text/plain"
-                  appearence="stroked"
-                  (filesSelected)="loadApiKeyFromFile($event)"
-            ></file-input>
-          </div>
-          <div class="stepper-nav">
-            <button mat-button color="primary" matStepperPrevious>Back</button>
-            <button mat-button color="primary" matStepperNext>Next</button>
-          </div>
-        </form>
+        <api-key-form
+              [modelProvider]="selectedModel?.provider || ''"
+              (formGroupOutput)="setApiKeyFormGroup($event)"
+        ></api-key-form>
+        <div class="stepper-nav">
+          <button mat-button color="primary" matStepperPrevious>Back</button>
+          <button mat-button color="primary" matStepperNext>Next</button>
+        </div>
       </mat-step>
   
       <!-- Step: Add images -->

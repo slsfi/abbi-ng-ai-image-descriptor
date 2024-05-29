@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { AbstractControl, FormBuilder, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,7 +8,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -19,17 +18,17 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { catchError, debounceTime, Observable, of, switchMap } from 'rxjs';
 
 import { models } from '../assets/config/models';
 import { prompts } from '../assets/config/prompts';
+import { ApiKeyFormComponent } from './components/api-key-form/api-key-form.component';
 import { ConfirmActionDialogComponent } from './components/confirm-action-dialog/confirm-action-dialog.component';
 import { FileInputComponent } from './components/file-input/file-input.component';
 import { CharacterCountPipe } from './pipes/character-count.pipe';
 import { ExportService } from './services/export.service';
 import { OpenAiService } from './services/openai.service';
-import { descriptionData } from './types/description-data.types';
-import { imageData } from './types/image-data.types';
+import { DescriptionData } from './types/description-data.types';
+import { ImageData } from './types/image-data.types';
 import { Model, Models } from './types/model.types';
 import { Prompt, PromptOption } from './types/prompt.types';
 import { RequestSettings } from './types/settings.types';
@@ -37,7 +36,7 @@ import { RequestSettings } from './types/settings.types';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatExpansionModule, MatIconModule, MatInputModule, MatFormFieldModule, MatPaginatorModule, MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, MatSlideToggleModule, MatStepperModule, MatTableModule, MatTooltipModule, FileInputComponent, CharacterCountPipe],
+  imports: [DecimalPipe, FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatExpansionModule, MatIconModule, MatFormFieldModule, MatPaginatorModule, MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, MatSlideToggleModule, MatStepperModule, MatTableModule, MatTooltipModule, ApiKeyFormComponent, FileInputComponent, CharacterCountPipe],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
@@ -47,14 +46,13 @@ export class AppComponent implements OnInit, AfterViewInit {
   addImagesProgress: number = 0;
   addImagesTotalFiles: number = 0;
   addingImages: boolean = false;
-  apiKeyValidationMessage: string | null = null;
+  apiKeyFormGroup!: FormGroup;
   availableModels: Models = [];
   currentPaginatorSize: number = 10;
   descLengthMax: number = 350;
   descLengthMin: number = 150;
   generating: boolean = false;
-  hideApiKey: boolean = true;
-  imageFiles: imageData[] = [];
+  imageFiles: ImageData[] = [];
   includeFilename: boolean = true;
   languages: any[] = [];
   promptTemplates: any[] = [];
@@ -68,22 +66,13 @@ export class AppComponent implements OnInit, AfterViewInit {
   temperatureMin: number = 0.0;
   totalCost: number = 0;
 
-  apiKeyFormGroup = this._formBuilder.group({
-    apiKeyFC: new FormControl('', {
-      validators: [Validators.required],
-      asyncValidators: [this.apiKeyValidator.bind(this)],
-      updateOn: 'blur' // Run async validator when the control loses focus
-    })
-  });
-
   displayedColumns: string[] = ['imagePreview', 'description', 'actions'];
-  dataSource = new MatTableDataSource<imageData>(this.imageFiles);
+  dataSource = new MatTableDataSource<ImageData>(this.imageFiles);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   
   constructor(
     public dialog: MatDialog,
-    private _formBuilder: FormBuilder,
     private matIconReg: MatIconRegistry,
     private _snackBar: MatSnackBar,
     private exportService: ExportService,
@@ -102,22 +91,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     // Get the available languages from prompts array
     this.languages = prompts.map(p => ({ code: p.languageCode, name: p.languageDisplayName }));
     this.initializePromptTemplates();
-
-    // Update the API key and OpenAI client in the OpenaiService
-    // when the value of the API key form field changes and the
-    // entered key is valid.
-    this.apiKeyFC?.statusChanges.subscribe(status => {
-      if (this.apiKeyFC?.value) {
-        if (status === 'PENDING') {
-          this.apiKeyValidationMessage = 'Validating API key ...';
-        } else if (status === 'VALID') {
-          this.apiKeyValidationMessage = 'The API key is valid.';
-          this.openaiService.updateClient(this.apiKeyFC.value as string);
-        } else {
-          this.apiKeyValidationMessage = null;
-        }
-      }
-    });
   }
 
   ngAfterViewInit() {
@@ -148,7 +121,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.addImagesTotalFiles = files.length;
       this.addImagesProgress = 0;
       this.addingImages = true;
-      const processedFiles: imageData[] = [];
+      const processedFiles: ImageData[] = [];
 
       // Process the selected files
       const promises = Array.from(files).map((file, index) => {
@@ -197,7 +170,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   }
 
-  async generateImageDescription(imageObj: imageData) {
+  async generateImageDescription(imageObj: ImageData) {
     imageObj.generating = true;
     this.generating = true;
     const settings: RequestSettings = this.getSettings();
@@ -216,7 +189,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       } else {
         const cost = this.calculateCostFromResponse(settings.model, response?.usage);
         this.totalCost += cost;
-        const newDescription: descriptionData = {
+        const newDescription: DescriptionData = {
           description: respContent,
           model: settings.model?.id ?? '',
           inputTokens: response?.usage?.prompt_tokens ?? 0,
@@ -272,7 +245,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         } else {
           const cost = this.calculateCostFromResponse(settings.model, response?.usage);
           this.totalCost += cost;
-          const newDescription: descriptionData = {
+          const newDescription: DescriptionData = {
             description: respContent,
             model: settings.model?.id ?? '',
             inputTokens: response?.usage?.prompt_tokens ?? 0,
@@ -390,19 +363,19 @@ export class AppComponent implements OnInit, AfterViewInit {
     });
   }
 
-  previousDescription(imageObj: imageData) {
+  previousDescription(imageObj: ImageData) {
     if (imageObj.activeDescriptionIndex > 0) {
       imageObj.activeDescriptionIndex--;
     }
   }
 
-  nextDescription(imageObj: imageData) {
+  nextDescription(imageObj: ImageData) {
     if (imageObj.activeDescriptionIndex < imageObj.descriptions.length - 1) {
       imageObj.activeDescriptionIndex++;
     }
   }
 
-  deleteDescription(imageObj: imageData) {
+  deleteDescription(imageObj: ImageData) {
     const dialogRef = this.dialog.open(ConfirmActionDialogComponent, {
       data: {
         title: 'Delete this description?',
@@ -425,6 +398,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     });
   }
 
+  setApiKeyFormGroup(formGroup: FormGroup) {
+    this.apiKeyFormGroup = formGroup;
+  }
+
   export(): void {
     if (this.selectedExportFormat == 'docx') {
       this.exportService.generateDOCX(this.imageFiles);
@@ -433,10 +410,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     } else if (this.selectedExportFormat == 'tab') {
       this.exportService.generateTAB(this.imageFiles);
     }
-  }
-
-  private updateDataSource(): void {
-    this.dataSource.data = [...this.imageFiles];
   }
 
   /**
@@ -448,6 +421,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     } else {
       this.scrollToTableTop();
     }
+  }
+
+  private updateDataSource(): void {
+    this.dataSource.data = [...this.imageFiles];
   }
 
   private scrollToTableTop(): void {
@@ -513,35 +490,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     snackBarRef?.onAction().subscribe(() => {
       snackBarRef.dismiss();
     });
-  }
-
-  loadApiKeyFromFile(files: File[]): void {
-    if (files.length) {
-      const file: File = files[0];
-      const reader = new FileReader();
-      reader.onload = () => {
-        const newKey = String(reader.result).trim();
-        this.apiKeyFormGroup.patchValue({apiKeyFC: newKey});
-      };
-      reader.readAsText(file);
-    }
-  }
-
-  private apiKeyValidator(control: AbstractControl): Observable<ValidationErrors | null> {
-    if (!control.value) {
-      return of(null);
-    }
-    return this.openaiService.isValidApiKey(control.value).pipe(
-      debounceTime(500),
-      switchMap(isValid => {
-        return isValid ? of(null) : of({ invalidApiKey: true });
-      }),
-      catchError(() => of({ invalidApiKey: true }))
-    );
-  }
-
-  get apiKeyFC() {
-    return this.apiKeyFormGroup.get('apiKeyFC');
   }
 
 }

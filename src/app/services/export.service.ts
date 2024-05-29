@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 
-import { descriptionData } from '../types/description-data.types';
-import { imageData } from '../types/image-data.types';
+import { DescriptionData } from '../types/description-data.types';
+import { ImageData } from '../types/image-data.types';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +11,7 @@ export class ExportService {
 
   constructor() { }
 
-  generateDOCX(imageFiles: imageData[], filename: string = 'image-descriptions.docx'): void {
+  generateDOCX(imageFiles: ImageData[], filename: string = 'image-descriptions.docx'): void {
     // Provide an options object with sections
     const doc = new Document({
       styles: {
@@ -36,7 +36,7 @@ export class ExportService {
       },
       sections: [{
         properties: {},
-        children: imageFiles.map((imageObj: imageData) => {
+        children: imageFiles.map((imageObj: ImageData) => {
           const descriptionObj = this.getActiveDescription(imageObj);
             return new Paragraph({
               children: [
@@ -58,22 +58,22 @@ export class ExportService {
     });
   }
 
-  generateCSV(imageFiles: imageData[], filename: string = 'image-descriptions.csv'): void {
+  generateCSV(imageFiles: ImageData[], filename: string = 'image-descriptions.csv'): void {
     const data = this.convertToDelimited(imageFiles, ',');
     const blob = new Blob([data], { type: 'text/csv;charset=UTF-8' });
     this.initiateDownload(blob, filename);
   }
 
-  generateTAB(imageFiles: imageData[], filename: string = 'image-descriptions.tab'): void {
+  generateTAB(imageFiles: ImageData[], filename: string = 'image-descriptions.tab'): void {
     const data = this.convertToDelimited(imageFiles, '\t');
     const blob = new Blob([data], { type: 'text/tab-separated-values;charset=UTF-8' });
     this.initiateDownload(blob, filename);
   }
 
-  private convertToDelimited(imageFiles: imageData[], delimiter: string): string {
+  private convertToDelimited(imageFiles: ImageData[], delimiter: string): string {
     // We are only interested in the image filename and description properties
     let contentStr = '';
-    imageFiles.forEach((imageObj: imageData) => {
+    imageFiles.forEach((imageObj: ImageData) => {
       let description = this.getActiveDescription(imageObj)?.description ?? '';
       description = description.replaceAll('"', '”');
       description = this.escapeDelimitedValue(description, delimiter);
@@ -113,7 +113,7 @@ export class ExportService {
     window.URL.revokeObjectURL(url);
   }
 
-  private getActiveDescription(imageData: imageData): descriptionData | null {
+  private getActiveDescription(imageData: ImageData): DescriptionData | null {
     return imageData.descriptions.length > 0 ? imageData.descriptions[imageData.activeDescriptionIndex] : null;
   }
 }
