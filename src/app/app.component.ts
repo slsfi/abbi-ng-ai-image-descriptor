@@ -23,6 +23,7 @@ import { prompts } from '../assets/config/prompts';
 import { ApiKeyFormComponent } from './components/api-key-form/api-key-form.component';
 import { ConfirmActionDialogComponent } from './components/confirm-action-dialog/confirm-action-dialog.component';
 import { FileInputComponent } from './components/file-input/file-input.component';
+import { HeaderComponent } from './components/header/header.component';
 import { SettingsFormComponent } from './components/settings-form/settings-form.component';
 import { CharacterCountPipe } from './pipes/character-count.pipe';
 import { ExportService } from './services/export.service';
@@ -59,6 +60,7 @@ import { RequestSettings } from './types/settings.types';
     MatTooltipModule,
     ApiKeyFormComponent,
     FileInputComponent,
+    HeaderComponent,
     SettingsFormComponent,
     CharacterCountPipe
   ],
