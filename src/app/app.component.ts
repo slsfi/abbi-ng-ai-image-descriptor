@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { AfterViewInit, ChangeDetectorRef, Component, NgZone, OnInit, ViewChild } from '@angular/core';
+import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -19,24 +19,49 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { models } from '../assets/config/models';
 import { prompts } from '../assets/config/prompts';
 import { ApiKeyFormComponent } from './components/api-key-form/api-key-form.component';
 import { ConfirmActionDialogComponent } from './components/confirm-action-dialog/confirm-action-dialog.component';
 import { FileInputComponent } from './components/file-input/file-input.component';
+import { SettingsFormComponent } from './components/settings-form/settings-form.component';
 import { CharacterCountPipe } from './pipes/character-count.pipe';
 import { ExportService } from './services/export.service';
 import { OpenAiService } from './services/openai.service';
+import { SettingsService } from './services/settings.service';
 import { DescriptionData } from './types/description-data.types';
 import { ImageData } from './types/image-data.types';
-import { Model, Models } from './types/model.types';
+import { Model } from './types/model.types';
 import { Prompt, PromptOption } from './types/prompt.types';
 import { RequestSettings } from './types/settings.types';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, ReactiveFormsModule, RouterOutlet, ClipboardModule, MatButtonModule, MatExpansionModule, MatIconModule, MatFormFieldModule, MatPaginatorModule, MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSliderModule, MatSlideToggleModule, MatStepperModule, MatTableModule, MatTooltipModule, ApiKeyFormComponent, FileInputComponent, CharacterCountPipe],
+  imports: [
+    AsyncPipe,
+    DecimalPipe,
+    FormsModule,
+    ReactiveFormsModule,
+    RouterOutlet,
+    ClipboardModule,
+    MatButtonModule,
+    MatExpansionModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatPaginatorModule,
+    MatProgressBarModule,
+    MatProgressSpinnerModule,
+    MatSelectModule,
+    MatSliderModule,
+    MatSlideToggleModule,
+    MatStepperModule,
+    MatTableModule,
+    MatTooltipModule,
+    ApiKeyFormComponent,
+    FileInputComponent,
+    SettingsFormComponent,
+    CharacterCountPipe
+  ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
@@ -47,23 +72,10 @@ export class AppComponent implements OnInit, AfterViewInit {
   addImagesTotalFiles: number = 0;
   addingImages: boolean = false;
   apiKeyFormGroup!: FormGroup;
-  availableModels: Models = [];
   currentPaginatorSize: number = 10;
-  descLengthMax: number = 350;
-  descLengthMin: number = 150;
   generating: boolean = false;
   imageFiles: ImageData[] = [];
-  includeFilename: boolean = true;
-  languages: any[] = [];
-  promptTemplates: any[] = [];
-  selectedDescLength: number = 250;
   selectedExportFormat: string = 'docx';
-  selectedLanguage: string = 'sv';
-  selectedModel?: Model = undefined;
-  selectedPromptTemplate: string = 'Alt text';
-  selectedTemperature: number = 1.0;
-  temperatureMax: number = 2.0;
-  temperatureMin: number = 0.0;
   totalCost: number = 0;
 
   displayedColumns: string[] = ['imagePreview', 'description', 'actions'];
@@ -76,43 +88,19 @@ export class AppComponent implements OnInit, AfterViewInit {
     private matIconReg: MatIconRegistry,
     private _snackBar: MatSnackBar,
     private exportService: ExportService,
-    private openaiService: OpenAiService
-  ) {
-    this.availableModels = models;
-    // Set preselected model to first of available models with
-    // default property set to true
-    this.selectedModel = this.availableModels.filter((model) => model.default)[0];
-  }
+    private openaiService: OpenAiService,
+    public settings: SettingsService,
+    private cdRef: ChangeDetectorRef,
+    private ngZone: NgZone
+  ) {}
 
   ngOnInit() {
     // Set Angular Material to use the new Material Symbols icon font
     this.matIconReg.setDefaultFontSetClass('material-symbols-outlined');
-
-    // Get the available languages from prompts array
-    this.languages = prompts.map(p => ({ code: p.languageCode, name: p.languageDisplayName }));
-    this.initializePromptTemplates();
   }
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
-  }
-
-  private initializePromptTemplates() {
-    const defaultLanguagePrompt = prompts.find(p => p.languageCode === this.selectedLanguage);
-    if (defaultLanguagePrompt) {
-      this.promptTemplates = defaultLanguagePrompt.promptOptions;
-      const defaultTemplate = defaultLanguagePrompt.promptOptions.find(t => t.type === 'Alt text');
-      this.selectedPromptTemplate = defaultTemplate ? 'Alt text' : defaultLanguagePrompt.promptOptions[0].type;
-    }
-  }
-
-  onLanguageChange() {
-    const selectedPrompt = prompts.find(p => p.languageCode === this.selectedLanguage);
-    if (selectedPrompt) {
-      this.promptTemplates = selectedPrompt.promptOptions;
-      const defaultTemplate = selectedPrompt.promptOptions.find(t => t.type === 'Alt text');
-      this.selectedPromptTemplate = defaultTemplate ? 'Alt text' : selectedPrompt.promptOptions[0].type;
-    }
   }
 
   addImageFiles(files: File[]): void {
@@ -173,7 +161,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   async generateImageDescription(imageObj: ImageData) {
     imageObj.generating = true;
     this.generating = true;
-    const settings: RequestSettings = this.getSettings();
+    const settings: RequestSettings = this.settings.getSettings();
     const promptTemplate: string = this.constructPromptTemplate();
     const prompt: string = this.constructPrompt(promptTemplate, imageObj);
 
@@ -184,7 +172,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       const respContent = response?.choices?.[0]?.message?.content ?? '';
       if (!respContent && response?.error) {
         const e = response.error;
-        const eMessage = `Error communicating with the ${this.selectedModel?.provider} API: ${e.status} ${e.message}`;
+        const eMessage = `Error communicating with the ${this.settings.selectedModel?.provider} API: ${e.status} ${e.message}`;
         this.showAPIErrorMessage(eMessage);
       } else {
         const cost = this.calculateCostFromResponse(settings.model, response?.usage);
@@ -201,7 +189,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       }
     } catch (e: any) {
       console.error(e);
-      this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${this.selectedModel?.provider} API.`);
+      this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${this.settings.selectedModel?.provider} API.`);
     } finally {
       imageObj.generating = false;
       this.generating = false;
@@ -210,7 +198,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   async generateImageDescriptionsAll() {
     this.generating = true;
-    const settings: RequestSettings = this.getSettings();
+    const settings: RequestSettings = this.settings.getSettings();
     const promptTemplate: string = this.constructPromptTemplate();
 
     let snackBarRef = null;
@@ -239,7 +227,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         const respContent = response?.choices?.[0]?.message?.content ?? '';
         if (!respContent && response?.error) {
           const e = response.error;
-          const eMessage = `Error communicating with the ${this.selectedModel?.provider} API: ${e.status} ${e.message}`;
+          const eMessage = `Error communicating with the ${this.settings.selectedModel?.provider} API: ${e.status} ${e.message}`;
           this.showAPIErrorMessage(eMessage);
           this.generating = false;
         } else {
@@ -257,7 +245,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
       } catch (e: any) {
         console.error(e);
-        this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${this.selectedModel?.provider} API.`);
+        this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${this.settings.selectedModel?.provider} API.`);
         this.generating = false;
       } finally {
         imageObj.generating = false;
@@ -399,7 +387,13 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   setApiKeyFormGroup(formGroup: FormGroup) {
-    this.apiKeyFormGroup = formGroup;
+    // Wrap the updating of the form group in ngZone and manually
+    // trigger change detection to avoid
+    // `ExpressionChangedAfterItHasBeenCheckedError`
+    this.ngZone.run(() => {
+      this.apiKeyFormGroup = formGroup;
+      this.cdRef.detectChanges(); // Manually trigger change detection
+    });
   }
 
   export(): void {
@@ -440,25 +434,13 @@ export class AppComponent implements OnInit, AfterViewInit {
     }, 500);
   }
 
-  private getSettings(): RequestSettings {
-    const settings: RequestSettings = {
-      model: this.selectedModel,
-      temperature: this.selectedTemperature,
-      language: this.selectedLanguage,
-      descriptionLength: this.selectedDescLength,
-      promptTemplate: this.selectedPromptTemplate,
-      includeFilename: this.includeFilename
-    }
-    return settings;
-  }
-
   private constructPromptTemplate(): string {
     let promptTemplate: string = '';
-    const promptData: Prompt | null = prompts.find(p => p.languageCode === this.selectedLanguage) || null;
+    const promptData: Prompt | undefined = prompts.find(p => p.languageCode === this.settings.selectedLanguage);
     if (promptData) {
-      const selectedPromptOption = promptData.promptOptions.find((t: PromptOption) => t.type === this.selectedPromptTemplate);
+      const selectedPromptOption = promptData.promptOptions.find((t: PromptOption) => t.type === this.settings.selectedPromptTemplate);
       promptTemplate = selectedPromptOption?.prompt ?? '';
-      if (this.includeFilename && promptTemplate) {
+      if (this.settings.includeFilename && promptTemplate) {
         promptTemplate = promptTemplate + ' ' + promptData.filenamePrompt;
       }
     }
@@ -466,8 +448,8 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   private constructPrompt(prontTemplate: string, imageObj: any): string {
-    let prompt: string = prontTemplate.replaceAll('{{DESC_LENGTH}}', String(this.selectedDescLength));
-    if (this.includeFilename && prompt) {
+    let prompt: string = prontTemplate.replaceAll('{{DESC_LENGTH}}', String(this.settings.selectedDescLength));
+    if (this.settings.includeFilename && prompt) {
       prompt = prompt.replaceAll('{{FILENAME}}', imageObj.filename);
     }
     return prompt;

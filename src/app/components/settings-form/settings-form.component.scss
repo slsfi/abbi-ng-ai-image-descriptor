@@ -1,0 +1,65 @@
+.settings-column-wrapper {
+  column-gap: 3rem;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  row-gap: 0;
+
+  @media (max-width: 1110px) {
+    justify-content: flex-start;
+  }
+}
+
+mat-expansion-panel.mat-expansion-panel {
+  box-shadow: none;
+}
+
+mat-slide-toggle.mat-mdc-slide-toggle {
+  --mat-switch-label-text-size: 1rem;
+}
+
+.parameters-wrapper {
+  > mat-form-field,
+  > .form-field-wrapper {
+    margin-bottom: 1rem;
+
+    + mat-expansion-panel.mat-expansion-panel {
+      margin-top: -0.875rem;
+    }
+
+    mat-slide-toggle.mat-mdc-slide-toggle {
+      margin-top: -0.325rem;
+    }
+  }
+}
+
+.form-field-wrapper {
+  align-items: center;
+  display: flex;
+
+  mat-form-field {
+    width: 300px;
+  }
+
+  > :not(:first-child) {
+    margin-top: -1.325rem;
+    padding-left: 1rem;
+  }
+
+  .slider-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+    .slider-label-wrapper {
+      display: flex;
+      font-size: 1rem;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    mat-slider {
+      margin: 0;
+    }
+  }
+}
