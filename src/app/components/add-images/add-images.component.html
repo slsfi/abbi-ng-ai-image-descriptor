@@ -1,0 +1,22 @@
+<div class="image-select-wrapper">
+  <file-input
+        label="Select image files (JPG, PNG)"
+        acceptedFileTypes="image/png, image/jpeg"
+        [multiple]="true"
+        (filesSelected)="addImageFiles($event)"
+  ></file-input>
+  <div class="progress-wrapper">
+    <mat-label>Progress:</mat-label>
+    <mat-progress-bar
+          mode="determinate"
+          [value]="progressPercentage"
+          [class.finished]="totalFileCount > 0 && processedCounter == totalFileCount"
+    ></mat-progress-bar>
+    <span>{{ processedCounter }} / {{ totalFileCount }}</span>
+  </div>
+  <ng-container *ngIf="{ imageList: imageListService.imageList$ | async } as o">
+    <p class="image-sum" [class.hide]="!o.imageList?.length">
+      Added images, total: {{ o.imageList?.length ?? 0 }}
+    </p>
+  </ng-container>
+</div>

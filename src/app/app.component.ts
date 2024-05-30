@@ -1,25 +1,22 @@
 import { AfterViewInit, ChangeDetectorRef, Component, NgZone, OnInit, ViewChild } from '@angular/core';
-import { AsyncPipe, DecimalPipe } from '@angular/common';
+import { AsyncPipe, DecimalPipe, NgIf } from '@angular/common';
 import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
-import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSliderModule } from '@angular/material/slider';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { prompts } from '../assets/config/prompts';
+import { AddImagesComponent } from './components/add-images/add-images.component';
 import { ApiKeyFormComponent } from './components/api-key-form/api-key-form.component';
 import { ConfirmActionDialogComponent } from './components/confirm-action-dialog/confirm-action-dialog.component';
 import { FileInputComponent } from './components/file-input/file-input.component';
@@ -27,6 +24,7 @@ import { HeaderComponent } from './components/header/header.component';
 import { SettingsFormComponent } from './components/settings-form/settings-form.component';
 import { CharacterCountPipe } from './pipes/character-count.pipe';
 import { ExportService } from './services/export.service';
+import { ImageListService } from './services/image-list.service';
 import { OpenAiService } from './services/openai.service';
 import { SettingsService } from './services/settings.service';
 import { DescriptionData } from './types/description-data.types';
@@ -41,23 +39,21 @@ import { RequestSettings } from './types/settings.types';
   imports: [
     AsyncPipe,
     DecimalPipe,
+    NgIf,
     FormsModule,
     ReactiveFormsModule,
     RouterOutlet,
     ClipboardModule,
     MatButtonModule,
-    MatExpansionModule,
     MatIconModule,
     MatFormFieldModule,
     MatPaginatorModule,
-    MatProgressBarModule,
     MatProgressSpinnerModule,
     MatSelectModule,
-    MatSliderModule,
-    MatSlideToggleModule,
     MatStepperModule,
     MatTableModule,
     MatTooltipModule,
+    AddImagesComponent,
     ApiKeyFormComponent,
     FileInputComponent,
     HeaderComponent,
@@ -68,20 +64,15 @@ import { RequestSettings } from './types/settings.types';
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit, AfterViewInit {
-  addImagesIdCounter: number = 0;
-  addImagesProcessedCount: number = 0;
-  addImagesProgress: number = 0;
-  addImagesTotalFiles: number = 0;
   addingImages: boolean = false;
   apiKeyFormGroup!: FormGroup;
   currentPaginatorSize: number = 10;
   generating: boolean = false;
-  imageFiles: ImageData[] = [];
   selectedExportFormat: string = 'docx';
   totalCost: number = 0;
 
   displayedColumns: string[] = ['imagePreview', 'description', 'actions'];
-  dataSource = new MatTableDataSource<ImageData>(this.imageFiles);
+  dataSource = new MatTableDataSource<ImageData>([]);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   
@@ -90,6 +81,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private matIconReg: MatIconRegistry,
     private _snackBar: MatSnackBar,
     private exportService: ExportService,
+    public imageListService: ImageListService,
     private openaiService: OpenAiService,
     public settings: SettingsService,
     private cdRef: ChangeDetectorRef,
@@ -103,61 +95,6 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
-  }
-
-  addImageFiles(files: File[]): void {
-    if (files.length) {
-      this.addImagesProcessedCount = 0;
-      this.addImagesTotalFiles = files.length;
-      this.addImagesProgress = 0;
-      this.addingImages = true;
-      const processedFiles: ImageData[] = [];
-
-      // Process the selected files
-      const promises = Array.from(files).map((file, index) => {
-        return new Promise<void>((resolve) => {
-          const img = new Image();
-          const reader = new FileReader();
-
-          reader.onload = (e: any) => {
-            img.src = e.target.result;
-            img.onload = () => {
-              const resizedImgDetails = this.resizeImage(img);
-              processedFiles[index] = {
-                id: this.addImagesIdCounter++,
-                filename: file.name,
-                base64Image: resizedImgDetails.base64,
-                height: resizedImgDetails.height,
-                width: resizedImgDetails.width,
-                descriptions: [],
-                activeDescriptionIndex: 0,
-                generating: false
-              };
-              
-              // Update progress bar
-              this.addImagesProcessedCount++;
-              this.addImagesProgress = (this.addImagesProcessedCount / this.addImagesTotalFiles) * 100.0;
-
-              resolve();
-            };
-          };
-          reader.readAsDataURL(file);
-        });
-      });
-
-      Promise.all(promises).then(() => {
-        // Add the added, processed images to the images array
-        this.imageFiles.push(...processedFiles);
-        this.updateDataSource();
-        this.addingImages = false;
-        setTimeout(() => {
-          this.addImagesTotalFiles = 0;
-          this.addImagesProcessedCount = 0;
-          this.addImagesProgress = 0;
-        }, 1500);
-        
-      });
-    }
   }
 
   async generateImageDescription(imageObj: ImageData) {
@@ -206,7 +143,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     let snackBarRef = null;
     let counter = 0;
 
-    for (const imageObj of this.imageFiles) {
+    for (const imageObj of this.imageListService.imageList) {
       if (!this.generating) {
         // Generation has been stopped by user
         break;
@@ -214,7 +151,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
       counter++;
       snackBarRef?.dismiss();
-      snackBarRef = this._snackBar.open('Generating image description ' + counter + '/' + this.imageFiles.length, 'Stop');
+      snackBarRef = this._snackBar.open('Generating image description ' + counter + '/' + this.imageListService.imageList.length, 'Stop');
       snackBarRef.onAction().subscribe(() => {
         this.generating = false;
       });
@@ -258,56 +195,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     snackBarRef?.dismiss();
   }
 
-  private resizeImage(img: HTMLImageElement): any {
-    // Resize image to fit into the image dimension requirements of the high-detail
-    // setting of OpenAI's vision models.
-    const aspectRatio = img.naturalWidth / img.naturalHeight;
-    const shortSideMax = 768; // the maximum length of the short side of the image
-    const longSideMax = 2048; // the maximum length of the long side of the image
-    let newWidth = img.naturalWidth;
-    let newHeight = img.naturalHeight;
-
-    if (newWidth > newHeight) {
-      // Width is the larger dimension or they are equal
-      // First resize to fit into a 2048 px square
-      if (newWidth > longSideMax) {
-        newWidth = longSideMax;
-        newHeight = longSideMax * aspectRatio;
-      }
-      // Then resize so the short side is within maximum
-      if (newHeight > shortSideMax) {
-        newHeight = shortSideMax;
-        newWidth = shortSideMax * aspectRatio;
-      }
-    } else {
-      // Height is the larger dimension
-      // First resize to fit into a 2048 px square
-      if (newHeight > longSideMax) {
-        newHeight = longSideMax;
-        newWidth = longSideMax / aspectRatio;
-      }
-      // Then resize so the short side is within maximum
-      if (newWidth > shortSideMax) {
-        newWidth = shortSideMax;
-        newHeight = shortSideMax / aspectRatio;
-      }
-    }
-
-    let canvas: HTMLCanvasElement | null = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = newWidth;
-    canvas.height = newHeight;
-    ctx!.drawImage(img, 0, 0, newWidth, newHeight);
-    const imgDetails = {
-      base64: canvas.toDataURL('image/jpeg'),
-      height: newHeight,
-      width: newWidth
-    }
-    canvas = null;
-    return imgDetails;
-  }
-
-  removeImage(imageObj: any): void {
+  removeImage(imageObj: ImageData): void {
     const dialogRef = this.dialog.open(ConfirmActionDialogComponent, {
       data: {
         title: 'Remove image?',
@@ -319,18 +207,8 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     dialogRef.afterClosed().subscribe((remove: boolean) => {
       if (remove) {
-        let indexToRemove = -1;
-        for (let i = 0; i < this.imageFiles.length; i++) {
-          if (imageObj.id == this.imageFiles[i].id) {
-            indexToRemove = i;
-            break;
-          }
-        }
-
-        if (indexToRemove > -1 && indexToRemove < this.imageFiles.length) {
-          this.imageFiles.splice(indexToRemove, 1);
-          this.updateDataSource();
-        }
+        this.imageListService.removeImage(imageObj);
+        this.updateDataSource();
       }
     });
   }
@@ -347,7 +225,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     dialogRef.afterClosed().subscribe((remove: boolean) => {
       if (remove) {
-        this.imageFiles = [];
+        this.imageListService.updateImageList([]);
         this.updateDataSource();
       }
     });
@@ -388,7 +266,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     });
   }
 
-  setApiKeyFormGroup(formGroup: FormGroup) {
+  setApiKeyFormGroup(formGroup: FormGroup): void {
     // Wrap the updating of the form group in ngZone and manually
     // trigger change detection to avoid
     // `ExpressionChangedAfterItHasBeenCheckedError`
@@ -398,13 +276,17 @@ export class AppComponent implements OnInit, AfterViewInit {
     });
   }
 
+  setAddingImages(status: boolean): void {
+    this.addingImages = status;
+  }
+
   export(): void {
     if (this.selectedExportFormat == 'docx') {
-      this.exportService.generateDOCX(this.imageFiles);
+      this.exportService.generateDOCX(this.imageListService.imageList);
     } else if (this.selectedExportFormat == 'csv') {
-      this.exportService.generateCSV(this.imageFiles);
+      this.exportService.generateCSV(this.imageListService.imageList);
     } else if (this.selectedExportFormat == 'tab') {
-      this.exportService.generateTAB(this.imageFiles);
+      this.exportService.generateTAB(this.imageListService.imageList);
     }
   }
 
@@ -420,7 +302,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   private updateDataSource(): void {
-    this.dataSource.data = [...this.imageFiles];
+    this.dataSource.data = [...this.imageListService.imageList];
   }
 
   private scrollToTableTop(): void {

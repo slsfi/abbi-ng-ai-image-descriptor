@@ -23,43 +23,6 @@ mat-stepper {
   }
 }
 
-.image-select-wrapper {
-  file-input {
-    margin-bottom: 1.5rem;
-  }
-
-  .progress-wrapper {
-    align-items: center;
-    display: flex;
-    margin-top: 2rem;
-
-    mat-label {
-      padding-right: 0.75rem;
-    }
-
-    mat-progress-bar {
-      max-width: 300px;
-
-      &.finished {
-        --mdc-linear-progress-active-indicator-color: #3a963a;
-      }
-    }
-
-    span {
-      padding-left: 0.75rem;
-    }
-  }
-
-  p.image-sum {
-    margin: 0 0 0.75rem 0;
-    padding-top: 1rem;
-
-    &.hide {
-      opacity: 1;
-    }
-  }
-}
-
 .buttons-row {
   align-items: center;;
   display: flex;
