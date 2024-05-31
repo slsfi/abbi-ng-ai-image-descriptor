@@ -4,11 +4,9 @@ aBBi (“AI-bildbeskrivningar”) is a web app for generating image descriptions
 
 The app is built on [Angular][angular] and uses [Angular Material][material] web components.
 
-<!--
 <p>
   <a href="https://github.com/angular/angular"><img alt="Angular version badge" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fslsfi%2Fabbi-ng-ai-image-descriptor%2Fmain%2Fpackage-lock.json&query=%24%5B'packages'%5D%5B'node_modules%2F%40angular%2Fcore'%5D%5B'version'%5D&prefix=v&logo=angular&logoColor=%23fff&label=Angular&color=%23dd0031"></a>
 </p>
--->
 
 Author: Sebastian Köhler (2024)
 
@@ -18,15 +16,11 @@ Author: Sebastian Köhler (2024)
 
 [Learn about the latest improvements][changelog].
 
-## Development server
-
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
-
 ## Development Setup
 
 ### Prerequisites
 
-1. Install [Node.js][node.js] which includes [npm][npm]. The app is compatible with Node `^18.13.0` and `^20.9.0`. Check your Node version with:
+1. Install [Node.js][node.js] which includes [npm][npm]. The app is compatible with Node `^18.19.1`, `^20.11.1` and `^22.0.0` (based on [Angular 18 compatibility][angular_version_compatibility]). Check your Node version with:
 
 ```
 Node --version
@@ -56,16 +50,42 @@ npm start
 
 Open your browser on http://localhost:4200/. The app will automatically rebuild and reload if you change any of the source files.
 
+## Building and deployment
+
+On each commit in the main branch a Docker image with the tag `main` is built using GitHub Actions and stored in the [GitHub Container Registry][abbi_ghcr].
+
+On each release a Docker image with the chosen release tag and the tag `latest` is built using GitHub Actions and also stored in the [GitHub Container Registry][abbi_ghcr].
+
+## Keeping the app up-to-date
+
+### Dependencies
+
+Most of the dependencies are part of the Angular framework (`@angular/`). These should be updated with the command:
+
+```
+ng update @angular/cli @angular/core @angular/cdk @angular/material
+```
+
+When updating to a new major version of Angular, check the update guide first: <https://angular.dev/update-guide>. Also update the Angular major version number specified in [`Dockerfile`][dockerfile] and in [`docker-build-and-push.yml`][docker_build].
+
+### Node.js and nginx Docker images
+
+[Node.js][node.js] and [nginx][nginx] Docker images are used in the build process. To update these, change the tags specified in both [`Dockerfile`][dockerfile] and in [`docker-build-and-push.yml`][docker_build].
 
 
+[abbi_ghcr]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/pkgs/container/abbi-ng-ai-image-descriptor
 [angular]: https://angular.dev/
 [angular_cli]: https://angular.dev/cli
+[angular_version_compatibility]: https://angular.dev/reference/versions
 [changelog]: CHANGELOG.md
 [clone_repository]: https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository
+[docker_build]: .github/workflows/docker-build-and-push.yml
+[dockerfile]: Dockerfile
 [git_bash]: https://gitforwindows.org/
 [git_bash_tutorial]: https://www.atlassian.com/git/tutorials/git-bash
 [github_desktop]: https://desktop.github.com/
 [material]: https://material.angular.io/
+[nginx]: https://nginx.org/
 [node.js]: https://nodejs.org/
 [npm]: https://www.npmjs.com/get-npm
 [SLS]: https://www.sls.fi/en
