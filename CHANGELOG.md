@@ -8,4 +8,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
-The app is still in development and not released.
+The app is still in development and no releases have yet been made.
