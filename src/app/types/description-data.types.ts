@@ -1,4 +1,4 @@
-export type descriptionData = {
+export type DescriptionData = {
   description: string;
   model: string;
   inputTokens: number;

@@ -1,12 +1,12 @@
-import { descriptionData } from './description-data.types';
+import { DescriptionData } from './description-data.types';
 
-export type imageData = {
+export type ImageData = {
   id: number;
   filename: string;
   base64Image: string;
   height: number;
   width: number;
-  descriptions: descriptionData[];
+  descriptions: DescriptionData[];
   activeDescriptionIndex: number;
   generating: boolean;
 }

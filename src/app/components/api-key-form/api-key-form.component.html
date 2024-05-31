@@ -1,0 +1,31 @@
+<form [formGroup]="apiKeyFormGroup">
+  <mat-form-field appearance="outline">
+    <mat-label>{{ modelProvider }} API key</mat-label>
+    <input matInput required
+          [type]="hideApiKey ? 'password' : 'text'"
+          formControlName="apiKeyFC"
+    >
+    <button mat-icon-button matSuffix (click)="hideApiKey = !hideApiKey" [attr.aria-label]="'Hide API key'" [attr.aria-pressed]="hideApiKey">
+      <mat-icon>{{hideApiKey ? 'visibility_off' : 'visibility'}}</mat-icon>
+    </button>
+    @if (apiKeyFC?.hasError('required')) {
+      <mat-error>You must enter an API key</mat-error>
+    } @else if (apiKeyFC?.hasError('invalidApiKey')) {
+      <mat-error>Invalid API key</mat-error>
+    }
+    @if (apiKeyValidationMessage) {
+      <mat-hint [class.valid-api-key]="apiKeyFormGroup.valid">
+        @if (apiKeyFormGroup.valid) {
+          <mat-icon aria-hidden="true">check</mat-icon>
+        }
+        {{ apiKeyValidationMessage }}
+      </mat-hint>
+    }
+  </mat-form-field>
+  <file-input
+        label="Load from file (TXT)"
+        acceptedFileTypes="text/plain"
+        appearence="stroked"
+        (filesSelected)="loadApiKeyFromFile($event)"
+  ></file-input>
+</form>

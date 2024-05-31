@@ -1,0 +1,27 @@
+form {
+  align-items: center;
+  display: flex;
+
+  mat-form-field {
+    width: 300px;
+  }
+
+  > :not(:first-child) {
+    margin-top: -1.325rem;
+    padding-left: 1rem;
+  }
+
+  mat-hint {
+    min-height: 22px;
+    
+    &.valid-api-key {
+      align-items: center;
+      color: #257925;
+      display: flex;
+
+      mat-icon {
+        padding-right: 0.5em;
+      }
+    }
+  }
+}

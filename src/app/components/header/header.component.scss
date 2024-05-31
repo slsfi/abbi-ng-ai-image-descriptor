@@ -1,0 +1,33 @@
+.banner {
+  align-items: center;
+  background-color: #dab9df;
+  display: flex;
+  height: auto;
+  padding: 0;
+  margin: 0 0 3rem 0;
+  width: 100%;
+
+  h1 {
+    font-size: 5rem;
+    font-weight: bold;
+    margin-bottom: 2.5rem;
+    position: relative;
+    top: 1rem;
+  }
+
+  p {
+    font-size: 2rem;
+    line-height: 1.25;
+    margin: 0;
+  }
+}
+
+.banner-content-wrapper {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 3rem 1.5rem 3rem 1.5rem;
+  width: calc(100% - 3rem);
+}

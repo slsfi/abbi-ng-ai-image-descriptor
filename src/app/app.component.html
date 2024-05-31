@@ -1,14 +1,5 @@
 <div class="content-wrapper">
-
-  <div class="banner">
-    <div class="banner-content-wrapper">
-      <hgroup>
-        <h1>aBBi</h1>
-        <p role="doc-subtitle">AI-generated image descriptions</p>
-      </hgroup>
-      <img src="/assets/images/SLS_logo_symbol_black_112x112.png" alt="SLS logo">
-    </div>
-  </div>
+  <app-header></app-header>
   
   <div class="main-wrapper">
     <div class="intro-wrapper">
@@ -17,327 +8,49 @@
     </div>
   
     <mat-stepper orientation="horizontal" [linear]="true" #stepper>
-  
-      <!-- Step: Configure settings -->
+      <!-- Step 1: Configure settings -->
       <mat-step label="Configure settings">
         <h2>Configure settings</h2>
-  
-        <div class="settings-column-wrapper">
-          <div class="parameters-wrapper">
-            <h3>a) Image description settings</h3>
-            <div class="form-field-wrapper">
-              <mat-form-field appearance="outline">
-                <mat-label>Language</mat-label>
-                <mat-select [(ngModel)]="selectedLanguage" (selectionChange)="onLanguageChange()" name="language">
-                  @for (language of languages; track language.code) {
-                    <mat-option [value]="language.code">{{ language.name }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-            </div>
-        
-            <div class="form-field-wrapper">
-              <div class="slider-wrapper">
-                <div class="slider-label-wrapper">
-                  <label id="len-slider-label" class="slider-label">Approximate length:</label>
-                  <label class="slider-value-label">{{descLengthSlider.value}} characters</label>
-                </div>
-                <mat-slider
-                    [max]="descLengthMax"
-                    [min]="descLengthMin"
-                    [step]="25"
-                    [discrete]="true"
-                    [showTickMarks]="true"
-                >
-                  <input matSliderThumb [(ngModel)]="selectedDescLength" #descLengthSlider>
-                </mat-slider>
-              </div>
-            </div>
-          </div>
-  
-          <div class="parameters-wrapper">
-            <h3>b) Prompt settings</h3>
-            <div class="form-field-wrapper">
-              <mat-form-field appearance="outline">
-                <mat-label>Prompt template</mat-label>
-                <mat-select [(ngModel)]="selectedPromptTemplate" name="promptTemplate">
-                  @for (template of promptTemplates; track template.type) {
-                    <mat-option [value]="template.type">{{ template.type }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-              <!--
-              <button class="adj-button" mat-stroked-button>Edit prompt</button>
-              -->
-            </div>
-  
-            <div class="form-field-wrapper">
-              <mat-slide-toggle color="primary" [(ngModel)]="includeFilename">Include image filename in prompt</mat-slide-toggle>
-            </div>
-          </div>
-  
-          <div class="parameters-wrapper">
-            <h3>c) Model settings</h3>
-            <div class="form-field-wrapper">
-              <mat-form-field appearance="outline">
-                <mat-label>AI-model</mat-label>
-                <mat-select [(ngModel)]="selectedModel" name="model">
-                  @for (model of availableModels; track model.id) {
-                    <mat-option [value]="model">{{model.provider}} {{model.name}}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-            </div>
-  
-            <mat-expansion-panel>
-              <mat-expansion-panel-header>
-                <mat-panel-title>
-                  Advanced model settings
-                </mat-panel-title>
-              </mat-expansion-panel-header>
-              <div class="form-field-wrapper">
-                <div class="slider-wrapper">
-                  <div class="slider-label-wrapper">
-                    <label id="temp-slider-label" class="slider-label">Temperature:</label>
-                    <label class="slider-value-label">{{temperatureSlider.value}}</label>
-                  </div>
-                  <mat-slider
-                      [max]="temperatureMax"
-                      [min]="temperatureMin"
-                      [step]="0.1"
-                      [discrete]="true"
-                      [showTickMarks]="true"
-                  >
-                    <input matSliderThumb [(ngModel)]="selectedTemperature" #temperatureSlider>
-                  </mat-slider>
-                </div>
-              </div>
-            </mat-expansion-panel>
-          </div>
-        </div>
-  
+        <settings-form></settings-form>
         <div class="stepper-nav">
           <button mat-button color="primary" matStepperNext>Next</button>
         </div>
       </mat-step>
   
-      <!-- Step: Enter API key -->
+      <!-- Step 2: Enter API key -->
       <mat-step [stepControl]="apiKeyFormGroup" label="Enter API key">
-        <h2>Enter your {{ selectedModel?.provider || '' }} API key</h2>
-        <form [formGroup]="apiKeyFormGroup">
-          <div class="form-field-wrapper">
-            <mat-form-field appearance="outline">
-              <mat-label>{{ selectedModel?.provider || '' }} API key</mat-label>
-              <input matInput required
-                    [type]="hideApiKey ? 'password' : 'text'"
-                    formControlName="apiKeyFC"
-              >
-              <button mat-icon-button matSuffix (click)="hideApiKey = !hideApiKey" [attr.aria-label]="'Hide API key'" [attr.aria-pressed]="hideApiKey">
-                <mat-icon>{{hideApiKey ? 'visibility_off' : 'visibility'}}</mat-icon>
-              </button>
-              @if (apiKeyFC?.hasError('required')) {
-                <mat-error>You must enter an API key</mat-error>
-              } @else if (apiKeyFC?.hasError('invalidApiKey')) {
-                <mat-error>Invalid API key</mat-error>
-              }
-              @if (apiKeyValidationMessage) {
-                <mat-hint [class.valid-api-key]="apiKeyFormGroup.valid">
-                  @if (apiKeyFormGroup.valid) {
-                    <mat-icon aria-hidden="true">check</mat-icon>
-                  }
-                  {{ apiKeyValidationMessage }}
-                </mat-hint>
-              }
-            </mat-form-field>
-            <file-input
-                  label="Load from file (TXT)"
-                  acceptedFileTypes="text/plain"
-                  appearence="stroked"
-                  (filesSelected)="loadApiKeyFromFile($event)"
-            ></file-input>
-          </div>
-          <div class="stepper-nav">
-            <button mat-button color="primary" matStepperPrevious>Back</button>
-            <button mat-button color="primary" matStepperNext>Next</button>
-          </div>
-        </form>
-      </mat-step>
-  
-      <!-- Step: Add images -->
-      <mat-step label="Add images" [completed]="imageFiles.length > 0 && !addingImages">
-        <h2>Add images</h2>
-        <div class="image-select-wrapper">
-          <file-input
-                label="Select image files (JPG, PNG)"
-                acceptedFileTypes="image/png, image/jpeg"
-                [multiple]="true"
-                (filesSelected)="addImageFiles($event)"
-          ></file-input>
-          <div class="progress-wrapper">
-            <mat-label>Progress:</mat-label>
-            <mat-progress-bar
-                  mode="determinate"
-                  [value]="addImagesProgress"
-                  [class.finished]="addImagesTotalFiles > 0 && addImagesProcessedCount == addImagesTotalFiles"
-            ></mat-progress-bar>
-            <span>{{ addImagesProcessedCount }} / {{ addImagesTotalFiles }}</span>
-          </div>
-          <p class="image-sum" [class.hide]="imageFiles.length < 1">Added images, total: {{ imageFiles.length }}</p>
-        </div>
+        <h2>Enter your {{ (settings.selectedModel$ | async)?.provider || '' }} API key</h2>
+        <api-key-form
+              [modelProvider]="(settings.selectedModel$ | async)?.provider || ''"
+              (formGroupOutput)="setApiKeyFormGroup($event)"
+        ></api-key-form>
         <div class="stepper-nav">
           <button mat-button color="primary" matStepperPrevious>Back</button>
           <button mat-button color="primary" matStepperNext>Next</button>
         </div>
       </mat-step>
   
-      <!-- Step: Generate image descriptions -->
+      <!-- Step 3: Add images -->
+      <mat-step label="Add images" [completed]="(imageListService.imageList$ | async)?.length && !addingImages">
+        <h2>Add images</h2>
+        <add-images (addingImages)="setAddingImages($event)"></add-images>
+        <div class="stepper-nav">
+          <button mat-button color="primary" matStepperPrevious>Back</button>
+          <button mat-button color="primary" matStepperNext>Next</button>
+        </div>
+      </mat-step>
+  
+      <!-- Step 4: Generate image descriptions -->
       <mat-step label="Generate descriptions">
         <h2 id="generate-step-title">Generate image descriptions</h2>
-      
-        <div class="generate-desc-wrapper" [class.hide]="imageFiles.length < 1">
-          <div class="buttons-row">
-            <button mat-flat-button
-                  color="primary"
-                  (click)="generateImageDescriptionsAll()"
-                  [disabled]="generating || imageFiles.length < 1"
-            >Generate all ({{ imageFiles.length }} {{ imageFiles.length > 1 ? 'images' : 'image' }})</button>
-            <div class="cost right-aligned">Cumulative cost: ${{ this.totalCost | number }}</div>
-          </div>
-  
-          <div class="buttons-row">
-            <mat-form-field appearance="outline">
-              <mat-label>Export format</mat-label>
-              <mat-select [(ngModel)]="selectedExportFormat" name="exportFormat">
-                <mat-option value="docx">DOCX</mat-option>
-                <mat-option value="tab">TAB</mat-option>
-                <mat-option value="csv">CSV</mat-option>
-              </mat-select>
-            </mat-form-field>
-            <button mat-stroked-button
-                  [disabled]="generating || imageFiles.length < 1"
-                  (click)="export()"
-            >Export</button>
-            <button mat-stroked-button
-                  class="right-aligned"
-                  color="warn"
-                  [disabled]="generating || imageFiles.length < 1"
-                  (click)="removeAllImages()"
-            >Remove all</button>
-          </div>
-
-          <div class="table-wrapper">
-            <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 main-table">
-              <!-- Image preview column -->
-              <ng-container matColumnDef="imagePreview">
-                <th mat-header-cell *matHeaderCellDef>Image preview</th>
-                <td mat-cell *matCellDef="let file">
-                  <img [src]="file.base64Image" [height]="file.height" [width]="file.width">
-                  <span class="filename">{{ file.filename }}</span>
-                </td>
-              </ng-container>
-  
-              <!-- Description column -->
-              <ng-container matColumnDef="description">
-                <th mat-header-cell *matHeaderCellDef>Generated description</th>
-                <td mat-cell *matCellDef="let file">
-                  <div class="description-data">
-                    @if (file.generating) {
-                      <span class="loading-wrapper">
-                        <mat-spinner [diameter]="32"></mat-spinner><span class="spinner-label">Generating image description ...</span>
-                      </span>
-                    } @else if (file.descriptions.length < 1) {
-                      <span class="not-generated">No description generated.</span>
-                    } @else {
-                      <span class="description-text">
-                        {{ file.descriptions[file.activeDescriptionIndex].description }}
-                      </span>
-                    }
-                  </div>
-                  @if (file.descriptions.length > 0 && !file.generating) {
-                    <div class="description-actions">
-                      <div class="description-buttons-wrapper">
-                        @if (file.descriptions.length > 1) {
-                          <button mat-icon-button color="primary"
-                                matTooltip="Show previous description"
-                                aria-label="Previous description"
-                                [disabled]="file.activeDescriptionIndex < 1"
-                                (click)="previousDescription(file)"
-                          >
-                            <mat-icon>chevron_left</mat-icon>
-                          </button>
-                          <div class="description-counter">{{ file.activeDescriptionIndex + 1 }}/{{ file.descriptions.length }}</div>
-                          <button mat-icon-button color="primary"
-                                matTooltip="Show next description"
-                                aria-label="Next description"
-                                [disabled]="file.activeDescriptionIndex > file.descriptions.length - 2"
-                                (click)="nextDescription(file)"
-                          >
-                            <mat-icon>chevron_right</mat-icon>
-                          </button>
-                        }
-                        <button mat-icon-button color="primary"
-                              matTooltip="Copy description to clipboard"
-                              class="copy-button"
-                              aria-label="Copy description to clipboard"
-                              [cdkCopyToClipboard]="file.descriptions.length > 0 ? file.descriptions[file.activeDescriptionIndex].description : ''"
-                        >
-                          <mat-icon>content_copy</mat-icon>
-                        </button>
-                        <button mat-icon-button
-                              matTooltip="Delete description"
-                              class="delete-button"
-                              aria-label="Delete description"
-                              (click)="deleteDescription(file)"
-                        >
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                      </div>
-                      <div class="description-length">
-                        Length: {{ file.descriptions[file.activeDescriptionIndex].description | characterCount }} characters
-                      </div>
-                    </div>
-                  }
-                </td>
-              </ng-container>
-  
-              <!-- Actions column -->
-              <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef>Actions</th>
-                <td mat-cell *matCellDef="let file">
-                  <button mat-stroked-button
-                        (click)="generateImageDescription(file)"
-                        [disabled]="generating"
-                  >{{ file.descriptions.length > 0 ? 'Regenerate' : 'Generate' }}</button>
-                  <button mat-stroked-button
-                        color="warn"
-                        (click)="removeImage(file)"
-                        [disabled]="generating"
-                  >Remove image</button>
-                </td>
-              </ng-container>
-  
-              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-            </table>
-            <mat-paginator [pageSizeOptions]="[10, 20, 50]"
-                  showFirstLastButtons
-                  aria-label="Select page"
-                  (page)="onPageChange($event)"
-            ></mat-paginator>
-          </div>
-        </div>
-        @if (imageFiles.length < 1) {
-          <p class="no-images">No images. Go back to the previous step to add some!</p>
-        }
+        <generate-descriptions></generate-descriptions>
         <div class="stepper-nav">
           <button mat-button color="primary" matStepperPrevious>Back</button>
           <button mat-button color="primary" (click)="stepper.reset()">Reset</button>
         </div>
       </mat-step>
     </mat-stepper>
-  
   </div>
-
 </div>
 <div class="footer-wrapper">
   <footer>
