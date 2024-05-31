@@ -19,11 +19,13 @@
   
       <!-- Step 2: Enter API key -->
       <mat-step [stepControl]="apiKeyFormGroup" label="Enter API key">
-        <h2>Enter your {{ (settings.selectedModel$ | async)?.provider || '' }} API key</h2>
-        <api-key-form
-              [modelProvider]="(settings.selectedModel$ | async)?.provider || ''"
-              (formGroupOutput)="setApiKeyFormGroup($event)"
-        ></api-key-form>
+        <ng-container *ngIf="{ selectedModel: settings.selectedModel$ | async } as s">
+          <h2>Enter your {{ s.selectedModel?.provider || '' }} API key</h2>
+          <api-key-form
+                [modelProvider]="s.selectedModel?.provider || ''"
+                (formGroupOutput)="setApiKeyFormGroup($event)"
+          ></api-key-form>
+        </ng-container>
         <div class="stepper-nav">
           <button mat-button color="primary" matStepperPrevious>Back</button>
           <button mat-button color="primary" matStepperNext>Next</button>
@@ -33,7 +35,14 @@
       <!-- Step 3: Add images -->
       <mat-step label="Add images" [completed]="((imageListService.imageList$ | async)?.length || false) && !addingImages">
         <h2>Add images</h2>
-        <add-images (addingImages)="setAddingImages($event)"></add-images>
+        <!-- Defer loading the add-images component until the browser is idle -->
+        @defer (on idle) {
+          <add-images (addingImages)="setAddingImages($event)"></add-images>
+        } @loading (minimum 500ms) {
+          <p>Loading component ...</p>
+        } @error {
+          <p>Error loading component for adding images. Please try to reload the web page.</p>
+        }
         <div class="stepper-nav">
           <button mat-button color="primary" matStepperPrevious>Back</button>
           <button mat-button color="primary" matStepperNext>Next</button>
@@ -43,7 +52,14 @@
       <!-- Step 4: Generate image descriptions -->
       <mat-step label="Generate descriptions">
         <h2 id="generate-step-title">Generate image descriptions</h2>
-        <generate-descriptions></generate-descriptions>
+        <!-- Defer loading the generate-descriptions component until the API key in step 2 has validated -->
+        @defer (when isApiKeyFormValid) {
+          <generate-descriptions></generate-descriptions>
+        } @loading (minimum 500ms) {
+          <p>Loading component ...</p>
+        } @error {
+          <p>Error loading component for generating descriptions. Please try to reload the web page.</p>
+        }
         <div class="stepper-nav">
           <button mat-button color="primary" matStepperPrevious>Back</button>
           <button mat-button color="primary" (click)="stepper.reset()">Reset</button>
