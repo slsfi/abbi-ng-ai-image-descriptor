@@ -31,7 +31,7 @@
       </mat-step>
   
       <!-- Step 3: Add images -->
-      <mat-step label="Add images" [completed]="(imageListService.imageList$ | async)?.length && !addingImages">
+      <mat-step label="Add images" [completed]="((imageListService.imageList$ | async)?.length || false) && !addingImages">
         <h2>Add images</h2>
         <add-images (addingImages)="setAddingImages($event)"></add-images>
         <div class="stepper-nav">
