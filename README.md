@@ -52,7 +52,7 @@ Open your browser on http://localhost:4200/. The app will automatically rebuild 
 
 ## Building and deployment
 
-On each commit in the main branch a Docker image with the tag `main` is built using GitHub Actions and stored in the [GitHub Container Registry][abbi_ghcr].
+On each commit in the `main` branch a Docker image with the tag `main` is built using GitHub Actions and stored in the [GitHub Container Registry][abbi_ghcr].
 
 On each release a Docker image with the chosen release tag and the tag `latest` is built using GitHub Actions and also stored in the [GitHub Container Registry][abbi_ghcr].
 
@@ -67,6 +67,12 @@ ng update @angular/cli @angular/core @angular/cdk @angular/material
 ```
 
 When updating to a new major version of Angular, check the update guide first: <https://angular.dev/update-guide>. Also update the Angular major version number specified in [`Dockerfile`][dockerfile] and in [`docker-build-and-push.yml`][docker_build].
+
+Other dependencies can be updated by bumping the version number in [`package.json`][package.json] and running:
+
+```
+npm install
+```
 
 ### Node.js and nginx Docker images
 
@@ -88,4 +94,5 @@ When updating to a new major version of Angular, check the update guide first: <
 [nginx]: https://nginx.org/
 [node.js]: https://nodejs.org/
 [npm]: https://www.npmjs.com/get-npm
+[package.json]: package.json
 [SLS]: https://www.sls.fi/en
