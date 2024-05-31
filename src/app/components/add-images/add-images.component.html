@@ -14,9 +14,7 @@
     ></mat-progress-bar>
     <span>{{ processedCounter }} / {{ totalFileCount }}</span>
   </div>
-  <ng-container *ngIf="{ imageList: imageListService.imageList$ | async } as o">
-    <p class="image-sum" [class.hide]="!o.imageList?.length">
-      Added images, total: {{ o.imageList?.length ?? 0 }}
-    </p>
-  </ng-container>
+  <p class="image-sum">
+    Added images, total: {{ (imageListService.imageList$ | async)?.length ?? 0 }}
+  </p>
 </div>

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Output } from '@angular/core';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 
@@ -12,7 +12,6 @@ import { ImageData } from '../../types/image-data.types';
   standalone: true,
   imports: [
     AsyncPipe,
-    NgIf,
     MatFormFieldModule,
     MatProgressBarModule,
     FileInputComponent
@@ -83,7 +82,7 @@ export class AddImagesComponent {
           this.totalFileCount = 0;
           this.processedCounter = 0;
           this.progressPercentage = 0;
-        }, 1500);
+        }, 1000);
       });
     }
   }
