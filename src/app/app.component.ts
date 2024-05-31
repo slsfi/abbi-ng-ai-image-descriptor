@@ -63,4 +63,8 @@ export class AppComponent implements OnInit {
     this.addingImages = status;
   }
 
+  get isApiKeyFormValid(): boolean {
+    return this.apiKeyFormGroup?.valid ?? false;
+  }
+
 }
