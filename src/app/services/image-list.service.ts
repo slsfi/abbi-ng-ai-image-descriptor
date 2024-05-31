@@ -77,7 +77,17 @@ export class ImageListService {
     }
   }
 
-  updateImageList(list: ImageData[]) {
+  deleteActiveDescription(imageObj: ImageData): void {
+    if (imageObj.descriptions.length > 0) {
+      const indexToRemove = imageObj.activeDescriptionIndex;
+      if (indexToRemove > -1 && indexToRemove < imageObj.descriptions.length) {
+        imageObj.descriptions.splice(indexToRemove, 1);
+        imageObj.activeDescriptionIndex = indexToRemove < 1 ? 0 : (indexToRemove > imageObj.descriptions.length - 1 ? indexToRemove - 1 : indexToRemove);
+      }
+    }
+  }
+
+  updateImageList(list: ImageData[]): void {
     this._imageList.next(list);
   }
 

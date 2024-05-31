@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 
+import { ImageListService } from './image-list.service';
 import { DescriptionData } from '../types/description-data.types';
 import { ImageData } from '../types/image-data.types';
 
@@ -9,7 +10,17 @@ import { ImageData } from '../types/image-data.types';
 })
 export class ExportService {
 
-  constructor() { }
+  constructor(private imageListService: ImageListService) { }
+
+  exportImageListToFile(fileExtension: string): void {
+    if (fileExtension == 'docx') {
+      this.generateDOCX(this.imageListService.imageList);
+    } else if (fileExtension == 'csv') {
+      this.generateCSV(this.imageListService.imageList);
+    } else if (fileExtension == 'tab') {
+      this.generateTAB(this.imageListService.imageList);
+    }
+  }
 
   generateDOCX(imageFiles: ImageData[], filename: string = 'image-descriptions.docx'): void {
     // Provide an options object with sections
