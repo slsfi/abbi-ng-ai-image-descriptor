@@ -7,7 +7,7 @@
       <p>Start by defining your settings for the process and providing your API key, then select image files from your computer, and finally generate descriptions of them. You can download the descriptions in different formats or copy them to the clipboard individually.</p>
     </div>
   
-    <mat-stepper orientation="horizontal" [linear]="true" #stepper>
+    <mat-stepper [orientation]="(stepperOrientation | async)!" [linear]="true" #stepper>
       <!-- Step 1: Configure settings -->
       <mat-step label="Configure settings">
         <h2>Configure settings</h2>

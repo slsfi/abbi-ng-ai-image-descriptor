@@ -14,7 +14,7 @@ export class OpenAiService {
 
   constructor() { }
 
-  updateClient(apiKey: string, orgKey?: string) {
+  updateClient(apiKey: string, orgKey?: string): void {
     if (apiKey !== this.apiKey) {
       this.apiKey = apiKey;
       this.client = new OpenAI({

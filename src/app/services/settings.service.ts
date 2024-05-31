@@ -24,6 +24,7 @@ export class SettingsService {
   );
   private _selectedPromptTemplate = new BehaviorSubject<string>('Alt text');
   private _selectedTemperature = new BehaviorSubject<number>(1.0);
+
   availableModels$ = this._availableModels.asObservable();
   includeFilename$ = this._includeFilename.asObservable();
   languages$ = this._languages.asObservable();
@@ -80,6 +81,21 @@ export class SettingsService {
     this._selectedTemperature.next(value);
   }
 
+  private setPromptTemplate() {
+    const selectedPrompt: Prompt | undefined = prompts.find(
+      (p: Prompt) => p.languageCode === this.selectedLanguage
+    );
+    if (selectedPrompt) {
+      this.updatePromptTemplates(selectedPrompt.promptOptions);
+      const defaultTemplate = selectedPrompt.promptOptions.find(
+        (t: PromptOption) => t.type === 'Alt text'
+      );
+      this.updateSelectedPromptTemplate(
+        defaultTemplate ? 'Alt text' : selectedPrompt.promptOptions[0].type
+      );
+    }
+  }
+
   get availableModels(): Models {
     return this._availableModels.getValue();
   }
@@ -116,18 +132,4 @@ export class SettingsService {
     return this._selectedTemperature.getValue();
   }
 
-  private setPromptTemplate() {
-    const selectedPrompt: Prompt | undefined = prompts.find(
-      (p: Prompt) => p.languageCode === this.selectedLanguage
-    );
-    if (selectedPrompt) {
-      this.updatePromptTemplates(selectedPrompt.promptOptions);
-      const defaultTemplate = selectedPrompt.promptOptions.find(
-        (t: PromptOption) => t.type === 'Alt text'
-      );
-      this.updateSelectedPromptTemplate(
-        defaultTemplate ? 'Alt text' : selectedPrompt.promptOptions[0].type
-      );
-    }
-  }
 }
