@@ -12,7 +12,7 @@
           [value]="progressPercentage"
           [class.finished]="totalFileCount > 0 && processedCounter == totalFileCount"
     ></mat-progress-bar>
-    <span>{{ processedCounter }} / {{ totalFileCount }}</span>
+    <span>{{ processedCounter }} / {{ totalFileCount }}</span>
   </div>
   <p class="image-sum">
     Added images, total: {{ (imageListService.imageList$ | async)?.length ?? 0 }}

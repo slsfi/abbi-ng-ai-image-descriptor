@@ -1,9 +1,8 @@
 .settings-column-wrapper {
-  column-gap: 3rem;
   display: flex;
-  flex-flow: row wrap;
+  flex-wrap: wrap;
   justify-content: space-between;
-  row-gap: 0;
+  gap: 1rem 3rem;
 
   @media (max-width: 1110px) {
     justify-content: flex-start;
@@ -19,6 +18,9 @@ mat-slide-toggle.mat-mdc-slide-toggle {
 }
 
 .parameters-wrapper {
+  max-width: 300px;
+  width: 100%;
+
   > mat-form-field,
   > .form-field-wrapper {
     margin-bottom: 1rem;
@@ -28,7 +30,8 @@ mat-slide-toggle.mat-mdc-slide-toggle {
     }
 
     mat-slide-toggle.mat-mdc-slide-toggle {
-      margin-top: -0.325rem;
+      margin: -0.325rem 0 1rem 0;
+      --mat-switch-label-text-tracking: normal;
     }
   }
 }
@@ -38,7 +41,7 @@ mat-slide-toggle.mat-mdc-slide-toggle {
   display: flex;
 
   mat-form-field {
-    width: 300px;
+    width: 100%;
   }
 
   > :not(:first-child) {

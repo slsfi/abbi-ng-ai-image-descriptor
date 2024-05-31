@@ -1,14 +1,12 @@
 form {
   align-items: center;
   display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem 1rem;
 
   mat-form-field {
-    width: 300px;
-  }
-
-  > :not(:first-child) {
-    margin-top: -1.325rem;
-    padding-left: 1rem;
+    max-width: 300px;
+    width: 100%;
   }
 
   mat-hint {
@@ -23,5 +21,9 @@ form {
         padding-right: 0.5em;
       }
     }
+  }
+
+  file-input {
+    margin-top: -1.25rem;
   }
 }
