@@ -15,6 +15,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { prompts } from '../../../assets/config/prompts';
 import { ConfirmActionDialogComponent } from '../confirm-action-dialog/confirm-action-dialog.component';
+import { EditDescriptionDialogComponent } from '../edit-description-dialog/edit-description-dialog.component';
 import { CharacterCountPipe } from '../../pipes/character-count.pipe';
 import { ExportService } from '../../services/export.service';
 import { ImageListService } from '../../services/image-list.service';
@@ -214,19 +215,19 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     });
   }
 
-  previousDescription(imageObj: ImageData) {
+  previousDescription(imageObj: ImageData): void {
     if (imageObj.activeDescriptionIndex > 0) {
       imageObj.activeDescriptionIndex--;
     }
   }
 
-  nextDescription(imageObj: ImageData) {
+  nextDescription(imageObj: ImageData): void {
     if (imageObj.activeDescriptionIndex < imageObj.descriptions.length - 1) {
       imageObj.activeDescriptionIndex++;
     }
   }
 
-  deleteDescription(imageObj: ImageData) {
+  deleteDescription(imageObj: ImageData): void {
     const dialogRef = this.dialog.open(ConfirmActionDialogComponent, {
       data: {
         title: 'Delete this description?',
@@ -239,6 +240,19 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     dialogRef.afterClosed().subscribe((remove: boolean) => {
       if (remove) {
         this.imageListService.deleteActiveDescription(imageObj);
+      }
+    });
+  }
+
+  editDescription(imageObj: ImageData): void {
+    const dialogRef = this.dialog.open(EditDescriptionDialogComponent, {
+      data: imageObj,
+      panelClass: 'editDescriptionDialog'
+    });
+
+    dialogRef.afterClosed().subscribe((editedDescription: string | null) => {
+      if (editedDescription !== null) {
+        imageObj.descriptions[imageObj.activeDescriptionIndex].description = editedDescription;
       }
     });
   }
