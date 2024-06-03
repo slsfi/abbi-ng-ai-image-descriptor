@@ -1,12 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogActions,
-  MatDialogClose,
-  MatDialogTitle,
-  MatDialogContent,
-} from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogClose, MatDialogContent } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -19,9 +13,7 @@ import { ImageData } from '../../types/image-data.types';
   imports: [
     FormsModule,
     MatButtonModule,
-    MatDialogActions,
     MatDialogClose,
-    MatDialogTitle,
     MatDialogContent,
     MatFormFieldModule,
     MatInputModule
@@ -30,6 +22,7 @@ import { ImageData } from '../../types/image-data.types';
   styleUrl: './edit-description-dialog.component.scss'
 })
 export class EditDescriptionDialogComponent implements OnInit {
+  aspectRatio: number = 1.333;
   editedDescription?: string;
 
   constructor(
@@ -38,6 +31,7 @@ export class EditDescriptionDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.editedDescription = this.imageObj.descriptions[this.imageObj.activeDescriptionIndex].description;
+    this.aspectRatio = this.imageObj.width / this.imageObj.height;
   }
 
 }

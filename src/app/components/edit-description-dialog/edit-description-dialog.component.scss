@@ -1,6 +1,7 @@
 mat-dialog-content.mat-mdc-dialog-content {
   display: flex;
   justify-content: center;
+  max-height: 100%;
 }
 
 .container {
@@ -17,7 +18,17 @@ mat-dialog-content.mat-mdc-dialog-content {
     width: 50%;
 
     &.textarea-container {
-      justify-content: flex-start;
+      flex-direction: column;
+    }
+  }
+
+  &.wider-img-container {
+    > div {
+      width: 66.6%;
+
+      &.textarea-container {
+        width: 33.4%;
+      }
     }
   }
 
@@ -28,12 +39,36 @@ mat-dialog-content.mat-mdc-dialog-content {
     width: auto;
   }
 
-  mat-form-field {
+  
+  .dialog-actions {
+    align-items: center;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  h2,
+  mat-form-field,
+  .dialog-actions {
     max-width: 600px;
     width: 100%;
   }
-}
 
-mat-dialog-actions.mat-mdc-dialog-actions {
-  margin-top: auto;
+  @media (max-aspect-ratio: 1/1) {
+    flex-direction: column;
+
+    > div {
+      height: 66.6%;
+      width: 100% !important;
+
+      &.textarea-container {
+        height: 33.4%;
+      }
+    }
+
+    &.wider-img-container {
+      > div {
+        height: 50%;
+      }
+    }
+  }
 }

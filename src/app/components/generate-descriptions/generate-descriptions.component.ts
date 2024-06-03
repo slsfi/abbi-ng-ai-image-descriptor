@@ -250,8 +250,8 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       panelClass: 'editDescriptionDialog'
     });
 
-    dialogRef.afterClosed().subscribe((editedDescription: string | null) => {
-      if (editedDescription !== null) {
+    dialogRef.afterClosed().subscribe((editedDescription: string | null | undefined) => {
+      if (editedDescription !== null && editedDescription !== undefined) {
         imageObj.descriptions[imageObj.activeDescriptionIndex].description = editedDescription;
       }
     });
