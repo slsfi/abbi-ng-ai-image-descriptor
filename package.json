@@ -1,6 +1,6 @@
 {
   "name": "abbi-ng-ai-image-descriptor",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Angular web app for AI-generated image descriptions",
   "homepage": "https://github.com/slsfi/abbi-ng-ai-image-descriptor#readme",
   "license": "MIT",
