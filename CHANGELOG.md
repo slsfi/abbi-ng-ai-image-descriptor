@@ -8,4 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
-The app is still in development and no releases have yet been made.
+
+
+## [1.0.0] – 2024-06-03
+
+Initial release.
+
+
+
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.0.0...HEAD
+[1.0.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/releases/tag/1.0.0
