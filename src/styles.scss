@@ -65,3 +65,13 @@ footer {
     height: 0;
   }
 }
+
+/*
+  Sets the size of the edit description dialog.
+*/
+div.editDescriptionDialog.cdk-overlay-pane.mat-mdc-dialog-panel {
+  height: 100%;
+  max-height: 90vh;
+  max-width: 90vw !important;
+  width: 100%;
+}
