@@ -84,6 +84,13 @@ npm install
 
 [Node.js][node.js] and [nginx][nginx] Docker images are used in the build process. To update these, change the tags specified in both [`Dockerfile`][dockerfile] and in [`docker-build-and-push.yml`][docker_build].
 
+### Modifying available AI-models, languages and prompt types
+
+The available AI-models are defined in [`src/assets/config/models.ts`][models.ts]. Currently, only OpenAI models are supported.
+
+The available description languages and prompt types are defined in [`src/assets/config/prompts.ts`][prompts.ts]. In the prompt templates, the strings `{{FILENAME}}` and `{{DESC_LENGTH}}` are replaced with the image filename and desired approximate description length, respectively.
+
+
 
 [abbi_ghcr]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/pkgs/container/abbi-ng-ai-image-descriptor
 [angular]: https://angular.dev/
@@ -98,8 +105,10 @@ npm install
 [git_bash_tutorial]: https://www.atlassian.com/git/tutorials/git-bash
 [github_desktop]: https://desktop.github.com/
 [material]: https://material.angular.io/
+[models.ts]: src/assets/config/models.ts
 [nginx]: https://nginx.org/
 [node.js]: https://nodejs.org/
 [npm]: https://www.npmjs.com/get-npm
 [package.json]: package.json
+[prompts.ts]: src/assets/config/prompts.ts
 [SLS]: https://www.sls.fi/en

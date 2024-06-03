@@ -1,5 +1,5 @@
 export type Model = {
-  provider: string;
+  provider: 'OpenAI';
   name: string;
   id: string;
   inputPrice: number;
