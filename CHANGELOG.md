@@ -11,7 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - Deps: update `@angular` to 18.0.4.
-
+- Deps: update `openai` to 4.52.1.
+- Deps: update bump `ws`, `engine.io` and `socket.io-adapter`.
+- Deps (dev): update `braces` to 3.0.3.
 
 
 ## [1.0.0] – 2024-06-03
