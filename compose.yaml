@@ -1,6 +1,6 @@
 services:
   web:
-    image: ghcr.io/slsfi/abbi-ng-ai-image-descriptor:latest
+    image: ghcr.io/slsfi/abbi-ng-ai-image-descriptor:1.0.0
     ports:
-      - "80:80"
+      - "8082:80"
     restart: unless-stopped
