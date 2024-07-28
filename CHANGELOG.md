@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Deps: update `@angular` to 18.1.2.
 - Deps: update `openai` to 4.52.1.
+- Deps: update `tslib` to 2.6.3.
 - Deps: update `zone.js` to 0.14.8.
 - Deps: update bump `ws`, `engine.io` and `socket.io-adapter`.
 - Deps (dev): update `braces` to 3.0.3.
