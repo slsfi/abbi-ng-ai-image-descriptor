@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- Support for OpenAI `gpt-4o-mini` model.
+
 ### Changed
 
 - Deps: update `@angular` to 18.1.2.
