@@ -19,6 +19,14 @@ export const models: Models = [
   },
   {
     provider: "OpenAI",
+    name: "GPT-4o mini",
+    id: "gpt-4o-mini",
+    inputPrice: 0.15,
+    outputPrice: 0.6,
+    rpm: 5000
+  },
+  {
+    provider: "OpenAI",
     name: "GPT-4-turbo (legacy)",
     id: "gpt-4-turbo",
     inputPrice: 10.0,
