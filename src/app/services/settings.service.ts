@@ -17,7 +17,7 @@ export class SettingsService {
     prompts.map(p => ({ code: p.languageCode, name: p.languageDisplayName }))
   );
   private _promptTemplates = new BehaviorSubject<PromptOption[]>([]);
-  private _selectedDescLength = new BehaviorSubject<number>(250);
+  private _selectedDescLength = new BehaviorSubject<number>(200);
   private _selectedLanguage = new BehaviorSubject<string>('sv');
   private _selectedModel = new BehaviorSubject<Model|undefined>(
     models.filter((model) => model.default)[0]

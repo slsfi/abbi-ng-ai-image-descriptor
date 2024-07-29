@@ -26,7 +26,7 @@ import { Model } from '../../types/model.types';
   styleUrl: './settings-form.component.scss'
 })
 export class SettingsFormComponent {
-  descLengthMax: number = 350;
+  descLengthMax: number = 300;
   descLengthMin: number = 150;
   temperatureMax: number = 2.0;
   temperatureMin: number = 0.0;

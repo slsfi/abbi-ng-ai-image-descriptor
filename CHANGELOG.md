@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 
+- Default approximate length of description reduced to 200 and max value of slider to 300 characters.
 - Deps: update `@angular` to 18.1.2.
 - Deps: update `openai` to 4.53.2.
 - Deps: update `tslib` to 2.6.3.
