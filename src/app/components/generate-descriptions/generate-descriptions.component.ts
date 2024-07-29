@@ -55,7 +55,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   matTableDataSource = new MatTableDataSource<ImageData>([]);
   displayedColumns: string[] = ['imagePreview', 'description', 'actions'];
   generating: boolean = false;
-  selectedExportFormat: string = 'docx';
+  selectedExportFormat: string = 'docx-table';
   totalCost: number = 0;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;

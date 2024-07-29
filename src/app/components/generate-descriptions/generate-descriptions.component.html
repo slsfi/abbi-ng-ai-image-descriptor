@@ -13,7 +13,8 @@
       <mat-form-field appearance="outline">
         <mat-label>Export format</mat-label>
         <mat-select [(ngModel)]="selectedExportFormat" name="exportFormat">
-          <mat-option value="docx">DOCX</mat-option>
+          <mat-option value="docx-table">DOCX (table)</mat-option>
+          <mat-option value="docx">DOCX (paragraphs)</mat-option>
           <mat-option value="tab">TAB</mat-option>
           <mat-option value="csv">CSV</mat-option>
         </mat-select>
