@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Document, Packer, Paragraph, TextRun } from 'docx';
+import { Document, IParagraphStyleOptions, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType } from 'docx';
 
 import { ImageListService } from './image-list.service';
 import { DescriptionData } from '../types/description-data.types';
@@ -12,12 +12,14 @@ export class ExportService {
 
   constructor(private imageListService: ImageListService) { }
 
-  exportImageListToFile(fileExtension: string): void {
-    if (fileExtension == 'docx') {
+  exportImageListToFile(fileFormat: string): void {
+    if (fileFormat == 'docx-table') {
+      this.generateDOCXTable(this.imageListService.imageList);
+    } else if (fileFormat == 'docx') {
       this.generateDOCX(this.imageListService.imageList);
-    } else if (fileExtension == 'csv') {
+    } else if (fileFormat == 'csv') {
       this.generateCSV(this.imageListService.imageList);
-    } else if (fileExtension == 'tab') {
+    } else if (fileFormat == 'tab') {
       this.generateTAB(this.imageListService.imageList);
     }
   }
@@ -27,22 +29,7 @@ export class ExportService {
     const doc = new Document({
       styles: {
         paragraphStyles: [
-          {
-            id: 'paragraph',
-            name: 'Paragraph',
-            next: 'paragraph',
-            quickFormat: true,
-            run: {
-              font: 'Cambria',
-              size: 22 // 11pt font size (22 half-points)
-            },
-            paragraph: {
-              spacing: {
-                after: 240, // 12pt spacing below (240 twips)
-                line: 300 // 1.25 line height (1.0 = 240)
-              }
-            }
-          }
+          this.getDOCXParagraphStyle()
         ]
       },
       sections: [{
@@ -64,6 +51,84 @@ export class ExportService {
       }]
     });
 
+    Packer.toBlob(doc).then(blob => {
+      this.initiateDownload(blob, filename);
+    });
+  }
+
+  generateDOCXTable(imageFiles: ImageData[], filename: string = 'image-descriptions.docx'): void {
+    // Create table rows with cells containing filenames and descriptions
+    const tableRows = imageFiles.map((imageObj: ImageData) => {
+      const descriptionObj = this.getActiveDescription(imageObj);
+      return new TableRow({
+        children: [
+          new TableCell({
+            width: {
+              size: 25,
+              type: WidthType.PERCENTAGE,
+            },
+            margins: {
+              top: 60,
+              bottom: 60,
+              left: 60,
+              right: 60,
+            },
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun(imageObj.filename)
+                ],
+                style: 'paragraph'
+              })
+            ]
+          }),
+          new TableCell({
+            width: {
+              size: 75,
+              type: WidthType.PERCENTAGE,
+            },
+            margins: {
+              top: 60,
+              bottom: 60,
+              left: 60,
+              right: 60,
+            },
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun(descriptionObj?.description ?? '')
+                ],
+                style: 'paragraph'
+              })
+            ]
+          })
+        ]
+      });
+    });
+  
+    // Create a table with the rows
+    const table = new Table({
+      rows: tableRows,
+      width: {
+        size: 100,
+        type: WidthType.PERCENTAGE,
+      }
+    });
+  
+    // Create the document
+    const doc = new Document({
+      styles: {
+        paragraphStyles: [
+          this.getDOCXParagraphStyle()
+        ]
+      },
+      sections: [{
+        properties: {},
+        children: [table]
+      }]
+    });
+  
+    // Generate and download the document
     Packer.toBlob(doc).then(blob => {
       this.initiateDownload(blob, filename);
     });
@@ -126,5 +191,26 @@ export class ExportService {
 
   private getActiveDescription(imageData: ImageData): DescriptionData | null {
     return imageData.descriptions.length > 0 ? imageData.descriptions[imageData.activeDescriptionIndex] : null;
+  }
+
+  private getDOCXParagraphStyle(): IParagraphStyleOptions {
+    const styleObj = {
+      id: 'paragraph',
+      name: 'Paragraph',
+      next: 'paragraph',
+      quickFormat: true,
+      run: {
+        font: 'Cambria',
+        size: 22 // 11pt font size (22 half-points)
+      },
+      paragraph: {
+        spacing: {
+          after: 240, // 12pt spacing below (240 twips)
+          line: 300 // 1.25 line height (1.0 = 240)
+        }
+      }
+    }
+
+    return styleObj;
   }
 }
