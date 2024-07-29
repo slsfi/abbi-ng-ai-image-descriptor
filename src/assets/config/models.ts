@@ -24,13 +24,5 @@ export const models: Models = [
     inputPrice: 0.15,
     outputPrice: 0.6,
     rpm: 5000
-  },
-  {
-    provider: "OpenAI",
-    name: "GPT-4-turbo (legacy)",
-    id: "gpt-4-turbo",
-    inputPrice: 10.0,
-    outputPrice: 30.0,
-    rpm: 500
   }
 ]

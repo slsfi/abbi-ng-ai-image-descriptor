@@ -23,6 +23,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps (dev): update `jasmine-core` to 5.2.0.
 - Deps (dev): update `typescript` to 5.5.4.
 
+### Removed
+
+- Support for legacy OpenAI `gpt-4-turbo` model.
+
 
 
 ## [1.0.0] – 2024-06-03
