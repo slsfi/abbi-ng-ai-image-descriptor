@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Support for OpenAI `gpt-4o-mini` model.
 - New export format: DOCX file with the data (image filenames and generated descriptions) structured as a table. This new format has been set as the default export format.
+- App version to page footer.
 
 ### Changed
 
