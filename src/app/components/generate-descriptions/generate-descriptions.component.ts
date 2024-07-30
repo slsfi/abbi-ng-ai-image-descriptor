@@ -16,6 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { prompts } from '../../../assets/config/prompts';
 import { ConfirmActionDialogComponent } from '../confirm-action-dialog/confirm-action-dialog.component';
 import { EditDescriptionDialogComponent } from '../edit-description-dialog/edit-description-dialog.component';
+import { TranslateDescriptionDialogComponent } from '../translate-description-dialog/translate-description-dialog.component';
 import { CharacterCountPipe } from '../../pipes/character-count.pipe';
 import { ExportService } from '../../services/export.service';
 import { ImageListService } from '../../services/image-list.service';
@@ -104,6 +105,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         this.totalCost += cost;
         const newDescription: DescriptionData = {
           description: respContent,
+          language: settings.language,
           model: settings.model?.id ?? '',
           inputTokens: response?.usage?.prompt_tokens ?? 0,
           outputTokens: response?.usage?.completion_tokens ?? 0,
@@ -160,6 +162,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
           this.totalCost += cost;
           const newDescription: DescriptionData = {
             description: respContent,
+            language: settings.language,
             model: settings.model?.id ?? '',
             inputTokens: response?.usage?.prompt_tokens ?? 0,
             outputTokens: response?.usage?.completion_tokens ?? 0,
@@ -253,6 +256,20 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     dialogRef.afterClosed().subscribe((editedDescription: string | null | undefined) => {
       if (editedDescription !== null && editedDescription !== undefined) {
         imageObj.descriptions[imageObj.activeDescriptionIndex].description = editedDescription;
+      }
+    });
+  }
+
+  translateDescription(imageObj: ImageData): void {
+    const dialogRef = this.dialog.open(TranslateDescriptionDialogComponent, {
+      data: imageObj,
+      panelClass: 'translateDescriptionDialog'
+    });
+
+    dialogRef.afterClosed().subscribe((translateLanguageCode: string) => {
+      if (translateLanguageCode) {
+        console.log("Translating to: ", translateLanguageCode);
+        
       }
     });
   }
