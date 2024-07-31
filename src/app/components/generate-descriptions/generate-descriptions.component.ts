@@ -16,6 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { prompts } from '../../../assets/config/prompts';
 import { ConfirmActionDialogComponent } from '../confirm-action-dialog/confirm-action-dialog.component';
 import { EditDescriptionDialogComponent } from '../edit-description-dialog/edit-description-dialog.component';
+import { TranslateDescriptionDialogComponent } from '../translate-description-dialog/translate-description-dialog.component';
 import { CharacterCountPipe } from '../../pipes/character-count.pipe';
 import { ExportService } from '../../services/export.service';
 import { ImageListService } from '../../services/image-list.service';
@@ -104,6 +105,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         this.totalCost += cost;
         const newDescription: DescriptionData = {
           description: respContent,
+          language: settings.language,
           model: settings.model?.id ?? '',
           inputTokens: response?.usage?.prompt_tokens ?? 0,
           outputTokens: response?.usage?.completion_tokens ?? 0,
@@ -160,6 +162,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
           this.totalCost += cost;
           const newDescription: DescriptionData = {
             description: respContent,
+            language: settings.language,
             model: settings.model?.id ?? '',
             inputTokens: response?.usage?.prompt_tokens ?? 0,
             outputTokens: response?.usage?.completion_tokens ?? 0,
@@ -179,6 +182,43 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   
     this.generating = false;
     snackBarRef?.dismiss();
+  }
+
+  async generateDescriptionTranslation(imageObj: ImageData, prompt: string, targetLanguageCode: string) {
+    imageObj.generating = true;
+    this.generating = true;
+    const settings: RequestSettings = this.settings.getSettings();
+
+    try {
+      const response = await this.openaiService.chatCompletionTextTask(prompt, settings.model?.id ?? undefined);
+      // console.log(response);
+
+      const respContent = response?.choices?.[0]?.message?.content ?? '';
+      if (!respContent && response?.error) {
+        const e = response.error;
+        const eMessage = `Error communicating with the ${settings.model?.provider} API: ${e.status} ${e.message}`;
+        this.showAPIErrorMessage(eMessage);
+      } else {
+        const cost = this.calculateCostFromResponse(settings.model, response?.usage);
+        this.totalCost += cost;
+        const newDescription: DescriptionData = {
+          description: respContent,
+          language: targetLanguageCode,
+          model: settings.model?.id ?? '',
+          inputTokens: response?.usage?.prompt_tokens ?? 0,
+          outputTokens: response?.usage?.completion_tokens ?? 0,
+          cost: cost
+        };
+        imageObj.descriptions.push(newDescription);
+        imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
+      }
+    } catch (e: any) {
+      console.error(e);
+      this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model?.provider} API.`);
+    } finally {
+      imageObj.generating = false;
+      this.generating = false;
+    }
   }
 
   removeImage(imageObj: ImageData): void {
@@ -253,6 +293,31 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     dialogRef.afterClosed().subscribe((editedDescription: string | null | undefined) => {
       if (editedDescription !== null && editedDescription !== undefined) {
         imageObj.descriptions[imageObj.activeDescriptionIndex].description = editedDescription;
+      }
+    });
+  }
+
+  translateDescription(imageObj: ImageData): void {
+    const dialogRef = this.dialog.open(TranslateDescriptionDialogComponent, {
+      data: imageObj,
+      panelClass: 'translateDescriptionDialog'
+    });
+
+    dialogRef.afterClosed().subscribe((targetLanguageCode: string) => {
+      if (targetLanguageCode) {       
+        // Find the selected language prompt
+        const targetPromptsIndex = prompts.findIndex((p: Prompt) => p.languageCode == targetLanguageCode);
+
+        if (targetPromptsIndex < 0) {
+          console.error("Unable to find prompt for selected language.");
+          return;
+        }
+
+        // Construct the translate prompt
+        let tPrompt = prompts[targetPromptsIndex].translatePrompt.replace('{{ORIG_LANG_CODE}}', imageObj.descriptions[imageObj.activeDescriptionIndex].language);
+        tPrompt += '\n\n' + imageObj.descriptions[imageObj.activeDescriptionIndex].description;
+
+        this.generateDescriptionTranslation(imageObj, tPrompt, targetLanguageCode);
       }
     });
   }

@@ -97,6 +97,14 @@
                   >
                     <mat-icon>edit</mat-icon>
                   </button>
+                  <button mat-icon-button color="primary"
+                        matTooltip="Translate description"
+                        class="translate-button"
+                        aria-label="Translate description"
+                        (click)="translateDescription(file)"
+                  >
+                    <mat-icon>translate</mat-icon>
+                  </button>
                   <button mat-icon-button
                         matTooltip="Delete description"
                         class="delete-button"
