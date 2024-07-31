@@ -47,6 +47,7 @@ export class OpenAiService {
     if (!prompt) {
       return { error: { status: 400, message: 'Missing prompt' }};
     }
+
     const payload = {
       model: settings?.model?.id ?? 'gpt-4o',
       messages: [
@@ -70,6 +71,41 @@ export class OpenAiService {
       max_tokens: settings?.descriptionLength ? settings?.descriptionLength + 100 : null
     };
     // console.log(payload);
+
+    const response = await this.client.chat.completions
+      .create(payload)
+      .catch(async (err: any) => {
+        if (err instanceof OpenAI.APIError) {
+          console.error('API Error:', err.status, err.name, err.headers);
+          return { error: { status: err.status, message: err.name }};
+        } else {
+          console.error('Unexpected Error:', err);
+          return { error: { status: 500, message: 'Internal Server Error' }};
+        }
+      });
+    return response;
+  }
+
+  async chatCompletionTextTask(prompt: string, modelId: string = 'gpt-4o'): Promise<any> {
+    if (!prompt) {
+      return { error: { status: 400, message: 'Missing prompt' }};
+    }
+
+    const payload = {
+      model: modelId,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: prompt },
+          ],
+        }
+      ]
+    };
+    // console.log(payload);
+
     const response = await this.client.chat.completions
       .create(payload)
       .catch(async (err: any) => {

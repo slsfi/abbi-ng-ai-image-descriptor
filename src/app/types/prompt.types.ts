@@ -8,6 +8,7 @@ export type Prompt = {
   languageDisplayName: string;
   filenamePrompt: string;
   promptOptions: PromptOption[];
+  translatePrompt: string;
 };
 
 export type Prompts = Prompt[];
