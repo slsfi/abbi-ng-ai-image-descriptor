@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Added
 
 - Support for OpenAI [`gpt-4o-mini`](https://platform.openai.com/docs/models/gpt-4o-mini) model. ([6c4c1f0](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/6c4c1f0478c018808e21abcbf633f222e40b68f4))
-- New export format: DOCX file with the data (image filenames and generated descriptions) structured as a table. This new format has been set as the default export format. ([f7af2cb](vhttps://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/f7af2cb5ac78705cd4acba27e06316de3e27fe4a))
+- New export format: DOCX file with the data (image filenames and generated descriptions) structured as a table. This new format has been set as the default export format. ([f7af2cb](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/f7af2cb5ac78705cd4acba27e06316de3e27fe4a))
 - App version to page footer. ([e2da6c5](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/e2da6c5381207bbf0d859fc09315aa5c8d9ac398))
 - Option to translate individual descriptions to other languages. ([89c7866](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/89c7866c52ad9e557d94c1e56d2dbd36a8b1f49d))
 
