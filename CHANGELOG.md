@@ -27,7 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `openai` to 4.53.2. ([6ea52ae](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/6ea52ae4605f24b0391ba009f052dc7add5cba84), [52ac756](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/52ac75643437a070074d7f2b7fab6ff7d759c121))
 - Deps: update `tslib` to 2.6.3. ([761aa25](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/761aa252bab2e6e1952ba6ae3c1b99585871d213))
 - Deps: update `zone.js` to 0.14.8. ([964ea1d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/964ea1d61c6f39eec6257e8aa3b014b277d07dc5), [22e4314](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/22e4314321d666d07a61403974dfa34da2316515))
-- Deps: update bump `ws`, `engine.io` and `socket.io-adapter`. ([cc2c7ed](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/cc2c7edacf89058e30255e19376d4695deb84ab9))
+- Deps: update `ws`, `engine.io` and `socket.io-adapter`. ([cc2c7ed](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/cc2c7edacf89058e30255e19376d4695deb84ab9))
 - Deps (dev): update `braces` to 3.0.3. ([56b3d5e](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/56b3d5e7f1832711ab9c28954867def5f1855e86))
 - Deps (dev): update `jasmine-core` to 5.2.0. ([e6308da](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/e6308da4cea5ce490f5b3062876177282a9607ad))
 - Deps (dev): update `karma` to 6.4.4. ([16828f8](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/16828f87fd853790e4dbb0d0eacad07359aa3b42))
