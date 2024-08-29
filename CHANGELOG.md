@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Configuration file for Dependabot version updates of packages.
 
+### Changed
+
+- Update `nginx` to 1.26.2.
+
 
 
 ## [1.1.0] – 2024-08-01

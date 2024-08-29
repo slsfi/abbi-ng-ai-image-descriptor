@@ -16,7 +16,7 @@ ARG NODE_IMAGE_TAG=20-alpine
 # and define a default tag in case the build argument is not passed.
 # The nginx image is used as the final image of the app,
 # https://hub.docker.com/_/nginx.
-ARG NGINX_IMAGE_TAG=1.26.1-alpine
+ARG NGINX_IMAGE_TAG=1.26.2-alpine
 
 # 1. Create intermediate build image from official Node.js image.
 FROM node:${NODE_IMAGE_TAG} AS build
