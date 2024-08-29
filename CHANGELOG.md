@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- Configuration file for Dependabot version updates of packages.
+
 
 
 ## [1.1.0] – 2024-08-01
