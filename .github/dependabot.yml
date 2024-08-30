@@ -15,8 +15,14 @@ updates:
       prefix: "build(deps)"
       prefix-development: "build(dev-deps)"
     ignore:
-      # Do not update @angular dependencies at all; these are updated manually
+      # Ignore version updates (major, minor, and patch) for @angular dependencies
+      # (these are updated manually)
+      # Security updates are still allowed
       - dependency-name: "@angular*"
-      # Do not update major versions
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
+      # Ignore only major version updates for other dependencies
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
