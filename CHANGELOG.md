@@ -8,17 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [1.1.1] – 2024-08-30
+
 ### Added
 
-- Configuration file for Dependabot version updates of packages.
+- Configuration file for Dependabot version updates of packages. ([ab254df](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/ab254dff55c162b3484ce0ae080fdc20331fbd63), [d5e278d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/d5e278dca87e15fe1d65be24526dd0ae096cd121))
 
 ### Changed
 
-- Update `nginx` to 1.26.2.
-- Deps: update `@angular` to 18.2.2.
-- Deps: update `openai` to 4.57.0.
-- Deps: update `tslib` to 2.7.0.
-- Deps (transitive): update `micromatch` to 4.0.8.
+- Update `nginx` to 1.26.2. ([5d82b89](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/5d82b89a0cc16c3c0c9f1df4b1023788d5a011c2))
+- Deps: update `@angular` to 18.2.2. ([33cef42](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/33cef42070c686d585cf304b5bbf156953cc709c))
+- Deps: update `openai` to 4.57.0. ([8a3d6dc](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/8a3d6dce630e914900d88bb946b01c9d82dbe0aa))
+- Deps: update `tslib` to 2.7.0. ([6b2f86b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/6b2f86b064b15ba7a23b4e30a6e0768e3d23b371))
+- Deps (transitive): update `micromatch` to 4.0.8. ([6c9d256](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/6c9d2560e188d9aa67f0dc9a87b6383a536e20fd))
 
 
 
@@ -57,6 +61,7 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.1...HEAD
+[1.1.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/releases/tag/1.0.0
