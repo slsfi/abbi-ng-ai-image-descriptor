@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Update `nginx` to 1.26.2.
 - Deps: update `@angular` to 18.2.2.
+- Deps: update `openai` to 4.57.0.
 - Deps: update `tslib` to 2.7.0.
 - Deps (transitive): update `micromatch` to 4.0.8.
 
