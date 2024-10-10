@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+
+- Update `gpt-4o` model pricing.
+- Deps: update `openai` to 4.67.3.
+
 
 
 ## [1.1.1] – 2024-08-30
