@@ -8,13 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [1.1.2] – 2024-10-10
+
 ### Changed
 
-- Update `gpt-4o` model pricing.
-- Deps: update `@angular` to 18.2.8.
-- Deps: update `openai` to 4.67.3.
-- Deps: update transitive dependencies.
-- Dev-deps: update `jasmine-core` to 5.3.0.
+- Update `gpt-4o` model pricing. ([378b084](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/378b0840783627ad1f604c23644658e5ddd36663))
+- Deps: update `@angular` to 18.2.8. ([bd1095f](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/bd1095fa4e537ca1f54cad83da537f4029b61081))
+- Deps: update `openai` to 4.67.3. ([7b6b90b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/7b6b90b13b6e2b953878d54dc35c9e4687a95f60))
+- Deps: update transitive dependencies. ([e09beab](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/e09beab159251ebb01e497a45dceb60aa330be4f))
+- Dev-deps: update `jasmine-core` to 5.3.0. ([ba90cd5](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/ba90cd5c65f6230dfb997b064e26631f761c5bf6))
 
 
 
@@ -69,7 +73,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.1...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.2...HEAD
+[1.1.2]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.1...1.1.2
 [1.1.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/releases/tag/1.0.0
