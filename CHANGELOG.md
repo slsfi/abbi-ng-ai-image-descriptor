@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Update `gpt-4o` model pricing.
 - Deps: update `openai` to 4.67.3.
+- Dev-deps: update `jasmine-core` to 5.3.0.
 
 
 
