@@ -12,8 +12,8 @@ export const models: Models = [
     provider: "OpenAI",
     name: "GPT-4o",
     id: "gpt-4o",
-    inputPrice: 5.0,
-    outputPrice: 15.0,
+    inputPrice: 2.5,
+    outputPrice: 10.0,
     rpm: 5000,
     default: true
   },

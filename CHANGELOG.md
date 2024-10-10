@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+
+- Update `gpt-4o` model pricing.
+
 
 
 ## [1.1.1] – 2024-08-30
