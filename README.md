@@ -72,7 +72,7 @@ Most of the dependencies are part of the Angular framework (`@angular/`). These 
 ng update @angular/cli @angular/core @angular/cdk @angular/material
 ```
 
-When updating to a new major version of Angular, check the update guide first: <https://angular.dev/update-guide>. Also update the Angular major version number specified in [`Dockerfile`][dockerfile] and in [`docker-build-and-push.yml`][docker_build].
+When updating to a new major version of Angular, check the update guide first: <https://angular.dev/update-guide>. Also update the Angular major version number specified in [`Dockerfile`][dockerfile].
 
 Other dependencies can be updated by bumping the version number in [`package.json`][package.json] and running:
 

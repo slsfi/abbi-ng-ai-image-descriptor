@@ -8,14 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [1.1.3] – 2024-11-22
+
 ### Changed
 
-- The app version in the page footer is dynamically updated from `package.json` during the build process.
-- Update `nginx` version to 1.26.2 in build workflow config.
-- Deps: update `@angular` to 18.2.12.
-- Deps: update `openai` to 4.73.0.
-- Deps: update `tslib` to 2.8.1.
-- Deps: update transitive dependencies.
+- The app version in the page footer is dynamically updated from `package.json` during the build process. ([93cdd30](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/93cdd30258c0c411f240107d630576716bd211d2))
+- Update `nginx` version to 1.26.2 in build workflow config. ([6594c99](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/6594c9938b82636532ebf7f88a7f59dfdae78f39))
+- Deps: update `@angular` to 18.2.12. ([3cbaa6f](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/3cbaa6f94619147b6f9f9306a41543da39c7016e))
+- Deps: update `openai` to 4.73.0. ([55631c5](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/55631c56ef30ee6a516b07e1c71d0768d3777247))
+- Deps: update `tslib` to 2.8.1. ([1ae91c6](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/1ae91c64e48251b80d09c2a6c2194adb68d9f708))
+- Dev-deps: update `jasmine-core` to 5.4.0. ([224ef2c](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/224ef2cafa37e71a576c333ea51e702c4a5253aa))
+- Deps: update transitive dependencies. ([2b00c26](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/2b00c26b358ba53f503f853fafd2183026838884))
+
 
 
 ## [1.1.2] – 2024-10-10
@@ -81,7 +87,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.2...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.3...HEAD
+[1.1.3]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.2...1.1.3
 [1.1.2]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.1...1.1.2
 [1.1.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.0.0...1.1.0
