@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Deps: update `@angular` to 18.2.12.
 - Deps: update `tslib` to 2.8.1.
-
+- Deps: update transitive dependencies.
 
 
 ## [1.1.2] – 2024-10-10
