@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+
+- Deps: update `@angular` to 18.2.12.
+
 
 
 ## [1.1.2] – 2024-10-10
