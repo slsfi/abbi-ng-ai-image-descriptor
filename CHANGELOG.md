@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - The app version in the page footer is dynamically updated from `package.json` during the build process.
+- Update `nginx` version to 1.26.2 in build workflow config.
 - Deps: update `@angular` to 18.2.12.
 - Deps: update `openai` to 4.73.0.
 - Deps: update `tslib` to 2.8.1.
