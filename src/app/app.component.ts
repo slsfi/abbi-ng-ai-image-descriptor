@@ -8,6 +8,7 @@ import { MatIconRegistry } from '@angular/material/icon';
 import { MatStepperModule, StepperOrientation } from '@angular/material/stepper';
 import { map, Observable } from 'rxjs';
 
+import { APP_VERSION } from '../assets/config/app-version';
 import { AddImagesComponent } from './components/add-images/add-images.component';
 import { ApiKeyFormComponent } from './components/api-key-form/api-key-form.component';
 import { GenerateDescriptionsComponent } from './components/generate-descriptions/generate-descriptions.component';
@@ -37,6 +38,7 @@ import { SettingsService } from './services/settings.service';
 export class AppComponent implements OnInit {
   addingImages: boolean = false;
   apiKeyFormGroup!: FormGroup;
+  appVersion = APP_VERSION;
   stepperOrientation: Observable<StepperOrientation>;
   
   constructor(
