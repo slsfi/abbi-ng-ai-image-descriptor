@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - Deps: update `@angular` to 18.2.12.
+- Deps: update `openai` to 4.73.0.
 - Deps: update `tslib` to 2.8.1.
 - Deps: update transitive dependencies.
 
