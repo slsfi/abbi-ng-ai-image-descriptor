@@ -22,6 +22,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps (dev): update `typescript` to 5.7.3.
 - Deps: update transitive dependencies.
 
+### Fixed
+
+- Style breaks due to Angular major version update.
+
 
 
 ## [1.1.3] – 2024-11-22
