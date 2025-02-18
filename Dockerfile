@@ -4,7 +4,7 @@
 
 # Define Angular major version used by the app, used to install
 # corresponding Angular CLI globally.
-ARG ANGULAR_MAJOR_VERSION=18
+ARG ANGULAR_MAJOR_VERSION=19
 
 # Enable passing the tag of the Node.js image as a build argument,
 # and define a default tag in case the build argument is not passed.
