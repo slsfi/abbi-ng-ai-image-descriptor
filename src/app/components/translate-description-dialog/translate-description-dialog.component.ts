@@ -15,19 +15,18 @@ import { Prompt } from '../../types/prompt.types';
 import { prompts } from '../../../assets/config/prompts';
 
 @Component({
-  selector: 'translate-description-dialog',
-  standalone: true,
-  imports: [
-    FormsModule,
-    MatButtonModule,
-    MatDialogActions,
-    MatDialogClose,
-    MatDialogContent,
-    MatDialogTitle,
-    MatRadioModule
-  ],
-  templateUrl: './translate-description-dialog.component.html',
-  styleUrl: './translate-description-dialog.component.scss'
+    selector: 'translate-description-dialog',
+    imports: [
+        FormsModule,
+        MatButtonModule,
+        MatDialogActions,
+        MatDialogClose,
+        MatDialogContent,
+        MatDialogTitle,
+        MatRadioModule
+    ],
+    templateUrl: './translate-description-dialog.component.html',
+    styleUrl: './translate-description-dialog.component.scss'
 })
 export class TranslateDescriptionDialogComponent implements OnInit {
   translateLanguages: any[] = [];

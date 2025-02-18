@@ -29,27 +29,26 @@ import { Prompt, PromptOption } from '../../types/prompt.types';
 import { RequestSettings } from '../../types/settings.types';
 
 @Component({
-  selector: 'generate-descriptions',
-  standalone: true,
-  imports: [
-    AsyncPipe,
-    DecimalPipe,
-    NgIf,
-    FormsModule,
-    ClipboardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatFormFieldModule,
-    MatPaginator,
-    MatPaginatorModule,
-    MatProgressSpinnerModule,
-    MatSelectModule,
-    MatTableModule,
-    MatTooltipModule,
-    CharacterCountPipe
-  ],
-  templateUrl: './generate-descriptions.component.html',
-  styleUrl: './generate-descriptions.component.scss'
+    selector: 'generate-descriptions',
+    imports: [
+        AsyncPipe,
+        DecimalPipe,
+        NgIf,
+        FormsModule,
+        ClipboardModule,
+        MatButtonModule,
+        MatIconModule,
+        MatFormFieldModule,
+        MatPaginator,
+        MatPaginatorModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatTableModule,
+        MatTooltipModule,
+        CharacterCountPipe
+    ],
+    templateUrl: './generate-descriptions.component.html',
+    styleUrl: './generate-descriptions.component.scss'
 })
 export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   currentPaginatorSize: number = 10;

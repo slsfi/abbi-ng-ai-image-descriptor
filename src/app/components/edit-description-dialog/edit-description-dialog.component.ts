@@ -8,18 +8,17 @@ import { MatInputModule } from '@angular/material/input';
 import { ImageData } from '../../types/image-data.types';
 
 @Component({
-  selector: 'edit-description-dialog',
-  standalone: true,
-  imports: [
-    FormsModule,
-    MatButtonModule,
-    MatDialogClose,
-    MatDialogContent,
-    MatFormFieldModule,
-    MatInputModule
-  ],
-  templateUrl: './edit-description-dialog.component.html',
-  styleUrl: './edit-description-dialog.component.scss'
+    selector: 'edit-description-dialog',
+    imports: [
+        FormsModule,
+        MatButtonModule,
+        MatDialogClose,
+        MatDialogContent,
+        MatFormFieldModule,
+        MatInputModule
+    ],
+    templateUrl: './edit-description-dialog.component.html',
+    styleUrl: './edit-description-dialog.component.scss'
 })
 export class EditDescriptionDialogComponent implements OnInit {
   aspectRatio: number = 1.333;

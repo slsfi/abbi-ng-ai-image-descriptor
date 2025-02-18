@@ -8,16 +8,15 @@ import { ImageListService } from '../../services/image-list.service';
 import { ImageData } from '../../types/image-data.types';
 
 @Component({
-  selector: 'add-images',
-  standalone: true,
-  imports: [
-    AsyncPipe,
-    MatFormFieldModule,
-    MatProgressBarModule,
-    FileInputComponent
-  ],
-  templateUrl: './add-images.component.html',
-  styleUrl: './add-images.component.scss'
+    selector: 'add-images',
+    imports: [
+        AsyncPipe,
+        MatFormFieldModule,
+        MatProgressBarModule,
+        FileInputComponent
+    ],
+    templateUrl: './add-images.component.html',
+    styleUrl: './add-images.component.scss'
 })
 export class AddImagesComponent {
   @Output() addingImages = new EventEmitter<boolean>(false);
