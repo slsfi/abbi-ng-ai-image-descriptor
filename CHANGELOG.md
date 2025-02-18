@@ -8,23 +8,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [1.1.4] – 2025-02-18
+
 ### Changed
 
-- Remove RouterOutlet from AppComponent imports as it is not used.
-- Update major version of Angular in Dockerfile.
-- Update `nginx` to 1.27.4 and `Node.js` to 22.
-- Update README.
-- Deps: update `@angular/cli` to 19.1.7, `@angular/core` to 19.1.6, `@angular/cdk` to 19.1.4 and `@angular/material` to 19.1.4.
-- Deps: update `docx` to 9.2.0.
-- Deps: update `openai` to 4.85.1.
-- Deps (dev): update `@types/jasmine` to 5.1.6.
-- Deps (dev): update `jasmine-core` to 5.6.0.
-- Deps (dev): update `typescript` to 5.7.3.
-- Deps: update transitive dependencies.
+- Remove RouterOutlet from AppComponent imports as it is not used. ([3810b97](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/3810b971f98cb7c41e3ff3a53b8782d9c8dadd7f))
+- Update major version of Angular in Dockerfile. ([07ffeec](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/07ffeec3202d0b46b4b94b5b5bf520d3cafd71af))
+- Update `nginx` to 1.27.4 and `Node.js` to 22. ([2ca0fec](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/2ca0fec36a704f0a141b213a99ed1dfc49dc8694))
+- Update README. ([a050e6c](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/a050e6cab7d59a9b3ef58170723992c931a7340c))
+- Deps: update `@angular/cli` to 19.1.7, `@angular/core` to 19.1.6, `@angular/cdk` to 19.1.4 and `@angular/material` to 19.1.4. ([ac05cb3](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/ac05cb3c63c3143795a3109186408533b106b010))
+- Deps: update `docx` to 9.2.0. ([491327d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/491327db682419247c3ef5c2290772108c99e937))
+- Deps: update `openai` to 4.85.1. ([7441e27](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/7441e271461cc2313e3c8baf3ca20e137c01a5b0))
+- Deps (dev): update `@types/jasmine` to 5.1.6. ([054c76d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/054c76dee7d4216dba616cc35e56fbac740d1624))
+- Deps (dev): update `jasmine-core` to 5.6.0. ([0debf4a](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/0debf4a5ebfd3f1df6e3778debd4b6d0be25fc0f))
+- Deps (dev): update `typescript` to 5.7.3. ([d33b70c](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/d33b70ce566b5bfede0360df3ef5727f5cfac21c))
+- Deps: update transitive dependencies. ([f3cc22d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/f3cc22da1b71fed4ba62054753c22a022560b236), [ab78c54](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/ab78c54c5c9636f72c203dd406e378dd69dc0811))
 
 ### Fixed
 
-- Style breaks due to Angular major version update.
+- Style breaks due to Angular major version update. ([27a77ab](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/27a77ab2ef3c83ddaf33898ceba724ea84a93ccf))
 
 
 
@@ -105,7 +109,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.3...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.4...HEAD
+[1.1.4]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.3...1.1.4
 [1.1.3]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.2...1.1.3
 [1.1.2]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.1...1.1.2
 [1.1.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.0...1.1.1
