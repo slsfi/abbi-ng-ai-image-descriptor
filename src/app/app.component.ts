@@ -18,22 +18,21 @@ import { ImageListService } from './services/image-list.service';
 import { SettingsService } from './services/settings.service';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [
-    AsyncPipe,
-    NgIf,
-    RouterOutlet,
-    MatButtonModule,
-    MatStepperModule,
-    AddImagesComponent,
-    ApiKeyFormComponent,
-    GenerateDescriptionsComponent,
-    HeaderComponent,
-    SettingsFormComponent
-  ],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+    selector: 'app-root',
+    imports: [
+        AsyncPipe,
+        NgIf,
+        RouterOutlet,
+        MatButtonModule,
+        MatStepperModule,
+        AddImagesComponent,
+        ApiKeyFormComponent,
+        GenerateDescriptionsComponent,
+        HeaderComponent,
+        SettingsFormComponent
+    ],
+    templateUrl: './app.component.html',
+    styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
   addingImages: boolean = false;

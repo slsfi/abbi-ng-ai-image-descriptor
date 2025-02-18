@@ -11,19 +11,18 @@ import { SettingsService } from '../../services/settings.service';
 import { Model } from '../../types/model.types';
 
 @Component({
-  selector: 'settings-form',
-  standalone: true,
-  imports: [
-    AsyncPipe,
-    FormsModule,
-    MatExpansionModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatSliderModule,
-    MatSlideToggleModule
-  ],
-  templateUrl: './settings-form.component.html',
-  styleUrl: './settings-form.component.scss'
+    selector: 'settings-form',
+    imports: [
+        AsyncPipe,
+        FormsModule,
+        MatExpansionModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatSliderModule,
+        MatSlideToggleModule
+    ],
+    templateUrl: './settings-form.component.html',
+    styleUrl: './settings-form.component.scss'
 })
 export class SettingsFormComponent {
   descLengthMax: number = 300;
