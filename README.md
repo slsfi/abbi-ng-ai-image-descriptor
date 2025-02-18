@@ -5,7 +5,7 @@ aBBi (“AI-bildbeskrivningar”) is a web app for generating image descriptions
 The app is built on [Angular][angular] and uses [Angular Material][material] web components.
 
 <p>
-  <a href="https://github.com/angular/angular"><img alt="Angular version badge" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fslsfi%2Fabbi-ng-ai-image-descriptor%2Fmain%2Fpackage-lock.json&query=%24%5B'packages'%5D%5B'node_modules%2F%40angular%2Fcore'%5D%5B'version'%5D&prefix=v&logo=angular&logoColor=%23fff&label=Angular&color=%23dd0031"></a>
+  <a href="https://github.com/angular/angular"><img alt="Angular version badge" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fslsfi%2Fabbi-ng-ai-image-descriptor%2Fmain%2Fpackage-lock.json&query=%24%5B'packages'%5D%5B'node_modules%2F%40angular%2Fcore'%5D%5B'version'%5D&prefix=v&logo=angular&logoColor=%23fff&label=Angular%20Core&color=%23dd0031"></a>
 </p>
 
 Author: Sebastian Köhler (2024)
@@ -20,7 +20,7 @@ Author: Sebastian Köhler (2024)
 
 ### Prerequisites
 
-1. Install [Node.js][node.js] which includes [npm][npm]. The app is compatible with Node `^18.19.1`, `^20.11.1` and `^22.0.0` (based on [Angular 18 compatibility][angular_version_compatibility]). Check your Node version with:
+1. Install [Node.js][node.js] which includes [npm][npm]. The app is compatible with Node `^18.19.1`, `^20.11.1` and `^22.0.0` (based on [Angular 19 compatibility][angular_version_compatibility]). Check your Node version with:
 
 ```
 Node --version
