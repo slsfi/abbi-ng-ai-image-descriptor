@@ -25,11 +25,11 @@ jobs:
       # Define tag of official Node.js image to be used as the base image
       # for the build, this is passed as a build argument to Dockerfile
       # https://hub.docker.com/_/node/.
-      NODE_IMAGE_TAG: 20-alpine
+      NODE_IMAGE_TAG: 22-alpine
       # Define tag of official nginx image to be used as the final image
       # for the build, this is passed as a build argument to Dockerfile
       # https://hub.docker.com/_/nginx
-      NGINX_IMAGE_TAG: 1.26.2-alpine
+      NGINX_IMAGE_TAG: 1.27.4-alpine
 
     steps:
       # Check out repository.
