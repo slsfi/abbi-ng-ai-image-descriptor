@@ -1,7 +1,6 @@
 import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { FormGroup } from '@angular/forms';
-import { RouterOutlet } from '@angular/router';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconRegistry } from '@angular/material/icon';
@@ -22,7 +21,6 @@ import { SettingsService } from './services/settings.service';
     imports: [
         AsyncPipe,
         NgIf,
-        RouterOutlet,
         MatButtonModule,
         MatStepperModule,
         AddImagesComponent,

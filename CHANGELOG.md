@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 
+- Remove RouterOutlet from AppComponent imports as it is not used.
 - Deps: update `@angular/cli` to 19.1.7, `@angular/core` to 19.1.6, `@angular/cdk` to 19.1.4 and `@angular/material` to 19.1.4.
 
 
