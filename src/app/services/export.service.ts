@@ -21,6 +21,8 @@ export class ExportService {
       this.generateCSV(this.imageListService.imageList);
     } else if (fileFormat == 'tab') {
       this.generateTAB(this.imageListService.imageList);
+    } else if (fileFormat == 'xml') {
+      this.generateXML(this.imageListService.imageList);
     }
   }
 
@@ -146,6 +148,12 @@ export class ExportService {
     this.initiateDownload(blob, filename);
   }
 
+  generateXML(imageFiles: ImageData[], filename: string = 'image-descriptions.xml'): void {
+    const data = this.convertToXML(imageFiles);
+    const blob = new Blob([data], { type: 'application/xml;charset=UTF-8' });
+    this.initiateDownload(blob, filename);
+  }
+
   private convertToDelimited(imageFiles: ImageData[], delimiter: string): string {
     // We are only interested in the image filename and description properties
     let contentStr = '';
@@ -156,6 +164,24 @@ export class ExportService {
       const filename = this.escapeDelimitedValue(imageObj.filename, delimiter);
       contentStr += filename + delimiter + description + '\n';
     });
+    return contentStr;
+  }
+
+  private convertToXML(imageFiles: ImageData[]): string {
+    let contentStr = '<?xml version="1.0" encoding="UTF-8"?>\r\n';
+    contentStr += '<imageToText>\r\n';
+
+    let imageCounter = 0;
+    imageFiles.forEach((imageObj: ImageData) => {
+      imageCounter += 1;
+      let description = this.getActiveDescription(imageObj)?.description ?? '';
+      description = description.replaceAll('"', '”').replaceAll('\r', '').replaceAll('\n', '\r\n');
+      contentStr += '\t<pb n="' + imageCounter + '" facs="' + imageObj.filename + '"/>\r\n';
+      contentStr += '\t<p>\r\n';
+      contentStr += '\t\t<lb break="line"/>' + description.replaceAll('\r\n', '\r\n\t\t<lb break="line"/>');
+      contentStr += '\r\n\t</p>\r\n';
+    });
+    contentStr += '</imageToText>\r\n';
     return contentStr;
   }
 

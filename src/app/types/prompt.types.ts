@@ -1,5 +1,5 @@
 export type PromptOption = {
-  type: 'Alt text' | 'ISAD(G) metadata';
+  type: 'Alt text' | 'Transcription' | 'ISAD(G) metadata';
   prompt: string;
 };
 

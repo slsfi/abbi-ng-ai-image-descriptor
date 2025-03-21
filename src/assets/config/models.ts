@@ -6,7 +6,7 @@ import { Models } from '../../app/types/model.types'
 // inputPrice = $/1M tokens in prompt
 // outputPrice = $/1M tokens in model output
 // rpm = max requests per minute the model accepts at current usage tier
-// default = (optional) boolena indicating which model is the default
+// default = (optional) boolean indicating which model is the default
 export const models: Models = [
   {
     provider: "OpenAI",
@@ -23,6 +23,14 @@ export const models: Models = [
     id: "gpt-4o-mini",
     inputPrice: 0.15,
     outputPrice: 0.6,
+    rpm: 5000
+  },
+  {
+    provider: "OpenAI",
+    name: "GPT-4.5 Preview",
+    id: "gpt-4.5-preview",
+    inputPrice: 75.0,
+    outputPrice: 150.0,
     rpm: 5000
   }
 ]
