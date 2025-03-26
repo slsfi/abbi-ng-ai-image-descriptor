@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Prompt template for transcribing the text in an image using the GPT-4.5-preview model. XML export option.
 
+### Changed
+
+- Deps: update `@angular` packages to 19.2.x.
+
 
 
 ## [1.1.4] – 2025-02-18
