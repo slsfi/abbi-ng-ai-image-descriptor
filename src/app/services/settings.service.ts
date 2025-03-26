@@ -69,31 +69,72 @@ export class SettingsService {
     this.setPromptTemplate();  // Update prompt templates whenever the language changes
   }
 
-  updateSelectedModel(value: Model|undefined) {
+  updateSelectedModel(value: Model | undefined) {
     this._selectedModel.next(value);
   }
 
   updateSelectedPromptTemplate(template: string) {
     this._selectedPromptTemplate.next(template);
+    this.setModel(); // Update selected model whenever the prompt template changes
   }
 
   updateSelectedTemperature(value: number) {
     this._selectedTemperature.next(value);
   }
 
-  private setPromptTemplate() {
-    const selectedPrompt: Prompt | undefined = prompts.find(
+  getSelectedPromptOption(): PromptOption | undefined {
+    const selectedPrompt: Prompt | undefined = this.getSelectedPrompt();
+    if (selectedPrompt) {
+      const selectedPromptOption = selectedPrompt.promptOptions.find(
+        (t: PromptOption) => t.type === this.selectedPromptTemplate
+      );
+      return selectedPromptOption;
+    }
+    return undefined;
+  }
+
+  private getSelectedPrompt(): Prompt | undefined {
+    return prompts.find(
       (p: Prompt) => p.languageCode === this.selectedLanguage
     );
+  }
+
+  private setPromptTemplate() {
+    const selectedPrompt: Prompt | undefined = this.getSelectedPrompt();
     if (selectedPrompt) {
       this.updatePromptTemplates(selectedPrompt.promptOptions);
       const defaultTemplate = selectedPrompt.promptOptions.find(
         (t: PromptOption) => t.type === 'Alt text'
       );
       this.updateSelectedPromptTemplate(
-        defaultTemplate ? 'Alt text' : selectedPrompt.promptOptions[0].type
+        this.selectedPromptTemplate ? this.selectedPromptTemplate :
+          defaultTemplate ? 'Alt text' :
+          selectedPrompt.promptOptions[0].type
       );
     }
+  }
+
+  private setModel() {
+    const currentPromptOption = this.getSelectedPromptOption();
+    let setModel: Model | undefined = undefined;
+    if (currentPromptOption?.modelRestrictions && currentPromptOption?.modelRestrictions.length > 0) {
+      if (currentPromptOption.modelRestrictions?.includes(this.selectedModel?.id || '')) {
+        setModel = this.selectedModel;
+      } else {
+        setModel = models.find(
+          (model: Model) => currentPromptOption.modelRestrictions?.includes(model.id)
+        );
+      }
+    } else {
+      if (this.selectedModel) {
+        setModel = this.selectedModel;
+      } else {
+        setModel = models.find(
+          (model: Model) => model.default === true
+        );
+      }
+    }
+    this.updateSelectedModel(setModel ? setModel : models[0])
   }
 
   get availableModels(): Models {
@@ -120,7 +161,7 @@ export class SettingsService {
     return this._selectedLanguage.getValue();
   }
 
-  get selectedModel(): Model|undefined {
+  get selectedModel(): Model | undefined {
     return this._selectedModel.getValue();
   }
 

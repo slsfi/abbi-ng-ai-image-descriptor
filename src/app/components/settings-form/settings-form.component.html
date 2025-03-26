@@ -77,8 +77,11 @@
               (valueChange)="setModel($event)"
               name="model"
         >
+          @let selectedPromptOption = settings.getSelectedPromptOption();
           @for (model of settings.availableModels$ | async; track model.id) {
-            <mat-option [value]="model">{{model.provider}} {{model.name}}</mat-option>
+            @if (!selectedPromptOption?.modelRestrictions || selectedPromptOption?.modelRestrictions?.includes(model.id)) {
+              <mat-option [value]="model">{{model.provider}} {{model.name}}</mat-option>
+            }
           }
         </mat-select>
       </mat-form-field>

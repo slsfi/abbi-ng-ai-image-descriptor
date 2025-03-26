@@ -1,6 +1,7 @@
 export type PromptOption = {
   type: 'Alt text' | 'Transcription' | 'ISAD(G) metadata';
   prompt: string;
+  modelRestrictions?: string[];
 };
 
 export type Prompt = {
