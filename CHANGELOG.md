@@ -8,18 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [1.2.0] – 2025-03-26
+
 ### Added
 
-- Prompt template for transcribing the text in an image using the GPT-4.5-preview model. XML export option.
+- Prompt template for transcribing the text in an image using the GPT-4.5-preview model. XML export option. ([5c38ffb](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/5c38ffbdbab8a0bc3e4a3d724004aee05f43d15b))
 
 ### Changed
 
-- Deps: update `@angular` packages to 19.2.x.
-- Deps: update `docx` to 9.3.0.
-- Deps: update `openai` to 4.89.0.
-- Deps (dev): update `@types/jasmine` to 5.1.7.
-- Deps (dev): update `typescript` to 5.8.2.
-
+- Deps: update `@angular` packages to 19.2.x. ([73dbc68](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/73dbc687ef2004a28fe6979a61e0c5cd590ff93e))
+- Deps: update `docx` to 9.3.0. ([baf7ff6](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/baf7ff6a69472fc93acb49d4f109cb50c3a1c267))
+- Deps: update `openai` to 4.89.0. ([81690a2](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/81690a2a25784d9ebdb73418fe19f46a02409a03))
+- Deps (dev): update `@types/jasmine` to 5.1.7. ([91e6ad7](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/91e6ad7c85d5cbe88d19c8270edaa3278aa5ea55))
+- Deps (dev): update `typescript` to 5.8.2. ([86b00fd](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/86b00fdc104412d593df3625119d17a8cd9861eb))
 
 
 
@@ -122,7 +125,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.4...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.2.0...HEAD
+[1.2.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.4...1.2.0
 [1.1.4]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.3...1.1.4
 [1.1.3]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.2...1.1.3
 [1.1.2]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.1...1.1.2
