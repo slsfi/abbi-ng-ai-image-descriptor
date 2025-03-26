@@ -15,7 +15,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - Deps: update `@angular` packages to 19.2.x.
+- Deps (dev): update `@types/jasmine` to 5.1.7.
 - Deps (dev): update `typescript` to 5.8.2.
+
 
 
 
