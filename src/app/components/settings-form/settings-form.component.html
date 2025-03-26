@@ -28,6 +28,7 @@
             [step]="25"
             [discrete]="true"
             [showTickMarks]="true"
+            [disabled]="(settings.selectedPromptTemplate$ | async) === 'Transcription'"
         >
           <input matSliderThumb
                 [value]="settings.selectedDescLength$ | async"
@@ -61,6 +62,7 @@
             color="primary"
             [checked]="settings.includeFilename$ | async"
             (change)="setIncludeFilename($event)"
+            [disabled]="(settings.selectedPromptTemplate$ | async) === 'Transcription'"
       >Include image filename in prompt</mat-slide-toggle>
     </div>
   </div>
@@ -75,8 +77,11 @@
               (valueChange)="setModel($event)"
               name="model"
         >
+          @let selectedPromptOption = settings.getSelectedPromptOption();
           @for (model of settings.availableModels$ | async; track model.id) {
-            <mat-option [value]="model">{{model.provider}} {{model.name}}</mat-option>
+            @if (!selectedPromptOption?.modelRestrictions || selectedPromptOption?.modelRestrictions?.includes(model.id)) {
+              <mat-option [value]="model">{{model.provider}} {{model.name}}</mat-option>
+            }
           }
         </mat-select>
       </mat-form-field>

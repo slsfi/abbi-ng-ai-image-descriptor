@@ -48,6 +48,11 @@ export class OpenAiService {
       return { error: { status: 400, message: 'Missing prompt' }};
     }
 
+    let max_tokens = null;
+    if (settings?.promptTemplate === 'Alt text') {
+      max_tokens = settings?.descriptionLength ? settings?.descriptionLength + 100 : null;
+    }
+
     const payload = {
       model: settings?.model?.id ?? 'gpt-4o',
       messages: [
@@ -68,7 +73,7 @@ export class OpenAiService {
         }
       ],
       temperature: settings?.temperature ?? null,
-      max_tokens: settings?.descriptionLength ? settings?.descriptionLength + 100 : null
+      max_tokens: max_tokens
     };
     // console.log(payload);
 

@@ -3,7 +3,11 @@
   
   <div class="main-wrapper">
     <div class="intro-wrapper">
-      <p>aBBi (“AI-bildbeskrivningar”) is a web app for generating image descriptions (e.g. alt texts) using AI.</p>
+      <p>aBBi (“AI-bildbeskrivningar”) is a web app for generating textual descriptions of images using AI. Currently, the tool can be used to:</p>
+      <ul>
+        <li>generate <a href="https://webaim.org/techniques/alttext/">alternative text</a> (“alt text”) in Swedish, Finnish and English.</li>
+        <li>transcribe the text (also handwritten) in images.</li>
+      </ul>
       <p>Start by defining your settings for the process and providing your API key, then select image files from your computer, and finally generate descriptions of them. You can download the descriptions in different formats or copy them to the clipboard individually.</p>
     </div>
   
@@ -51,7 +55,7 @@
   
       <!-- Step 4: Generate image descriptions -->
       <mat-step label="Generate descriptions">
-        <h2 id="generate-step-title">Generate image descriptions</h2>
+        <h2 id="generate-step-title">Generate image descriptions <span class="prompt-template-name">(type: {{ settings.selectedPromptTemplate }})</span></h2>
         <!-- Defer loading the generate-descriptions component until the API key in step 2 has validated -->
         @defer (when isApiKeyFormValid) {
           <generate-descriptions></generate-descriptions>
