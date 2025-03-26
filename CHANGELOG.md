@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Added
 
-- Prompt template for transcribing the text in an image. The GPT-4.5-preview model. XML export option.
+- Prompt template for transcribing the text in an image using the GPT-4.5-preview model. XML export option.
 
 
 
