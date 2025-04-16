@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+
+- Deps: update `openai` to 4.94.0.
+
 
 
 ## [1.2.0] – 2025-03-26
