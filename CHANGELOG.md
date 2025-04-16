@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - Deps: update `openai` to 4.94.0.
+- Deps: update `rxjs` to 7.8.2.
 
 
 
