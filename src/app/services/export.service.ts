@@ -23,6 +23,8 @@ export class ExportService {
       this.generateTAB(this.imageListService.imageList);
     } else if (fileFormat == 'xml') {
       this.generateXML(this.imageListService.imageList);
+    } else if (fileFormat == 'txt') {
+      this.generateTXT(this.imageListService.imageList);
     }
   }
 
@@ -151,6 +153,18 @@ export class ExportService {
   generateXML(imageFiles: ImageData[], filename: string = 'image-descriptions.xml'): void {
     const data = this.convertToXML(imageFiles);
     const blob = new Blob([data], { type: 'application/xml;charset=UTF-8' });
+    this.initiateDownload(blob, filename);
+  }
+
+  generateTXT(imageFiles: ImageData[], filename: string = 'image-descriptions.txt'): void {
+    let data = '';
+    imageFiles.forEach((imageObj: ImageData) => {
+      const description = this.getActiveDescription(imageObj)?.description ?? '';
+      data += imageObj.filename + '\n';
+      data += description + '\n\n';
+      data += '---------------------------------------\n\n';
+    });
+    const blob = new Blob([data], { type: 'text/plain;charset=UTF-8' });
     this.initiateDownload(blob, filename);
   }
 
