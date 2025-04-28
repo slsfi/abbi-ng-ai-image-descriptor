@@ -8,20 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [1.3.0] – 2025-04-28
+
 ### Added
 
-- Support for OpenAI [`gpt-4.1`](https://platform.openai.com/docs/models/gpt-4.1) and [`gpt-4.1-mini`](https://platform.openai.com/docs/models/gpt-4.1-mini) models.
-- Option to export generated descriptions in plain text format (txt).
+- Support for OpenAI [`gpt-4.1`](https://platform.openai.com/docs/models/gpt-4.1) and [`gpt-4.1-mini`](https://platform.openai.com/docs/models/gpt-4.1-mini) models. `gpt-4.1` set as the new default model. ([b06e6a2](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/b06e6a2f01a0301744131917fdc40399efbec8e6))
+- Option to export generated descriptions in plain text format (txt). ([d8d4f2a](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/d8d4f2a05af41b7c0b33d0bd5ed3735d5dc7651f))
 
 ### Changed
 
-- Default image description length set to 175 characters.
-- Deps: update `@angular/cli` to 19.2.9, `@angular/core` to 19.2.8, `@angular/cdk` and `@angular/material` to 19.2.11.
-- Deps: update `docx` to 9.4.1.
-- Deps: update `openai` to 4.96.0.
-- Deps: update `rxjs` to 7.8.2.
-- Deps (dev): update `jasmine-core` to 5.7.0.
-- Deps (dev): update `typescript` to 5.8.3.
+- Default image description length set to 175 characters. ([cdb4583](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/cdb458325136f207c46b1dbfa67632f19dcf4f19))
+- Deps: update `@angular/cli` to 19.2.9, `@angular/core` to 19.2.8, `@angular/cdk` and `@angular/material` to 19.2.11. ([a0d3d91](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/a0d3d9156ff81e5452daa9e7d7af1798ab618986))
+- Deps: update `docx` to 9.4.1. ([2b9db52](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/2b9db5296b5335d1a2c74a5f1d4c9d9175bd2564))
+- Deps: update `openai` to 4.96.0. ([0ae0e08](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/0ae0e083342dec150131150848c9a1572feab882), [f1a0cea](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/f1a0cead0db9987b948e23ad9689c3550ed7b24e))
+- Deps: update `rxjs` to 7.8.2. ([02efa5f](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/02efa5f28e0278e0a453cc08415e4f9ff27289a9))
+- Deps (dev): update `jasmine-core` to 5.7.0. ([ea76910](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/ea7691066bf0cdfb770b60ab8771d65f60bae35a))
+- Deps (dev): update `typescript` to 5.8.3. ([72a9118](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/72a911831c3b10f435aaa2069d0d05d41f4f1fa8))
 
 
 
@@ -29,7 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Added
 
-- Prompt template for transcribing the text in an image using the GPT-4.5-preview model. XML export option. ([5c38ffb](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/5c38ffbdbab8a0bc3e4a3d724004aee05f43d15b))
+- Prompt template for transcribing the text in an image using the `gpt-4.5-preview` model. Option to export generated descriptions in XML format. ([5c38ffb](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/5c38ffbdbab8a0bc3e4a3d724004aee05f43d15b))
 
 ### Changed
 
@@ -140,7 +144,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.2.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.3.0...HEAD
+[1.3.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.4...1.2.0
 [1.1.4]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.3...1.1.4
 [1.1.3]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.2...1.1.3
