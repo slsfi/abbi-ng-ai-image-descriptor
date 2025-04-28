@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 
+- Deps: update `docx` to 9.4.1.
 - Deps: update `openai` to 4.96.0.
 - Deps: update `rxjs` to 7.8.2.
 - Deps (dev): update `jasmine-core` to 5.7.0.
