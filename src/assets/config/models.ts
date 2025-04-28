@@ -10,12 +10,28 @@ import { Models } from '../../app/types/model.types'
 export const models: Models = [
   {
     provider: "OpenAI",
+    name: "GPT-4.1",
+    id: "gpt-4.1",
+    inputPrice: 2.0,
+    outputPrice: 8.0,
+    rpm: 5000,
+    default: true
+  },
+  {
+    provider: "OpenAI",
+    name: "GPT-4.1 mini",
+    id: "gpt-4.1-mini",
+    inputPrice: 0.4,
+    outputPrice: 1.6,
+    rpm: 5000
+  },
+  {
+    provider: "OpenAI",
     name: "GPT-4o",
     id: "gpt-4o",
     inputPrice: 2.5,
     outputPrice: 10.0,
-    rpm: 5000,
-    default: true
+    rpm: 5000
   },
   {
     provider: "OpenAI",
@@ -27,7 +43,7 @@ export const models: Models = [
   },
   {
     provider: "OpenAI",
-    name: "GPT-4.5 Preview",
+    name: "GPT-4.5 preview",
     id: "gpt-4.5-preview",
     inputPrice: 75.0,
     outputPrice: 150.0,
