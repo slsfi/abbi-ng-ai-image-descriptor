@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 
+- Default image description length set to 175 characters.
 - Deps: update `@angular/cli` to 19.2.9, `@angular/core` to 19.2.8, `@angular/cdk` and `@angular/material` to 19.2.11.
 - Deps: update `docx` to 9.4.1.
 - Deps: update `openai` to 4.96.0.
