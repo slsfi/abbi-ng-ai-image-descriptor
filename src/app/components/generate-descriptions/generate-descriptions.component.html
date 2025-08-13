@@ -1,14 +1,13 @@
-<ng-container *ngIf="{ imageList: imageListService.imageList$ | async } as o">
+@if ({ imageList: imageListService.imageList$ | async }; as o) {
   <div class="generate-desc-wrapper" [class.hide]="!o.imageList?.length">
     <div class="buttons-row">
       <button mat-flat-button
-            color="primary"
-            (click)="generateImageDescriptionsAll()"
-            [disabled]="generating || !o.imageList?.length"
+        color="primary"
+        (click)="generateImageDescriptionsAll()"
+        [disabled]="generating || !o.imageList?.length"
       >Generate all ({{ o.imageList?.length ?? 0 }} {{ o.imageList?.length ?? 2 > 1 ? 'images' : 'image' }})</button>
       <div class="cost right-aligned">Cumulative cost: ${{ this.totalCost | number }}</div>
     </div>
-
     <div class="buttons-row">
       <mat-form-field appearance="outline">
         <mat-label>Export format</mat-label>
@@ -22,17 +21,16 @@
         </mat-select>
       </mat-form-field>
       <button mat-stroked-button
-            [disabled]="generating || !o.imageList?.length"
-            (click)="export()"
+        [disabled]="generating || !o.imageList?.length"
+        (click)="export()"
       >Export</button>
       <button mat-stroked-button
-            class="right-aligned"
-            color="warn"
-            [disabled]="generating || !o.imageList?.length"
-            (click)="removeAllImages()"
+        class="right-aligned"
+        color="warn"
+        [disabled]="generating || !o.imageList?.length"
+        (click)="removeAllImages()"
       >Remove all</button>
     </div>
-
     <div class="table-wrapper">
       <table mat-table [dataSource]="matTableDataSource" class="mat-elevation-z8 main-table">
         <!-- Image preview column -->
@@ -43,7 +41,6 @@
             <span class="filename">{{ file.filename }}</span>
           </td>
         </ng-container>
-
         <!-- Description column -->
         <ng-container matColumnDef="description">
           <th mat-header-cell *matHeaderCellDef>Generated description</th>
@@ -66,52 +63,52 @@
                 <div class="buttons-wrapper">
                   @if (file.descriptions.length > 1) {
                     <button mat-icon-button color="primary"
-                          matTooltip="Show previous description"
-                          aria-label="Previous description"
-                          [disabled]="file.activeDescriptionIndex < 1"
-                          (click)="previousDescription(file)"
+                      matTooltip="Show previous description"
+                      aria-label="Previous description"
+                      [disabled]="file.activeDescriptionIndex < 1"
+                      (click)="previousDescription(file)"
                     >
                       <mat-icon>chevron_left</mat-icon>
                     </button>
                     <div class="counter">{{ file.activeDescriptionIndex + 1 }}/{{ file.descriptions.length }}</div>
                     <button mat-icon-button color="primary"
-                          matTooltip="Show next description"
-                          aria-label="Next description"
-                          [disabled]="file.activeDescriptionIndex > file.descriptions.length - 2"
-                          (click)="nextDescription(file)"
+                      matTooltip="Show next description"
+                      aria-label="Next description"
+                      [disabled]="file.activeDescriptionIndex > file.descriptions.length - 2"
+                      (click)="nextDescription(file)"
                     >
                       <mat-icon>chevron_right</mat-icon>
                     </button>
                   }
                   <button mat-icon-button color="primary"
-                        matTooltip="Copy description to clipboard"
-                        class="copy-button"
-                        aria-label="Copy description to clipboard"
-                        [cdkCopyToClipboard]="file.descriptions.length > 0 ? file.descriptions[file.activeDescriptionIndex].description : ''"
+                    matTooltip="Copy description to clipboard"
+                    class="copy-button"
+                    aria-label="Copy description to clipboard"
+                    [cdkCopyToClipboard]="file.descriptions.length > 0 ? file.descriptions[file.activeDescriptionIndex].description : ''"
                   >
                     <mat-icon>content_copy</mat-icon>
                   </button>
                   <button mat-icon-button color="primary"
-                        matTooltip="Edit description"
-                        class="edit-button"
-                        aria-label="Edit description"
-                        (click)="editDescription(file)"
+                    matTooltip="Edit description"
+                    class="edit-button"
+                    aria-label="Edit description"
+                    (click)="editDescription(file)"
                   >
                     <mat-icon>edit</mat-icon>
                   </button>
                   <button mat-icon-button color="primary"
-                        matTooltip="Translate description"
-                        class="translate-button"
-                        aria-label="Translate description"
-                        (click)="translateDescription(file)"
+                    matTooltip="Translate description"
+                    class="translate-button"
+                    aria-label="Translate description"
+                    (click)="translateDescription(file)"
                   >
                     <mat-icon>translate</mat-icon>
                   </button>
                   <button mat-icon-button
-                        matTooltip="Delete description"
-                        class="delete-button"
-                        aria-label="Delete description"
-                        (click)="deleteDescription(file)"
+                    matTooltip="Delete description"
+                    class="delete-button"
+                    aria-label="Delete description"
+                    (click)="deleteDescription(file)"
                   >
                     <mat-icon>delete</mat-icon>
                   </button>
@@ -123,30 +120,28 @@
             }
           </td>
         </ng-container>
-
         <!-- Actions column -->
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef>Actions</th>
           <td mat-cell *matCellDef="let file">
             <button mat-stroked-button
-                  (click)="generateImageDescription(file)"
-                  [disabled]="generating"
+              (click)="generateImageDescription(file)"
+              [disabled]="generating"
             >{{ file.descriptions.length > 0 ? 'Regenerate' : 'Generate' }}</button>
             <button mat-stroked-button
-                  color="warn"
-                  (click)="removeImage(file)"
-                  [disabled]="generating"
+              color="warn"
+              (click)="removeImage(file)"
+              [disabled]="generating"
             >Remove image</button>
           </td>
         </ng-container>
-
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
       </table>
       <mat-paginator [pageSizeOptions]="[10, 20, 50]"
-            showFirstLastButtons
-            aria-label="Select page"
-            (page)="onPageChange($event)"
+        showFirstLastButtons
+        aria-label="Select page"
+        (page)="onPageChange($event)"
       ></mat-paginator>
     </div>
   </div>
@@ -154,4 +149,4 @@
   @if (!o.imageList?.length) {
     <p class="no-images">No images. Go back to the previous step to add some!</p>
   }
-</ng-container>
+}

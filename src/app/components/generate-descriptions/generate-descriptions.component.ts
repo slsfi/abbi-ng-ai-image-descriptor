@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
-import { AsyncPipe, DecimalPipe, NgIf } from '@angular/common';
+import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
@@ -33,7 +33,6 @@ import { RequestSettings } from '../../types/settings.types';
   imports: [
     AsyncPipe,
     DecimalPipe,
-    NgIf,
     FormsModule,
     ClipboardModule,
     MatButtonModule,

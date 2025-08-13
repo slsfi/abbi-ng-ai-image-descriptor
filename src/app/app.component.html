@@ -1,6 +1,6 @@
 <div class="content-wrapper">
   <app-header></app-header>
-  
+
   <div class="main-wrapper">
     <div class="intro-wrapper">
       <p>aBBi (“AI-bildbeskrivningar”) is a web app for generating textual descriptions of images using AI. Currently, the tool can be used to:</p>
@@ -10,7 +10,7 @@
       </ul>
       <p>Start by defining your settings for the process and providing your API key, then select image files from your computer, and finally generate descriptions of them. You can download the descriptions in different formats or copy them to the clipboard individually.</p>
     </div>
-  
+
     <mat-stepper [orientation]="(stepperOrientation | async)!" [linear]="true" #stepper>
       <!-- Step 1: Configure settings -->
       <mat-step label="Configure settings">
@@ -20,22 +20,22 @@
           <button mat-button color="primary" matStepperNext>Next</button>
         </div>
       </mat-step>
-  
+
       <!-- Step 2: Enter API key -->
       <mat-step [stepControl]="apiKeyFormGroup" label="Enter API key">
-        <ng-container *ngIf="{ selectedModel: settings.selectedModel$ | async } as s">
+        @if ({ selectedModel: settings.selectedModel$ | async }; as s) {
           <h2>Enter your {{ s.selectedModel?.provider || '' }} API key</h2>
           <api-key-form
-                [modelProvider]="s.selectedModel?.provider || ''"
-                (formGroupOutput)="setApiKeyFormGroup($event)"
+            [modelProvider]="s.selectedModel?.provider || ''"
+            (formGroupOutput)="setApiKeyFormGroup($event)"
           ></api-key-form>
-        </ng-container>
+        }
         <div class="stepper-nav">
           <button mat-button color="primary" matStepperPrevious>Back</button>
           <button mat-button color="primary" matStepperNext>Next</button>
         </div>
       </mat-step>
-  
+
       <!-- Step 3: Add images -->
       <mat-step label="Add images" [completed]="((imageListService.imageList$ | async)?.length || false) && !addingImages">
         <h2>Add images</h2>
@@ -52,7 +52,7 @@
           <button mat-button color="primary" matStepperNext>Next</button>
         </div>
       </mat-step>
-  
+
       <!-- Step 4: Generate image descriptions -->
       <mat-step label="Generate descriptions">
         <h2 id="generate-step-title">Generate image descriptions <span class="prompt-template-name">(type: {{ settings.selectedPromptTemplate }})</span></h2>
