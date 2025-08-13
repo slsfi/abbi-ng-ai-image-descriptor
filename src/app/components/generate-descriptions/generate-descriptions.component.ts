@@ -188,7 +188,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     const settings: RequestSettings = this.settings.getSettings();
 
     try {
-      const response = await this.openaiService.chatCompletionTextTask(prompt, settings.model?.id ?? undefined);
+      const response = await this.openaiService.chatCompletionTextTask(settings, prompt);
       // console.log(response);
 
       const respContent = response?.choices?.[0]?.message?.content ?? '';
