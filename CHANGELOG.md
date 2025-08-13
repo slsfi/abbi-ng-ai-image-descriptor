@@ -18,6 +18,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps (dev): update `@types/jasmine` to 5.1.8.
 - Deps (dev): update `jasmine-core` to 5.9.0.
 
+### Fixed
+
+- Add the `buffer` package as a direct dependency since it’s required but not included by `docx`.
+
 
 
 ## [1.3.0] – 2025-04-28
