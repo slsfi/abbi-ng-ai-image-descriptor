@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 
+- Update `nginx` to 1.28.0.
 - Deps: update `@angular/cli` to 20.1.5, `@angular/core` to 20.1.6, `@angular/cdk` to 20.1.5 and `@angular/material` to 20.1.5.
 - Deps: update `docx` to 9.5.1.
 - Deps: update `openai` to 5.12.2.

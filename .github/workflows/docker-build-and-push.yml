@@ -29,7 +29,7 @@ jobs:
       # Define tag of official nginx image to be used as the final image
       # for the build, this is passed as a build argument to Dockerfile
       # https://hub.docker.com/_/nginx
-      NGINX_IMAGE_TAG: 1.27.4-alpine
+      NGINX_IMAGE_TAG: 1.28.0-alpine
 
     steps:
       # Check out repository.
