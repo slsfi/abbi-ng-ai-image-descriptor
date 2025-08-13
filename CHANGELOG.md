@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Deps: update `@angular/cli` to 20.1.5, `@angular/core` to 20.1.6, `@angular/cdk` to 20.1.5 and `@angular/material` to 20.1.5.
 - Deps: update `docx` to 9.5.1.
+- Deps: update `openai` to 5.12.2.
 - Deps: update `zone.js` to 0.15.1.
 - Deps (dev): update `@types/jasmine` to 5.1.8.
 - Deps (dev): update `jasmine-core` to 5.9.0.
