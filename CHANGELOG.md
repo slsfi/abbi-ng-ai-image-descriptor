@@ -26,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Fixed
 
 - Add the `buffer` package as a direct dependency since it’s required but not included by `docx`.
+- Set template app version to 0.0.0.
 
 ### Removed
 
