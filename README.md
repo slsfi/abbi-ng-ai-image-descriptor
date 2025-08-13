@@ -20,7 +20,7 @@ Author: Sebastian Köhler (2024)
 
 ### Prerequisites
 
-1. Install [Node.js][node.js] which includes [npm][npm]. The app is compatible with Node `^18.19.1`, `^20.11.1` and `^22.0.0` (based on [Angular 19 compatibility][angular_version_compatibility]). Check your Node version with:
+1. Install [Node.js][node.js] which includes [npm][npm]. The app is compatible with Node `^20.19.0`, `^22.12.0` and `^24.0.0` (based on [Angular 20 compatibility][angular_version_compatibility]). Check your Node version with:
 
 ```
 Node --version
