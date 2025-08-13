@@ -5,6 +5,7 @@ export type Model = {
   inputPrice: number;
   outputPrice: number;
   rpm: number;
+  reasoning?: string;
   default?: boolean;
 };
 

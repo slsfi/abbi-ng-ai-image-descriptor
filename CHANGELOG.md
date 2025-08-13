@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- Support for the OpenAI [`gpt-5`](https://platform.openai.com/docs/models/gpt-5) model.
+
 ### Changed
 
 - Deps: update `@angular/cli` to 20.1.5, `@angular/core` to 20.1.6, `@angular/cdk` to 20.1.5 and `@angular/material` to 20.1.5.
@@ -21,6 +25,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Fixed
 
 - Add the `buffer` package as a direct dependency since it’s required but not included by `docx`.
+
+### Removed
+
+- The `gpt-4o`, `gpt-4o-mini` and `gpt-4.5-preview` models.
 
 
 

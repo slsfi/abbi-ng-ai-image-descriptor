@@ -50,11 +50,13 @@ export class OpenAiService {
 
     let max_tokens = null;
     if (settings?.promptTemplate === 'Alt text') {
-      max_tokens = settings?.descriptionLength ? settings?.descriptionLength + 100 : null;
+      max_tokens = settings?.descriptionLength ? settings?.descriptionLength + 1000 : null;
     }
 
+    const reasoning_effort: string | null = settings?.model?.reasoning ?? null;
+
     const payload = {
-      model: settings?.model?.id ?? 'gpt-4o',
+      model: settings?.model?.id ?? 'gpt-4.1',
       messages: [
         {
           role: 'user',
@@ -72,8 +74,9 @@ export class OpenAiService {
           ],
         }
       ],
+      ...(reasoning_effort ? { reasoning_effort: reasoning_effort } : {}),
       temperature: settings?.temperature ?? null,
-      max_tokens: max_tokens
+      ...(!reasoning_effort ? { max_completion_tokens: max_tokens } : {})
     };
     // console.log(payload);
 
@@ -91,13 +94,15 @@ export class OpenAiService {
     return response;
   }
 
-  async chatCompletionTextTask(prompt: string, modelId: string = 'gpt-4o'): Promise<any> {
+  async chatCompletionTextTask(settings: RequestSettings, prompt: string): Promise<any> {
     if (!prompt) {
       return { error: { status: 400, message: 'Missing prompt' }};
     }
 
+    const reasoning_effort: string | null = settings?.model?.reasoning ?? null;
+
     const payload = {
-      model: modelId,
+      model: settings?.model?.id ?? 'gpt-4.1',
       messages: [
         {
           role: 'user',
@@ -107,7 +112,8 @@ export class OpenAiService {
               text: prompt },
           ],
         }
-      ]
+      ],
+      ...(reasoning_effort ? { reasoning_effort: reasoning_effort } : {})
     };
     // console.log(payload);
 
