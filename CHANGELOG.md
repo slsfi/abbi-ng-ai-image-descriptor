@@ -8,29 +8,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [1.4.0] – 2025-08-13
+
 ### Added
 
-- Support for the OpenAI [`gpt-5`](https://platform.openai.com/docs/models/gpt-5) model.
+- Support for the OpenAI [`gpt-5`](https://platform.openai.com/docs/models/gpt-5) model. ([590f9dd](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/590f9dd0b74de63efebfe9a0109913e64f75407e))
 
 ### Changed
 
-- Update `nginx` to 1.28.0.
-- Deps: update `@angular/cli` to 20.1.5, `@angular/core` to 20.1.6, `@angular/cdk` to 20.1.5 and `@angular/material` to 20.1.5.
-- Deps: update `docx` to 9.5.1.
-- Deps: update `openai` to 5.12.2.
-- Deps: update `zone.js` to 0.15.1.
-- Deps: update transitive dependencies.
-- Deps (dev): update `@types/jasmine` to 5.1.8.
-- Deps (dev): update `jasmine-core` to 5.9.0.
+- Update `nginx` to 1.28.0. ([18d1334](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/18d1334ef52a46771deefcbc8b035a0eadc0d36e))
+- Deps: update `@angular/cli` to 20.1.5, `@angular/core` to 20.1.6, `@angular/cdk` to 20.1.5 and `@angular/material` to 20.1.5. ([67d1148](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/67d11485f0e81889a4eaa475d20cdee1e22c93cd), [17ca2c8](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/17ca2c869f6bd47b51bc19aadb21c8c2916a56d6))
+- Deps: update `docx` to 9.5.1. ([a7368dd](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/a7368dde783dd9850db5c5516a1d6f937cd97a44))
+- Deps: update `openai` to 5.12.2. ([e0c8f9f](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/e0c8f9fd7e00a25303201ef9a167e6f64bd1d2b0))
+- Deps: update `zone.js` to 0.15.1. ([c58137a](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/c58137ab5e6a05d7b75e1b5a270182dc2c20f36d))
+- Deps (dev): update `@types/jasmine` to 5.1.8. ([ce5e9f2](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/ce5e9f25e67cfadad0877ea0e53e885eaed1e0c8))
+- Deps (dev): update `jasmine-core` to 5.9.0. ([5598fe2](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/5598fe2c712ae8fb7aba8fb607f4a636ab251cb5))
+- Deps: update transitive dependencies. ([e8c2e31](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/e8c2e31856b758752ea36c7c158ce75bba26be34))
 
 ### Fixed
 
-- Add the `buffer` package as a direct dependency since it’s required but not included by `docx`.
-- Set template app version to 0.0.0.
+- Add the `buffer` package as a direct dependency since it’s required but not included by `docx`. ([7c660b3](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/7c660b341cadfa4cf20203f22c111e3b1e9ee572))
+- Set template app version to 0.0.0. ([00d5af9](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/00d5af92af90e031f1a9ae07e0cb24fd27896b47))
 
 ### Removed
 
-- The `gpt-4o`, `gpt-4o-mini` and `gpt-4.5-preview` models.
+- The `gpt-4o`, `gpt-4o-mini` and `gpt-4.5-preview` models. ([590f9dd](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/590f9dd0b74de63efebfe9a0109913e64f75407e))
 
 
 
@@ -168,7 +172,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.3.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.4.0...HEAD
+[1.4.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.4...1.2.0
 [1.1.4]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.3...1.1.4
