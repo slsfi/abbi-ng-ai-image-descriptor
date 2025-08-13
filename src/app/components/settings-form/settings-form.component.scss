@@ -14,7 +14,7 @@ mat-expansion-panel.mat-expansion-panel {
 }
 
 mat-slide-toggle.mat-mdc-slide-toggle {
-  --mat-switch-label-text-size: 1rem;
+  --mat-slide-toggle-label-text-size: 1rem;
 }
 
 .parameters-wrapper {
@@ -31,7 +31,7 @@ mat-slide-toggle.mat-mdc-slide-toggle {
 
     mat-slide-toggle.mat-mdc-slide-toggle {
       margin: -0.325rem 0 1rem 0;
-      --mat-switch-label-text-tracking: normal;
+      --mat-slide-toggle-label-text-tracking: normal;
     }
   }
 }

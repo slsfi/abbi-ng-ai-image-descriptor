@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { FormGroup } from '@angular/forms';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,7 +20,6 @@ import { SettingsService } from './services/settings.service';
   selector: 'app-root',
   imports: [
     AsyncPipe,
-    NgIf,
     MatButtonModule,
     MatStepperModule,
     AddImagesComponent,
