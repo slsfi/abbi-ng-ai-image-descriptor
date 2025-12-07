@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `@angular/cli` to 20.3.13, `@angular/core` to 20.3.15, `@angular/cdk` to 20.2.14 and `@angular/material` to 20.2.14.
 - Deps: update `openai` to 5.23.2.
 - Deps (dev): update `@types/jasmine` to 5.1.13.
+- Deps (dev): update `typescript` to 5.9.3.
 
 
 
