@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- Support for the OpenAI [`gpt-5.1`](https://platform.openai.com/docs/models/gpt-5.1) model.
+
 ### Changed
 
 - Migrate to the OpenAI Responses API.
@@ -17,6 +21,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps (dev): update `jasmine-core` to 5.13.0.
 - Deps (dev): update `typescript` to 5.9.3.
 - Deps: update transitive dependencies.
+
+### Removed
+
+- The `gpt-5` model.
 
 
 

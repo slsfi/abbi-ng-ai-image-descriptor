@@ -8,10 +8,11 @@ import { Models } from '../../app/types/model.types'
 // rpm = max requests per minute the model accepts at current usage tier
 // reasoning = (optional, required for reasoning models) reasoning effort
 //             constraint for reasoning models, supported values are
-//             `minimal`, `low`, `medium` and `high`
+//             `none`, `minimal`, `low`, `medium` and `high` depending
+//             on the model
 // default = (optional) boolean indicating which model is the default
 
-// OpenAI Chat Completion API reference: https://platform.openai.com/docs/api-reference/chat/create
+// OpenAI Responses API reference: https://platform.openai.com/docs/api-reference/responses/create
 
 export const models: Models = [
   {
@@ -33,11 +34,11 @@ export const models: Models = [
   },
   {
     provider: "OpenAI",
-    name: "GPT-5",
-    id: "gpt-5",
+    name: "GPT-5.1",
+    id: "gpt-5.1",
     inputPrice: 1.25,
     outputPrice: 10.0,
     rpm: 5000,
-    reasoning: "minimal"
+    reasoning: "none"
   }
 ]
