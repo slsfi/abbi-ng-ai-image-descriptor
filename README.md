@@ -12,6 +12,14 @@ Author: Sebastian Köhler (2024)
 
 <hr>
 
+## Screenshot of the app
+
+<img src="docs/images/abbi-screenshot.jpg" alt="Screenshot of the app.">
+
+Images in the screenshot: Library of Congress public domain.
+
+<hr>
+
 ## Changelog
 
 [Learn about the latest improvements][changelog].
