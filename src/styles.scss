@@ -75,3 +75,28 @@ div.editDescriptionDialog.cdk-overlay-pane.mat-mdc-dialog-panel {
   max-width: 90vw !important;
   width: 100%;
 }
+
+/* Snackbar styles. */
+.snackbar-success {
+  &.mat-mdc-snack-bar-container .mat-mdc-snackbar-surface {
+    background-color: #2A652C;
+  }
+}
+
+.snackbar-error {
+  &.mat-mdc-snack-bar-container .mat-mdc-snackbar-surface {
+    background-color: #A82424;
+  }
+}
+
+.snackbar-warning {
+  &.mat-mdc-snack-bar-container .mat-mdc-snackbar-surface {
+    background-color: #A86500;
+  }
+}
+
+.snackbar-error, .snackbar-success, .snackbar-warning {
+  .mat-mdc-button {
+    color: white !important;
+  }
+}

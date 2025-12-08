@@ -93,10 +93,10 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       const response = await this.openaiService.describeImage(settings, prompt, imageObj.base64Image);
       // console.log(response);
 
-      const respContent = response?.choices?.[0]?.message?.content ?? '';
+      const respContent = response?.output_text ?? '';
       if (!respContent && response?.error) {
         const e = response.error;
-        const eMessage = `Error communicating with the ${this.settings.selectedModel?.provider} API: ${e.status} ${e.message}`;
+        const eMessage = `Error communicating with the ${this.settings.selectedModel?.provider} API: ${e.message}`;
         this.showAPIErrorMessage(eMessage);
       } else {
         const cost = this.calculateCostFromResponse(settings.model, response?.usage);
@@ -105,8 +105,8 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
           description: respContent,
           language: settings.language,
           model: settings.model?.id ?? '',
-          inputTokens: response?.usage?.prompt_tokens ?? 0,
-          outputTokens: response?.usage?.completion_tokens ?? 0,
+          inputTokens: response?.usage?.input_tokens ?? 0,
+          outputTokens: response?.usage?.output_tokens ?? 0,
           cost: cost
         };
         imageObj.descriptions.push(newDescription);
@@ -149,10 +149,10 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         const response = await this.openaiService.describeImage(settings, prompt, imageObj.base64Image);
         // console.log(response);
 
-        const respContent = response?.choices?.[0]?.message?.content ?? '';
+        const respContent = response?.output_text ?? '';
         if (!respContent && response?.error) {
           const e = response.error;
-          const eMessage = `Error communicating with the ${this.settings.selectedModel?.provider} API: ${e.status} ${e.message}`;
+          const eMessage = `Error communicating with the ${this.settings.selectedModel?.provider} API: ${e.message}`;
           this.showAPIErrorMessage(eMessage);
           this.generating = false;
         } else {
@@ -162,8 +162,8 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
             description: respContent,
             language: settings.language,
             model: settings.model?.id ?? '',
-            inputTokens: response?.usage?.prompt_tokens ?? 0,
-            outputTokens: response?.usage?.completion_tokens ?? 0,
+            inputTokens: response?.usage?.input_tokens ?? 0,
+            outputTokens: response?.usage?.output_tokens ?? 0,
             cost: cost
           };
           imageObj.descriptions.push(newDescription);
@@ -188,13 +188,13 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     const settings: RequestSettings = this.settings.getSettings();
 
     try {
-      const response = await this.openaiService.chatCompletionTextTask(settings, prompt);
+      const response = await this.openaiService.responsesTextTask(settings, prompt);
       // console.log(response);
 
-      const respContent = response?.choices?.[0]?.message?.content ?? '';
+      const respContent = response?.output_text ?? '';
       if (!respContent && response?.error) {
         const e = response.error;
-        const eMessage = `Error communicating with the ${settings.model?.provider} API: ${e.status} ${e.message}`;
+        const eMessage = `Error communicating with the ${settings.model?.provider} API: ${e.code} ${e.message}`;
         this.showAPIErrorMessage(eMessage);
       } else {
         const cost = this.calculateCostFromResponse(settings.model, response?.usage);
@@ -203,8 +203,8 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
           description: respContent,
           language: targetLanguageCode,
           model: settings.model?.id ?? '',
-          inputTokens: response?.usage?.prompt_tokens ?? 0,
-          outputTokens: response?.usage?.completion_tokens ?? 0,
+          inputTokens: response?.usage?.input_tokens ?? 0,
+          outputTokens: response?.usage?.output_tokens ?? 0,
           cost: cost
         };
         imageObj.descriptions.push(newDescription);
@@ -371,8 +371,8 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
   private calculateCostFromResponse(model?: Model, usage?: any): number {
     if (model && usage) {
-      const inputCost: number = ((usage.prompt_tokens ?? 0) / 1000000.0) * model.inputPrice;
-      const outputCost: number = ((usage.completion_tokens ?? 0) / 1000000.0) * model.outputPrice;
+      const inputCost: number = ((usage.input_tokens ?? 0) / 1000000.0) * model.inputPrice;
+      const outputCost: number = ((usage.output_tokens ?? 0) / 1000000.0) * model.outputPrice;
       return inputCost + outputCost;
     } else {
       return 0;
@@ -381,7 +381,8 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
   private showAPIErrorMessage(message: string): void {
     const snackBarRef = this.snackBar.open(message, 'Dismiss', {
-      duration: 5000
+      duration: undefined,
+      panelClass: 'snackbar-error'
     });
     snackBarRef?.onAction().subscribe(() => {
       snackBarRef.dismiss();
