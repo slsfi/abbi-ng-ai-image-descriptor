@@ -22,6 +22,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps (dev): update `typescript` to 5.9.3.
 - Deps: update transitive dependencies.
 
+### Fixed
+
+- Translation prompts.
+
 ### Removed
 
 - The `gpt-5` model.

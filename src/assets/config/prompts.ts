@@ -17,7 +17,7 @@ export const prompts: Prompts = [
         modelRestrictions: ['gpt-4.1', 'gpt-5.1']
       }
     ],
-    translatePrompt: 'Översätt nedanstående text till svenska (originalspråkets ISO-639-1 kod är `{{ORIG_LANG_CODE}}`:'
+    translatePrompt: 'Översätt nedanstående text till svenska (originalspråkets ISO-639-1 kod är `{{ORIG_LANG_CODE}}`). Svara endast med den översatta texten.'
   },
   {
     languageCode: 'fi',
@@ -35,7 +35,7 @@ export const prompts: Prompts = [
         modelRestrictions: ['gpt-4.1', 'gpt-5.1']
       }
     ],
-    translatePrompt: 'Käännä alla oleva teksti suomeksi (alkuperäiskielen ISO-639-1 koodi on `{{ORIG_LANG_CODE}}`:'
+    translatePrompt: 'Käännä alla oleva teksti suomeksi (alkuperäiskielen ISO-639-1 koodi on `{{ORIG_LANG_CODE}}`). Vastaa ainoastaan käännetyllä tekstillä.'
   },
   {
     languageCode: 'en',
@@ -53,6 +53,6 @@ export const prompts: Prompts = [
         modelRestrictions: ['gpt-4.1', 'gpt-5.1']
       }
     ],
-    translatePrompt: 'Translate the text below to English (the ISO-639-1 code of the source language is `{{ORIG_LANG_CODE}}`:'
+    translatePrompt: 'Translate the text below to English (the ISO-639-1 code of the source language is `{{ORIG_LANG_CODE}}`). Answer with just the translated text.'
   }
 ]
