@@ -8,28 +8,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [1.5.0] – 2025-12-08
+
 ### Added
 
-- Support for the OpenAI [`gpt-5.1`](https://platform.openai.com/docs/models/gpt-5.1) model.
-- Screenshot of the app to the README.
+- Support for the OpenAI [`gpt-5.1`](https://platform.openai.com/docs/models/gpt-5.1) model. ([8f306a4](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/8f306a42f2052bd9927c1a24e3e978619398e08d))
+- Screenshot of the app to the README. ([1d59167](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/1d591678de57df234ddda47b2d34077dbd4c529a))
 
 ### Changed
 
-- Migrate to the OpenAI Responses API.
-- Deps: update `@angular/cli` to 20.3.13, `@angular/core` to 20.3.15, `@angular/cdk` to 20.2.14 and `@angular/material` to 20.2.14.
-- Deps: update `openai` to 6.10.0.
-- Deps (dev): update `@types/jasmine` to 5.1.13.
-- Deps (dev): update `jasmine-core` to 5.13.0.
-- Deps (dev): update `typescript` to 5.9.3.
-- Deps: update transitive dependencies.
+- Migrate to the OpenAI Responses API. ([28ce6d3](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/28ce6d38a74856704a8e53bb6f67c82085a66903))
+- Deps: update `@angular/cli` to 20.3.13, `@angular/core` to 20.3.15, `@angular/cdk` to 20.2.14 and `@angular/material` to 20.2.14. ([f9e8578](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/f9e8578d7d0f96e2943413a68aca340ab4b660dc))
+- Deps: update `openai` to 6.10.0. ([a8f8c25](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/a8f8c25abab2690afbccc2b99ea406db280ea21d), [9412dba](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/9412dba1bc0aa2ce7431d3aa6f76fc09d01b664a))
+- Deps (dev): update `@types/jasmine` to 5.1.13. ([f44f416](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/f44f4167de9d4bb7d64ea7de2290bd3a939ec2fa))
+- Deps (dev): update `jasmine-core` to 5.13.0. ([eec8408](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/eec84084aebd8b961e462c030fa364ed7e5cba56))
+- Deps (dev): update `typescript` to 5.9.3. ([5bdc3e7](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/5bdc3e7e6035da5285a50af5a72df3d26dd7b336))
+- Deps: update transitive dependencies. ([b61182d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/b61182dce4c3f48cf5ce7bb94a24615fddd4cc7a))
 
 ### Fixed
 
-- Translation prompts.
+- Translation prompts. ([568b3bf](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/568b3bf953f3987ae496e94e06060a9556656910))
 
 ### Removed
 
-- The `gpt-5` model.
+- The `gpt-5` model. ([8f306a4](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/8f306a42f2052bd9927c1a24e3e978619398e08d))
 
 
 
@@ -195,7 +199,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.4.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.5.0...HEAD
+[1.5.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.4.0...1.5.0
 [1.4.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.1.4...1.2.0
