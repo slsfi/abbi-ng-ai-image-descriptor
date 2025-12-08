@@ -12,6 +12,12 @@ Author: Sebastian Köhler (2024)
 
 <hr>
 
+<div style="width:90%">
+  <img src="docs/images/abbi-screenshot.jpg" alt="Screenshot of the app." style="display:block; margin:0 auto; padding:1em; border:2px solid #ccc; width:100%">
+</div>
+
+<hr>
+
 ## Changelog
 
 [Learn about the latest improvements][changelog].

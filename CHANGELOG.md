@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Added
 
 - Support for the OpenAI [`gpt-5.1`](https://platform.openai.com/docs/models/gpt-5.1) model.
+- Screenshot of the app to the README.
 
 ### Changed
 
