@@ -18,8 +18,6 @@ Author: Sebastian Köhler (2024)
 
 Images in the screenshot: Library of Congress public domain.
 
-<hr>
-
 ## Changelog
 
 [Learn about the latest improvements][changelog].
