@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- Option to export generated descriptions as separate plain text (txt) files that are zipped for downloading.
+
 
 
 ## [1.5.0] – 2025-12-08

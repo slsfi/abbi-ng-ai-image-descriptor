@@ -1,5 +1,9 @@
-import { Injectable } from '@angular/core';
-import { Document, IParagraphStyleOptions, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType } from 'docx';
+import { inject, Injectable } from '@angular/core';
+import { Document, IParagraphStyleOptions, Packer, Paragraph, Table,
+         TableRow, TableCell, TextRun, WidthType
+        } from 'docx';
+import { zipSync, strToU8 } from 'fflate';
+
 
 import { ImageListService } from './image-list.service';
 import { DescriptionData } from '../types/description-data.types';
@@ -9,8 +13,7 @@ import { ImageData } from '../types/image-data.types';
   providedIn: 'root'
 })
 export class ExportService {
-
-  constructor(private imageListService: ImageListService) { }
+  private readonly imageListService = inject(ImageListService);
 
   exportImageListToFile(fileFormat: string): void {
     if (fileFormat == 'docx-table') {
@@ -25,7 +28,9 @@ export class ExportService {
       this.generateXML(this.imageListService.imageList);
     } else if (fileFormat == 'txt') {
       this.generateTXT(this.imageListService.imageList);
-    }
+    } else if (fileFormat == 'txt-zip') {
+    this.generateTXTPerImageZip(this.imageListService.imageList);
+  }
   }
 
   generateDOCX(imageFiles: ImageData[], filename: string = 'image-descriptions.docx'): void {
@@ -168,6 +173,47 @@ export class ExportService {
     this.initiateDownload(blob, filename);
   }
 
+  private generateTXTPerImageZip(imageFiles: ImageData[], filename: string = 'image-descriptions.zip'): void {
+    const files: { [name: string]: Uint8Array } = {};
+
+    imageFiles.forEach((imageObj: ImageData) => {
+      const description = this.getActiveDescription(imageObj)?.description ?? '';
+
+      // Strip extension from the image filename to get the base name
+      const baseName = this.getBaseName(imageObj.filename);
+
+      const txtContent = description;
+
+      // Convert string to Uint8Array for fflate
+      files[`${baseName}.txt`] = strToU8(txtContent);
+    });
+
+    // Create ZIP archive synchronously
+    const zipped = zipSync(files);  // Uint8Array<ArrayBufferLike>
+
+    /**
+     * `zipSync` returns a Uint8Array view over an underlying ArrayBufferLike.
+     * We can't pass this Uint8Array directly to the Blob constructor because:
+     *   1. TypeScript's DOM typings expect an ArrayBuffer (not ArrayBufferLike),
+     *      which causes a type error.
+     *   2. A Uint8Array is only a "view" into its buffer and may not start at
+     *      offset 0 or cover the entire buffer.
+     *
+     * By calling `buffer.slice(byteOffset, byteOffset + byteLength)` we:
+     *   - Create a fresh ArrayBuffer that contains exactly the bytes of this view.
+     *   - Narrow the type to ArrayBuffer, which matches what BlobPart accepts.
+     *
+     * This avoids the TS type mismatch and guarantees Blob sees only the ZIP data.
+     */
+    const arrayBuffer = zipped.buffer.slice(
+      zipped.byteOffset,
+      zipped.byteOffset + zipped.byteLength
+    ) as ArrayBuffer;
+
+    const blob = new Blob([arrayBuffer], { type: 'application/zip' });
+    this.initiateDownload(blob, filename);
+  }
+
   private convertToDelimited(imageFiles: ImageData[], delimiter: string): string {
     // We are only interested in the image filename and description properties
     let contentStr = '';
@@ -253,4 +299,11 @@ export class ExportService {
 
     return styleObj;
   }
+
+  private getBaseName(filename: string): string {
+    // Remove directory part if any and strip the extension
+    const justName = filename.split(/[/\\]/).pop() ?? filename;
+    return justName.replace(/\.[^/.]+$/, '');
+  }
+
 }
