@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - Move export format selection to dialog.
+- Migrate to new Angular Material button directives.
 
 ### Fixed
 
