@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Fixed
 
 - Ensure exported text files end with newline.
+- Button label.
 
 ### Removed
 
