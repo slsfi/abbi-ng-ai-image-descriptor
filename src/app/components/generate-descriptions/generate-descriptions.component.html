@@ -1,7 +1,7 @@
 @if ({ imageList: imageListService.imageList$ | async }; as o) {
   <div class="generate-desc-wrapper" [class.hide]="!o.imageList?.length">
     <div class="buttons-row">
-      <button mat-flat-button
+      <button matButton="filled"
         color="primary"
         (click)="generateImageDescriptionsAll()"
         [disabled]="generating || !o.imageList?.length"
@@ -9,13 +9,13 @@
       <div class="cost right-aligned">Cumulative cost: ${{ this.totalCost | number }}</div>
     </div>
     <div class="buttons-row">
-      <button mat-stroked-button
+      <button matButton="outlined"
         [disabled]="generating || !o.imageList?.length || exporting"
         (click)="export()"
       >
         @if (exporting) { Exporting... } @else { Export }
       </button>
-      <button mat-stroked-button
+      <button matButton="outlined"
         class="right-aligned"
         color="warn"
         [disabled]="generating || !o.imageList?.length"
@@ -53,7 +53,7 @@
               <div class="actions">
                 <div class="buttons-wrapper">
                   @if (file.descriptions.length > 1) {
-                    <button mat-icon-button color="primary"
+                    <button matIconButton color="primary"
                       matTooltip="Show previous description"
                       aria-label="Previous description"
                       [disabled]="file.activeDescriptionIndex < 1"
@@ -62,7 +62,7 @@
                       <mat-icon>chevron_left</mat-icon>
                     </button>
                     <div class="counter">{{ file.activeDescriptionIndex + 1 }}/{{ file.descriptions.length }}</div>
-                    <button mat-icon-button color="primary"
+                    <button matIconButton color="primary"
                       matTooltip="Show next description"
                       aria-label="Next description"
                       [disabled]="file.activeDescriptionIndex > file.descriptions.length - 2"
@@ -71,7 +71,7 @@
                       <mat-icon>chevron_right</mat-icon>
                     </button>
                   }
-                  <button mat-icon-button color="primary"
+                  <button matIconButton color="primary"
                     matTooltip="Copy description to clipboard"
                     class="copy-button"
                     aria-label="Copy description to clipboard"
@@ -79,7 +79,7 @@
                   >
                     <mat-icon>content_copy</mat-icon>
                   </button>
-                  <button mat-icon-button color="primary"
+                  <button matIconButton color="primary"
                     matTooltip="Edit description"
                     class="edit-button"
                     aria-label="Edit description"
@@ -87,7 +87,7 @@
                   >
                     <mat-icon>edit</mat-icon>
                   </button>
-                  <button mat-icon-button color="primary"
+                  <button matIconButton color="primary"
                     matTooltip="Translate description"
                     class="translate-button"
                     aria-label="Translate description"
@@ -95,7 +95,7 @@
                   >
                     <mat-icon>translate</mat-icon>
                   </button>
-                  <button mat-icon-button
+                  <button matIconButton
                     matTooltip="Delete description"
                     class="delete-button"
                     aria-label="Delete description"
@@ -115,11 +115,11 @@
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef>Actions</th>
           <td mat-cell *matCellDef="let file">
-            <button mat-stroked-button
+            <button matButton="outlined"
               (click)="generateImageDescription(file)"
               [disabled]="generating"
             >{{ file.descriptions.length > 0 ? 'Regenerate' : 'Generate' }}</button>
-            <button mat-stroked-button
+            <button matButton="outlined"
               color="warn"
               (click)="removeImage(file)"
               [disabled]="generating"

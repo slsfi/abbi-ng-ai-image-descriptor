@@ -5,7 +5,7 @@
           [type]="hideApiKey ? 'password' : 'text'"
           formControlName="apiKeyFC"
     >
-    <button mat-icon-button matSuffix (click)="hideApiKey = !hideApiKey" [attr.aria-label]="'Hide API key'" [attr.aria-pressed]="hideApiKey">
+    <button matIconButton matSuffix (click)="hideApiKey = !hideApiKey" [attr.aria-label]="'Hide API key'" [attr.aria-pressed]="hideApiKey">
       <mat-icon>{{hideApiKey ? 'visibility_off' : 'visibility'}}</mat-icon>
     </button>
     @if (apiKeyFC?.hasError('required')) {
