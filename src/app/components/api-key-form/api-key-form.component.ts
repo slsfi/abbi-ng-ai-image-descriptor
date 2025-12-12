@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -24,6 +24,9 @@ import { OpenAiService } from '../../services/openai.service';
     styleUrl: './api-key-form.component.scss'
 })
 export class ApiKeyFormComponent implements OnInit, OnDestroy {
+  private fb = inject(FormBuilder);
+  private openaiService = inject(OpenAiService);
+
   @Input() modelProvider: string = ''
   @Output() formGroupOutput = new EventEmitter<FormGroup>();
 
@@ -33,10 +36,7 @@ export class ApiKeyFormComponent implements OnInit, OnDestroy {
   formGroupChangeSubscr: Subscription | null = null;
   hideApiKey: boolean = true;
 
-  constructor(
-    private fb: FormBuilder,
-    private openaiService: OpenAiService
-  ) {
+  constructor() {
     this.apiKeyFormGroup = this.fb.group({
       apiKeyFC: new FormControl('', {
         validators: [Validators.required],
