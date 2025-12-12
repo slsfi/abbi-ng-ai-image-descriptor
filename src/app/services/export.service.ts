@@ -172,19 +172,22 @@ export class ExportService {
   }
 
   generateCSV(imageFiles: ImageData[], filename: string = FALLBACK_FILENAME): void {
-    const data = this.convertToDelimited(imageFiles, ',');
+    let data = this.convertToDelimited(imageFiles, ',');
+    data = this.ensureNewlineEnding(data);
     const blob = new Blob([data], { type: 'text/csv;charset=UTF-8' });
     this.initiateDownload(blob, `${filename}.csv`);
   }
 
   generateTAB(imageFiles: ImageData[], filename: string = FALLBACK_FILENAME): void {
-    const data = this.convertToDelimited(imageFiles, '\t');
+    let data = this.convertToDelimited(imageFiles, '\t');
+    data = this.ensureNewlineEnding(data);
     const blob = new Blob([data], { type: 'text/tab-separated-values;charset=UTF-8' });
     this.initiateDownload(blob, `${filename}.tab`);
   }
 
   generateXML(imageFiles: ImageData[], filename: string = FALLBACK_FILENAME): void {
-    const data = this.convertToXML(imageFiles);
+    let data = this.convertToXML(imageFiles);
+    data = this.ensureNewlineEnding(data);
     const blob = new Blob([data], { type: 'application/xml;charset=UTF-8' });
     this.initiateDownload(blob, `${filename}.xml`);
   }
@@ -197,6 +200,7 @@ export class ExportService {
       data += description + '\n\n';
       data += '---------------------------------------\n\n';
     });
+    data = this.ensureNewlineEnding(data);
     const blob = new Blob([data], { type: 'text/plain;charset=UTF-8' });
     this.initiateDownload(blob, `${filename}.txt`);
   }
@@ -210,7 +214,7 @@ export class ExportService {
       // Strip extension from the image filename to get the base name
       const baseName = this.getBaseName(imageObj.filename);
 
-      const txtContent = description;
+      const txtContent = this.ensureNewlineEnding(description);
 
       // Convert string to Uint8Array for fflate
       files[`${baseName}.txt`] = strToU8(txtContent);
@@ -373,6 +377,11 @@ export class ExportService {
     }
 
     return filename;
+  }
+
+  private ensureNewlineEnding(s: string): string {
+    // Ensure the content ends with exactly one newline
+    return !s.endsWith('\n') ? s += '\n' : s;
   }
 
 }
