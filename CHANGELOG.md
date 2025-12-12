@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Option to export generated descriptions as separate plain text (txt) files that are zipped for downloading.
 
+### Changed
+
+- Move export format selection to dialog.
+
 
 
 ## [1.5.0] – 2025-12-08

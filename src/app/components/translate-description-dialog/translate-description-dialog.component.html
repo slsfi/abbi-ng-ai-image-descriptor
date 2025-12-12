@@ -4,13 +4,25 @@
   <mat-radio-group
     aria-labelledby="radio-group-label"
     class="lang-radio-group"
-    [(ngModel)]="selectedLanguageCode">
+    [(ngModel)]="selectedLanguageCode"
+  >
     @for (langObj of translateLanguages; track langObj.languageCode) {
-      <mat-radio-button class="lang-radio-button" [value]="langObj.languageCode">{{langObj.languageDisplayName}}</mat-radio-button>
+      <mat-radio-button
+        class="lang-radio-button"
+        [value]="langObj.languageCode"
+      >
+        {{langObj.languageDisplayName}}
+      </mat-radio-button>
     }
   </mat-radio-group>
 </mat-dialog-content>
 <mat-dialog-actions>
   <button mat-button [mat-dialog-close]="''">Cancel</button>
-  <button mat-button [mat-dialog-close]="selectedLanguageCode" cdkFocusInitial>Translate</button>
+  <button
+    matButton="filled"
+    [mat-dialog-close]="selectedLanguageCode"
+    cdkFocusInitial
+  >
+    Translate
+  </button>
 </mat-dialog-actions>
