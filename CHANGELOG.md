@@ -20,6 +20,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Ensure exported text files end with newline.
 
+### Removed
+
+- Deprecated `provideAnimationsAsync()` from `app.config.ts`.
+
 
 
 ## [1.5.0] – 2025-12-08
