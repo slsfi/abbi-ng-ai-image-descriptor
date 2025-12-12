@@ -1,10 +1,11 @@
-import { Injectable } from '@angular/core';
+import { Injectable, computed } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { BehaviorSubject } from 'rxjs';
 
 import { models } from '../../assets/config/models';
 import { prompts } from '../../assets/config/prompts';
 import { Model, Models } from '../types/model.types';
-import { Prompt, PromptOption } from '../types/prompt.types';
+import { Prompt, PromptOption, promptOptionNouns } from '../types/prompt.types';
 import { RequestSettings } from '../types/settings.types';
 
 @Injectable({
@@ -34,6 +35,14 @@ export class SettingsService {
   selectedModel$ = this._selectedModel.asObservable();
   selectedPromptTemplate$ = this._selectedPromptTemplate.asObservable();
   selectedTemperature$ = this._selectedTemperature.asObservable();
+
+  readonly selectedPromptTemplateSig = toSignal(this.selectedPromptTemplate$, {
+    initialValue: 'Alt text',
+  });
+
+  readonly promptNouns = computed(
+    () => promptOptionNouns[this.selectedPromptTemplateSig() as keyof typeof promptOptionNouns]
+  );
 
   constructor() {
     // Initialize promptTemplates and selectedPromptTemplate

@@ -1,3 +1,5 @@
+@let promptType = settings.promptNouns();
+
 <div class="content-wrapper">
   <app-header></app-header>
 
@@ -6,7 +8,7 @@
       <p>aBBi (“AI-bildbeskrivningar”) is a web app for generating textual descriptions of images using AI. Currently, the tool can be used to:</p>
       <ul>
         <li>generate <a href="https://webaim.org/techniques/alttext/">alternative text</a> (“alt text”) in Swedish, Finnish and English (recommended model: GPT-4.1).</li>
-        <li>transcribe the text (also handwritten) in images (recommended model: GPT-5.1).</li>
+        <li>transcribe the text, including handwritten text, in images (recommended model: GPT-5.1).</li>
       </ul>
       <p>Start by defining your settings for the process and providing your API key, then select image files from your computer, and finally generate descriptions of them. You can download the descriptions in different formats or copy them to the clipboard individually.</p>
     </div>
@@ -54,15 +56,15 @@
       </mat-step>
 
       <!-- Step 4: Generate image descriptions -->
-      <mat-step label="Generate descriptions">
-        <h2 id="generate-step-title">Generate image descriptions <span class="prompt-template-name">(type: {{ settings.selectedPromptTemplate }})</span></h2>
+      <mat-step [label]="`Generate ${promptType.plural}`">
+        <h2 id="generate-step-title">Generate {{ promptType.plural }}</h2>
         <!-- Defer loading the generate-descriptions component until the API key in step 2 has validated -->
         @defer (when isApiKeyFormValid) {
           <generate-descriptions></generate-descriptions>
         } @loading (minimum 500ms) {
           <p>Loading component ...</p>
         } @error {
-          <p>Error loading component for generating descriptions. Please try to reload the web page.</p>
+          <p>Error loading component for generating {{ promptType.plural }}. Please try to reload the web page.</p>
         }
         <div class="stepper-nav">
           <button mat-button color="primary" matStepperPrevious>Back</button>

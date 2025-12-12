@@ -8,6 +8,7 @@ import { MatRadioModule } from '@angular/material/radio';
 
 import { IsEmptyStringPipe } from '../../pipes/is-empty-string.pipe';
 import { ExportService, EXPORT_FORMAT_OPTIONS } from '../../services/export.service';
+import { SettingsService } from '../../services/settings.service';
 import { ExportFormatOption } from '../../types/export.types';
 
 @Component({
@@ -26,6 +27,7 @@ import { ExportFormatOption } from '../../types/export.types';
 })
 export class ExportDialogComponent {
   private readonly exportService = inject(ExportService);
+  readonly settings = inject(SettingsService);
 
   readonly formatOptions: ExportFormatOption[] = EXPORT_FORMAT_OPTIONS;
 

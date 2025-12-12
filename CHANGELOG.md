@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Move export format selection to dialog.
 - Migrate to new Angular Material button directives.
 - Migrate constructor-based injection to the `inject` function.
+- Replace general “image description” term in the UI with term for actual task, i.e. “alt text” or “transcription”.
 
 ### Fixed
 
