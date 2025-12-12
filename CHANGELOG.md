@@ -16,6 +16,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Move export format selection to dialog.
 
+### Fixed
+
+- Ensure exported text files end with newline.
+
 
 
 ## [1.5.0] – 2025-12-08
