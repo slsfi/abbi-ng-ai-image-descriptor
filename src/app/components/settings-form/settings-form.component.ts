@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -25,12 +25,12 @@ import { Model } from '../../types/model.types';
   styleUrl: './settings-form.component.scss'
 })
 export class SettingsFormComponent {
+  settings = inject(SettingsService);
+
   descLengthMax: number = 300;
   descLengthMin: number = 150;
   temperatureMax: number = 2.0;
   temperatureMin: number = 0.0;
-
-  constructor(public settings: SettingsService) {}
 
   setDescLength(length: number): void {
     this.settings.updateSelectedDescLength(length);

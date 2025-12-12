@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -19,14 +19,14 @@ import { ImageData } from '../../types/image-data.types';
     styleUrl: './add-images.component.scss'
 })
 export class AddImagesComponent {
+  imageListService = inject(ImageListService);
+
   @Output() addingImages = new EventEmitter<boolean>(false);
 
   idCounter: number = 0;
   processedCounter: number = 0;
   progressPercentage: number = 0;
   totalFileCount: number = 0;
-
-  constructor(public imageListService: ImageListService) {}
 
   addImageFiles(files: File[]): void {
     if (files.length) {

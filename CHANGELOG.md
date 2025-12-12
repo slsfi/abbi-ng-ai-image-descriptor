@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Move export format selection to dialog.
 - Migrate to new Angular Material button directives.
+- Migrate constructor-based injection to the `inject` function.
 
 ### Fixed
 

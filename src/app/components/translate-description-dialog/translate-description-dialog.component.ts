@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -29,12 +29,10 @@ import { prompts } from '../../../assets/config/prompts';
     styleUrl: './translate-description-dialog.component.scss'
 })
 export class TranslateDescriptionDialogComponent implements OnInit {
+  imageObj = inject<ImageData>(MAT_DIALOG_DATA);
+
   translateLanguages: any[] = [];
   selectedLanguageCode: string = '';
-
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public imageObj: ImageData
-  ) {}
 
   ngOnInit(): void {
     const currentLanguage = this.imageObj.descriptions[this.imageObj.activeDescriptionIndex].language;

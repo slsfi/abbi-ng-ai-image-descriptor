@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogClose, MatDialogContent } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,12 +21,10 @@ import { ImageData } from '../../types/image-data.types';
     styleUrl: './edit-description-dialog.component.scss'
 })
 export class EditDescriptionDialogComponent implements OnInit {
+  imageObj = inject<ImageData>(MAT_DIALOG_DATA);
+
   aspectRatio: number = 1.333;
   editedDescription?: string;
-
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public imageObj: ImageData
-  ) {}
 
   ngOnInit(): void {
     this.editedDescription = this.imageObj.descriptions[this.imageObj.activeDescriptionIndex].description;
