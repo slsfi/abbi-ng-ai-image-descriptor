@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Ensure exported text files end with newline.
 - Button label.
+- Persistent subscription to image list.
 
 ### Removed
 

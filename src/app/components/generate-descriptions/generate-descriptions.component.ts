@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, inject, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, inject, OnInit, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -51,6 +52,7 @@ import { RequestSettings } from '../../types/settings.types';
   styleUrl: './generate-descriptions.component.scss'
 })
 export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
+  private destroyRef = inject(DestroyRef);
   private readonly dialog = inject(MatDialog);
   private readonly exportService = inject(ExportService);
   public readonly imageListService = inject(ImageListService);
@@ -70,7 +72,9 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   ngOnInit(): void {
     // Subscribe to the image list in the service to update the data source
     // for the Material table.
-    this.imageListService.imageList$.subscribe(
+    this.imageListService.imageList$.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       (imageList: ImageData[]) => {
         this.matTableDataSource.data = imageList;
       }
