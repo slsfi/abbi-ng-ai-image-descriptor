@@ -1,5 +1,9 @@
-<h2 mat-dialog-title>Translate description</h2>
+@let promptType = settings.promptNouns();
+
+<h2 mat-dialog-title>Translate {{ promptType.singular }}</h2>
+
 <mat-dialog-content>
+
   <label id="radio-group-label">Choose language to translate to:</label>
   <mat-radio-group
     aria-labelledby="radio-group-label"
@@ -15,7 +19,9 @@
       </mat-radio-button>
     }
   </mat-radio-group>
+
 </mat-dialog-content>
+
 <mat-dialog-actions>
   <button mat-button [mat-dialog-close]="''">Cancel</button>
   <button

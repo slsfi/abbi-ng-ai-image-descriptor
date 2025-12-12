@@ -1,3 +1,5 @@
+@let promptType = settings.promptNouns();
+
 @if ({ imageList: imageListService.imageList$ | async }; as o) {
   <div class="generate-desc-wrapper" [class.hide]="!o.imageList?.length">
     <div class="buttons-row">
@@ -34,15 +36,15 @@
         </ng-container>
         <!-- Description column -->
         <ng-container matColumnDef="description">
-          <th mat-header-cell *matHeaderCellDef>Generated description</th>
+          <th mat-header-cell *matHeaderCellDef>Generated {{ promptType.singular }}</th>
           <td mat-cell *matCellDef="let file">
             <div class="desc-data">
               @if (file.generating) {
                 <span class="loading-wrapper">
-                  <mat-spinner [diameter]="32"></mat-spinner><span class="spinner-label">Generating image description...</span>
+                  <mat-spinner [diameter]="32"></mat-spinner><span class="spinner-label">Generating {{ promptType.singular }}...</span>
                 </span>
               } @else if (file.descriptions.length < 1) {
-                <span class="no-desc">No description generated.</span>
+                <span class="no-desc">No {{ promptType.singular }} generated.</span>
               } @else {
                 <span class="desc-text">
                   {{ file.descriptions[file.activeDescriptionIndex].description }}
@@ -54,8 +56,8 @@
                 <div class="buttons-wrapper">
                   @if (file.descriptions.length > 1) {
                     <button matIconButton color="primary"
-                      matTooltip="Show previous description"
-                      aria-label="Previous description"
+                      [matTooltip]="`Show previous ${promptType.singular}`"
+                      [attr.aria-label]="`Previous ${promptType.singular}`"
                       [disabled]="file.activeDescriptionIndex < 1"
                       (click)="previousDescription(file)"
                     >
@@ -63,8 +65,8 @@
                     </button>
                     <div class="counter">{{ file.activeDescriptionIndex + 1 }}/{{ file.descriptions.length }}</div>
                     <button matIconButton color="primary"
-                      matTooltip="Show next description"
-                      aria-label="Next description"
+                      [matTooltip]="`Show next ${promptType.singular}`"
+                      [attr.aria-label]="`Next ${promptType.singular}`"
                       [disabled]="file.activeDescriptionIndex > file.descriptions.length - 2"
                       (click)="nextDescription(file)"
                     >
@@ -72,33 +74,33 @@
                     </button>
                   }
                   <button matIconButton color="primary"
-                    matTooltip="Copy description to clipboard"
+                    [matTooltip]="`Copy ${promptType.singular} to clipboard`"
                     class="copy-button"
-                    aria-label="Copy description to clipboard"
+                    [attr.aria-label]="`Copy ${promptType.singular} to clipboard`"
                     [cdkCopyToClipboard]="file.descriptions.length > 0 ? file.descriptions[file.activeDescriptionIndex].description : ''"
                   >
                     <mat-icon>content_copy</mat-icon>
                   </button>
                   <button matIconButton color="primary"
-                    matTooltip="Edit description"
+                    [matTooltip]="`Edit ${promptType.singular}`"
                     class="edit-button"
-                    aria-label="Edit description"
+                    [aria-label]="`Edit ${promptType.singular}`"
                     (click)="editDescription(file)"
                   >
                     <mat-icon>edit</mat-icon>
                   </button>
                   <button matIconButton color="primary"
-                    matTooltip="Translate description"
+                    [matTooltip]="`Translate ${promptType.singular}`"
                     class="translate-button"
-                    aria-label="Translate description"
+                    [attr.aria-label]="`Translate ${promptType.singular}`"
                     (click)="translateDescription(file)"
                   >
                     <mat-icon>translate</mat-icon>
                   </button>
                   <button matIconButton
-                    matTooltip="Delete description"
+                    [matTooltip]="`Delete ${promptType.singular}`"
                     class="delete-button"
-                    aria-label="Delete description"
+                    [attr.aria-label]="`Delete ${promptType.singular}`"
                     (click)="deleteDescription(file)"
                   >
                     <mat-icon>delete</mat-icon>

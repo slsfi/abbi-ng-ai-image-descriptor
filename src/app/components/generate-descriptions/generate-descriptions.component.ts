@@ -57,7 +57,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   private readonly exportService = inject(ExportService);
   public readonly imageListService = inject(ImageListService);
   private readonly openaiService = inject(OpenAiService);
-  private readonly settings = inject(SettingsService);
+  readonly settings = inject(SettingsService);
   private readonly snackBar = inject(MatSnackBar);
 
   currentPaginatorSize: number = 10;
@@ -140,7 +140,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
       counter++;
       snackBarRef?.dismiss();
-      snackBarRef = this.snackBar.open('Generating image description ' + counter + '/' + this.imageListService.imageList.length, 'Stop');
+      snackBarRef = this.snackBar.open(`Generating ${this.settings.promptNouns().singular} ${counter}/${this.imageListService.imageList.length}`, 'Stop');
       snackBarRef.onAction().subscribe(() => {
         this.generating = false;
       });
@@ -271,7 +271,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   deleteDescription(imageObj: ImageData): void {
     const dialogRef = this.dialog.open(ConfirmActionDialogComponent, {
       data: {
-        title: 'Delete this description?',
+        title: `Delete this ${this.settings.promptNouns().singular}?`,
         body: 'This action cannot be undone.',
         cancelLabel: 'Cancel',
         confirmLabel: 'Delete'

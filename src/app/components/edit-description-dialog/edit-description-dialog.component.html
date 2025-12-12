@@ -1,12 +1,14 @@
+@let promptType = settings.promptNouns();
+
 <mat-dialog-content>
   <div class="container" [class.wider-img-container]="aspectRatio > 1.25">
     <div class="img-container">
       <img [src]="imageObj.base64Image" [height]="imageObj.height" [width]="imageObj.width" alt="Image">
     </div>
     <div class="textarea-container">
-      <h2>Edit description</h2>
+      <h2>Edit {{ promptType.singular }}</h2>
       <mat-form-field appearance="outline">
-        <mat-label>Description</mat-label>
+        <mat-label>{{ promptType.singular | titlecase }}</mat-label>
         <textarea matInput
               [(ngModel)]="editedDescription"
               cdkTextareaAutosize

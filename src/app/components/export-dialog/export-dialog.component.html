@@ -1,4 +1,6 @@
-<h2 mat-dialog-title>Export generated descriptions</h2>
+@let promptType = settings.promptNouns();
+
+<h2 mat-dialog-title>Export generated {{ promptType.plural }}</h2>
 
 <mat-dialog-content>
 
@@ -30,5 +32,7 @@
       selectedExportFormat: selectedFormatOption.fileFormat,
       filename
     }"
-  >Export</button>
+  >
+    Export
+  </button>
 </mat-dialog-actions>
