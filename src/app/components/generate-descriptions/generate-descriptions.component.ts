@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, inject, OnInit, ViewChild } from '@angular/core';
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -16,6 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { prompts } from '../../../assets/config/prompts';
 import { ConfirmActionDialogComponent } from '../confirm-action-dialog/confirm-action-dialog.component';
 import { EditDescriptionDialogComponent } from '../edit-description-dialog/edit-description-dialog.component';
+import { ExportDialogComponent } from '../export-dialog/export-dialog.component';
 import { TranslateDescriptionDialogComponent } from '../translate-description-dialog/translate-description-dialog.component';
 import { CharacterCountPipe } from '../../pipes/character-count.pipe';
 import { ExportService } from '../../services/export.service';
@@ -45,28 +46,26 @@ import { RequestSettings } from '../../types/settings.types';
     MatTableModule,
     MatTooltipModule,
     CharacterCountPipe
-  ],
+],
   templateUrl: './generate-descriptions.component.html',
   styleUrl: './generate-descriptions.component.scss'
 })
 export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
+  private readonly dialog = inject(MatDialog);
+  private readonly exportService = inject(ExportService);
+  public readonly imageListService = inject(ImageListService);
+  private readonly openaiService = inject(OpenAiService);
+  private readonly settings = inject(SettingsService);
+  private readonly snackBar = inject(MatSnackBar);
+
   currentPaginatorSize: number = 10;
   matTableDataSource = new MatTableDataSource<ImageData>([]);
   displayedColumns: string[] = ['imagePreview', 'description', 'actions'];
+  exporting: boolean = false;
   generating: boolean = false;
-  selectedExportFormat: string = 'docx-table';
   totalCost: number = 0;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-
-  constructor(
-    public dialog: MatDialog,
-    private exportService: ExportService,
-    public imageListService: ImageListService,
-    private openaiService: OpenAiService,
-    public settings: SettingsService,
-    private snackBar: MatSnackBar,
-  ) {}
 
   ngOnInit(): void {
     // Subscribe to the image list in the service to update the data source
@@ -321,7 +320,18 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   }
 
   export(): void {
-    this.exportService.exportImageListToFile(this.selectedExportFormat);
+    const dialogRef = this.dialog.open(ExportDialogComponent, { minWidth: '500px' });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.value && result?.selectedExportFormat) {
+        this.exporting = true;
+        this.exportService.exportImageListToFile(
+          result?.selectedExportFormat,
+          result?.filename
+        );
+        this.exporting = false;
+      }
+    });
   }
 
   /**

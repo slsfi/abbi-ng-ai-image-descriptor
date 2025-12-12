@@ -4,10 +4,22 @@ import { Document, IParagraphStyleOptions, Packer, Paragraph, Table,
         } from 'docx';
 import { zipSync, strToU8 } from 'fflate';
 
-
 import { ImageListService } from './image-list.service';
 import { DescriptionData } from '../types/description-data.types';
 import { ImageData } from '../types/image-data.types';
+import { ExportFormatOption } from '../types/export.types';
+
+const FALLBACK_FILENAME: string = 'image-descriptions';
+
+export const EXPORT_FORMAT_OPTIONS: ExportFormatOption[] = [
+  { fileFormat: 'docx-table', label: 'Word-document, table-formatted (*.docx)', fileExt: 'docx' },
+  { fileFormat: 'docx', label: 'Word-document, paragraph-formatted (*.docx)', fileExt: 'docx' },
+  { fileFormat: 'txt', label: 'Plain text, single document (*.txt)', fileExt: 'txt' },
+  { fileFormat: 'txt-zip', label: 'Plain text, one document per image, zipped (*.zip)', fileExt: 'zip' },
+  { fileFormat: 'xml', label: 'XML-document (*.xml)', fileExt: 'xml' },
+  { fileFormat: 'csv', label: 'Comma-separated values (*.csv)', fileExt: 'csv' },
+  { fileFormat: 'tab', label: 'Tab-separated values (*.tab)', fileExt: 'tab' },
+];
 
 @Injectable({
   providedIn: 'root'
@@ -15,25 +27,41 @@ import { ImageData } from '../types/image-data.types';
 export class ExportService {
   private readonly imageListService = inject(ImageListService);
 
-  exportImageListToFile(fileFormat: string): void {
+  private previousFileFormat: string | null = null;
+  private previousFilename: string = FALLBACK_FILENAME;
+
+  exportImageListToFile(fileFormat: string, filename?: string): void {
+    const safeBaseFilename = this.sanitizeFilename(filename, FALLBACK_FILENAME);
+
+    this.previousFileFormat = fileFormat;
+    this.previousFilename = safeBaseFilename;
+
     if (fileFormat == 'docx-table') {
-      this.generateDOCXTable(this.imageListService.imageList);
+      this.generateDOCXTable(this.imageListService.imageList, safeBaseFilename);
     } else if (fileFormat == 'docx') {
-      this.generateDOCX(this.imageListService.imageList);
+      this.generateDOCX(this.imageListService.imageList, safeBaseFilename);
     } else if (fileFormat == 'csv') {
-      this.generateCSV(this.imageListService.imageList);
+      this.generateCSV(this.imageListService.imageList, safeBaseFilename);
     } else if (fileFormat == 'tab') {
-      this.generateTAB(this.imageListService.imageList);
+      this.generateTAB(this.imageListService.imageList, safeBaseFilename);
     } else if (fileFormat == 'xml') {
-      this.generateXML(this.imageListService.imageList);
+      this.generateXML(this.imageListService.imageList, safeBaseFilename);
     } else if (fileFormat == 'txt') {
-      this.generateTXT(this.imageListService.imageList);
+      this.generateTXT(this.imageListService.imageList, safeBaseFilename);
     } else if (fileFormat == 'txt-zip') {
-    this.generateTXTPerImageZip(this.imageListService.imageList);
-  }
+      this.generateTXTPerImageZip(this.imageListService.imageList, safeBaseFilename);
+    }
   }
 
-  generateDOCX(imageFiles: ImageData[], filename: string = 'image-descriptions.docx'): void {
+  getPreviousFileFormat(): string | null {
+    return this.previousFileFormat;
+  }
+
+  getPreviousFilename(): string {
+    return this.previousFilename;
+  }
+
+  generateDOCX(imageFiles: ImageData[], filename: string = FALLBACK_FILENAME): void {
     // Provide an options object with sections
     const doc = new Document({
       styles: {
@@ -61,11 +89,11 @@ export class ExportService {
     });
 
     Packer.toBlob(doc).then(blob => {
-      this.initiateDownload(blob, filename);
+      this.initiateDownload(blob, `${filename}.docx`);
     });
   }
 
-  generateDOCXTable(imageFiles: ImageData[], filename: string = 'image-descriptions.docx'): void {
+  generateDOCXTable(imageFiles: ImageData[], filename: string = FALLBACK_FILENAME): void {
     // Create table rows with cells containing filenames and descriptions
     const tableRows = imageFiles.map((imageObj: ImageData) => {
       const descriptionObj = this.getActiveDescription(imageObj);
@@ -139,29 +167,29 @@ export class ExportService {
   
     // Generate and download the document
     Packer.toBlob(doc).then(blob => {
-      this.initiateDownload(blob, filename);
+      this.initiateDownload(blob, `${filename}.docx`);
     });
   }
 
-  generateCSV(imageFiles: ImageData[], filename: string = 'image-descriptions.csv'): void {
+  generateCSV(imageFiles: ImageData[], filename: string = FALLBACK_FILENAME): void {
     const data = this.convertToDelimited(imageFiles, ',');
     const blob = new Blob([data], { type: 'text/csv;charset=UTF-8' });
-    this.initiateDownload(blob, filename);
+    this.initiateDownload(blob, `${filename}.csv`);
   }
 
-  generateTAB(imageFiles: ImageData[], filename: string = 'image-descriptions.tab'): void {
+  generateTAB(imageFiles: ImageData[], filename: string = FALLBACK_FILENAME): void {
     const data = this.convertToDelimited(imageFiles, '\t');
     const blob = new Blob([data], { type: 'text/tab-separated-values;charset=UTF-8' });
-    this.initiateDownload(blob, filename);
+    this.initiateDownload(blob, `${filename}.tab`);
   }
 
-  generateXML(imageFiles: ImageData[], filename: string = 'image-descriptions.xml'): void {
+  generateXML(imageFiles: ImageData[], filename: string = FALLBACK_FILENAME): void {
     const data = this.convertToXML(imageFiles);
     const blob = new Blob([data], { type: 'application/xml;charset=UTF-8' });
-    this.initiateDownload(blob, filename);
+    this.initiateDownload(blob, `${filename}.xml`);
   }
 
-  generateTXT(imageFiles: ImageData[], filename: string = 'image-descriptions.txt'): void {
+  generateTXT(imageFiles: ImageData[], filename: string = FALLBACK_FILENAME): void {
     let data = '';
     imageFiles.forEach((imageObj: ImageData) => {
       const description = this.getActiveDescription(imageObj)?.description ?? '';
@@ -170,10 +198,10 @@ export class ExportService {
       data += '---------------------------------------\n\n';
     });
     const blob = new Blob([data], { type: 'text/plain;charset=UTF-8' });
-    this.initiateDownload(blob, filename);
+    this.initiateDownload(blob, `${filename}.txt`);
   }
 
-  private generateTXTPerImageZip(imageFiles: ImageData[], filename: string = 'image-descriptions.zip'): void {
+  private generateTXTPerImageZip(imageFiles: ImageData[], filename: string = FALLBACK_FILENAME): void {
     const files: { [name: string]: Uint8Array } = {};
 
     imageFiles.forEach((imageObj: ImageData) => {
@@ -211,7 +239,7 @@ export class ExportService {
     ) as ArrayBuffer;
 
     const blob = new Blob([arrayBuffer], { type: 'application/zip' });
-    this.initiateDownload(blob, filename);
+    this.initiateDownload(blob, `${filename}.zip`);
   }
 
   private convertToDelimited(imageFiles: ImageData[], delimiter: string): string {
@@ -304,6 +332,47 @@ export class ExportService {
     // Remove directory part if any and strip the extension
     const justName = filename.split(/[/\\]/).pop() ?? filename;
     return justName.replace(/\.[^/.]+$/, '');
+  }
+
+  private sanitizeFilename(name?: string, fallback: string = FALLBACK_FILENAME): string {
+    // Start with trimmed input or fallback
+    let filename = (name ?? '').trim();
+
+    if (!filename) {
+      filename = fallback;
+    }
+
+    // Remove characters that are illegal in Windows filenames:
+    // \ / : * ? " < > |
+    filename = filename.replace(/[\\\/:*?"<>|]/g, '_');
+
+    // Remove ASCII control characters (0x00–0x1F and 0x7F)
+    filename = filename.replace(/[\u0000-\u001F\u007F]/g, '');
+
+    // Collapse multiple spaces to a single space (optional but neat)
+    filename = filename.replace(/\s+/g, ' ');
+
+    // Remove trailing dots and spaces (Windows really dislikes these)
+    filename = filename.replace(/[. ]+$/g, '');
+
+    // Avoid Windows reserved device names exactly: CON, PRN, AUX, NUL, COM1–COM9, LPT1–LPT9
+    const reserved = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
+    if (reserved.test(filename)) {
+      filename = `_${filename}`;
+    }
+
+    // If we stripped everything, fall back again
+    if (!filename) {
+      filename = fallback;
+    }
+
+    // (Optional) Limit length to something reasonable to avoid absurd filenames
+    const MAX_LEN = 100;
+    if (filename.length > MAX_LEN) {
+      filename = filename.slice(0, MAX_LEN);
+    }
+
+    return filename;
   }
 
 }
