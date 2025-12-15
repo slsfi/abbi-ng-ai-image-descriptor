@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Migrate constructor-based injection to the `inject` function.
 - Replace general “image description” term in the UI with term for actual task, i.e. “alt text” or “transcription”.
 - Improve settings UX.
+- Deps: update `@angular/cli` to 21.0.3, `@angular/core` to 21.0.5, `@angular/cdk` to 21.0.3 and `@angular/material` to 21.0.3.
 
 ### Fixed
 
