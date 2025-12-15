@@ -32,18 +32,63 @@ mat-dialog-content.mat-mdc-dialog-content {
     }
   }
 
+  .img-container {
+    flex-direction: column;
+    gap: .75rem;
+  }
+
+  .zoom-toolbar {
+    align-items: center;
+    display: flex;
+    gap: .5rem;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .zoom-label {
+    min-width: 64px;
+    text-align: center;
+  }
+
+  .img-viewport {
+    align-items: center;
+    display: flex;
+    height: 100%;
+    justify-content: center;
+    max-height: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+
+    // Important for pointer-based panning (touch devices especially)
+    touch-action: none;
+
+    &.zoomed {
+      cursor: grab;
+
+      &:active {
+        cursor: grabbing;
+      }
+    }
+  }
+
   img {
     height: auto;
     max-height: 100%;
     max-width: 100%;
     width: auto;
-  }
 
+    transform-origin: center center;
+    will-change: transform;
+    user-select: none;
+  }
   
   .dialog-actions {
     align-items: center;
     display: flex;
     justify-content: flex-end;
+    gap: 8px;
   }
 
   h2,
