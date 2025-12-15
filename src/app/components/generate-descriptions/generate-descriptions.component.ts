@@ -105,7 +105,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         const cost = this.calculateCostFromResponse(settings.model, response?.usage);
         this.totalCost += cost;
         const newDescription: DescriptionData = {
-          description: respContent,
+          description: this.exportService.normaliseCharacters(respContent),
           language: settings.language,
           model: settings.model?.id ?? '',
           inputTokens: response?.usage?.input_tokens ?? 0,
@@ -162,7 +162,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
           const cost = this.calculateCostFromResponse(settings.model, response?.usage);
           this.totalCost += cost;
           const newDescription: DescriptionData = {
-            description: respContent,
+            description: this.exportService.normaliseCharacters(respContent),
             language: settings.language,
             model: settings.model?.id ?? '',
             inputTokens: response?.usage?.input_tokens ?? 0,
@@ -203,7 +203,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         const cost = this.calculateCostFromResponse(settings.model, response?.usage);
         this.totalCost += cost;
         const newDescription: DescriptionData = {
-          description: respContent,
+          description: this.exportService.normaliseCharacters(respContent),
           language: targetLanguageCode,
           model: settings.model?.id ?? '',
           inputTokens: response?.usage?.input_tokens ?? 0,

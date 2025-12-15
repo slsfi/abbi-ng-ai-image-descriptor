@@ -80,7 +80,7 @@ export class ExportService {
                   text: imageObj.filename + ':',
                   bold: true
                 }),
-                new TextRun(' ' + (descriptionObj?.description ?? ''))
+                new TextRun(' ' + this.normaliseForExport(descriptionObj?.description ?? ''))
               ],
               style: 'paragraph'
             });
@@ -134,7 +134,7 @@ export class ExportService {
             children: [
               new Paragraph({
                 children: [
-                  new TextRun(descriptionObj?.description ?? '')
+                  new TextRun(this.normaliseForExport(descriptionObj?.description ?? ''))
                 ],
                 style: 'paragraph'
               })
@@ -200,7 +200,10 @@ export class ExportService {
   generateTXT(imageFiles: ImageData[], filename: string = FALLBACK_FILENAME): void {
     let data = '';
     imageFiles.forEach((imageObj: ImageData) => {
-      const description = this.getActiveDescription(imageObj)?.description ?? '';
+      const description = this.normaliseForExport(
+        this.getActiveDescription(imageObj)?.description ?? '',
+        '\n'
+      );
       data += imageObj.filename + '\n';
       data += description + '\n\n';
       data += '---------------------------------------\n\n';
@@ -214,7 +217,10 @@ export class ExportService {
     const files: { [name: string]: Uint8Array } = {};
 
     imageFiles.forEach((imageObj: ImageData) => {
-      const description = this.getActiveDescription(imageObj)?.description ?? '';
+      const description = this.normaliseForExport(
+        this.getActiveDescription(imageObj)?.description ?? '',
+        '\n'
+      );
 
       // Strip extension from the image filename to get the base name
       const baseName = this.getBaseName(imageObj.filename);
@@ -256,7 +262,7 @@ export class ExportService {
     let contentStr = '';
     imageFiles.forEach((imageObj: ImageData) => {
       let description = this.getActiveDescription(imageObj)?.description ?? '';
-      description = description.replaceAll('"', '”');
+      description = this.normaliseForExport(description);
       description = this.escapeDelimitedValue(description, delimiter);
       const filename = this.escapeDelimitedValue(imageObj.filename, delimiter);
       contentStr += filename + delimiter + description + '\n';
@@ -290,7 +296,7 @@ export class ExportService {
     imageFiles.forEach((imageObj: ImageData) => {
       imageCounter += 1;
       let description = this.getActiveDescription(imageObj)?.description ?? '';
-      description = this.tidyString(description);
+      description = this.normaliseForExport(description);
       bodyStr += '\t\t\t<pb n="' + imageCounter + '" facs="' + imageObj.filename + '"/>\r\n';
       bodyStr += '\t\t\t<p>\r\n';
       bodyStr += `\t\t\t\t${useLb ? '<lb break="line"/>' : ''}` + description.replaceAll('\r\n', `\r\n\t\t\t\t${useLb ? '<lb break="line"/>' : ''}`);
@@ -430,8 +436,18 @@ export class ExportService {
     return lines.join(newLine);
   }
 
-  private tidyString(s: string, outputNewline: string = '\r\n'): string {
-    // Remove all carriage returns for processing
+  private normaliseForExport(s: string, newline = '\r\n'): string {
+    // Remove all carriage returns
+    let text = s.replaceAll('\r', '');
+    // Replace straight quotation characters
+    text = text.replaceAll("'", '’');
+    text = text.replaceAll('"', '”');
+
+    return text.replaceAll('\n', newline);
+  }
+
+  normaliseCharacters(s: string): string {
+    // Remove all carriage returns
     let text = s.replaceAll('\r', '');
     // Remove soft hyphen (U+00AD; &shy;) (invisible in VS Code)
     text = text.replaceAll('­', '');
@@ -469,7 +485,7 @@ export class ExportService {
     text = text.replace(/ 1\/9 (?!\d{2,4})/g, ' ⅑ ');
     text = text.replace(/ 1\/10 (?!\d{2,4})/g, ' ⅒ ');
 
-    return text.replaceAll('\n', outputNewline);
+    return text;
   }
 
 }
