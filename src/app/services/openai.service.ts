@@ -43,7 +43,7 @@ export class OpenAiService {
   }
 
   async describeImage(settings: RequestSettings, prompt: string, base64Image: string): Promise<any> {
-    console.log('Prompt:', prompt);
+    // console.log('Prompt:', prompt);
     if (!prompt) {
       return { error: { status: 400, message: 'Missing prompt' }};
     }
