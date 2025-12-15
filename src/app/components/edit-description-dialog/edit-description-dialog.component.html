@@ -3,7 +3,47 @@
 <mat-dialog-content>
   <div class="container" [class.wider-img-container]="aspectRatio > 1.25">
     <div class="img-container">
-      <img [src]="imageObj.base64Image" [height]="imageObj.height" [width]="imageObj.width" alt="Image">
+      <div class="zoom-toolbar">
+        <button matIconButton
+              (click)="zoomOut()"
+              aria-label="Zoom out"
+              [disabled]="zoom <= minZoom"
+              matTooltip="Zoom out"
+        >
+          <mat-icon>remove</mat-icon>
+        </button>
+        <span class="zoom-label" aria-label="Zoom level">{{ (zoom * 100) | number:'1.0-0' }}%</span>
+        <button matIconButton
+              (click)="zoomIn()"
+              aria-label="Zoom in"
+              [disabled]="zoom >= maxZoom"
+              matTooltip="Zoom in"
+        >
+          <mat-icon>add</mat-icon>
+        </button>
+        <button matButton="tonal" (click)="resetZoom()" [disabled]="zoom === 1">Reset</button>
+      </div>
+
+      <div
+        #imgViewport
+        class="img-viewport"
+        [class.zoomed]="isZoomed"
+        (pointerdown)="onPointerDown($event)"
+        (pointermove)="onPointerMove($event)"
+        (pointerup)="onPointerUp()"
+        (pointercancel)="onPointerUp()"
+        (wheel)="onWheel($event)"
+      >
+        <img
+          #imgEl
+          [src]="imageObj.base64Image"
+          [height]="imageObj.height"
+          [width]="imageObj.width"
+          [style.transform]="imageTransform"
+          alt="Image"
+          draggable="false"
+        >
+      </div>
     </div>
     <div class="textarea-container">
       <h2>Edit {{ taskNoun.singular }}</h2>
@@ -11,6 +51,7 @@
         <mat-label>{{ taskNoun.singular | upperFirstLetter }}</mat-label>
         <textarea matInput
               [(ngModel)]="editedDescription"
+              #autosize="cdkTextareaAutosize"
               cdkTextareaAutosize
               cdkAutosizeMinRows="1"
               cdkAutosizeMaxRows="30"
