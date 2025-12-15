@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Added
 
 - Option to export generated descriptions as separate plain text (txt) files that are zipped for downloading.
+- Support for the OpenAI [`gpt-5.2`](https://platform.openai.com/docs/models/gpt-5.2) model.
 
 ### Changed
 
@@ -29,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Removed
 
 - Deprecated `provideAnimationsAsync()` from `app.config.ts`.
+- The `gpt-5.1` model.
 
 
 

@@ -34,10 +34,10 @@ export const models: Models = [
   },
   {
     provider: "OpenAI",
-    name: "GPT-5.1",
-    id: "gpt-5.1",
-    inputPrice: 1.25,
-    outputPrice: 10.0,
+    name: "GPT-5.2",
+    id: "gpt-5.2",
+    inputPrice: 1.75,
+    outputPrice: 14.0,
     rpm: 5000,
     reasoning: "none"
   }
