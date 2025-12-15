@@ -1,11 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogClose, MatDialogContent } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
+import { UpperFirstLetterPipe } from '../../pipes/upper-first-letter.pipe';
 import { SettingsService } from '../../services/settings.service';
 import { ImageData } from '../../types/image-data.types';
 
@@ -13,12 +13,12 @@ import { ImageData } from '../../types/image-data.types';
     selector: 'edit-description-dialog',
     imports: [
         FormsModule,
-        TitleCasePipe,
         MatButtonModule,
         MatDialogClose,
         MatDialogContent,
         MatFormFieldModule,
-        MatInputModule
+        MatInputModule,
+        UpperFirstLetterPipe
     ],
     templateUrl: './edit-description-dialog.component.html',
     styleUrl: './edit-description-dialog.component.scss'

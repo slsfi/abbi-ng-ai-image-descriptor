@@ -1,4 +1,4 @@
-import { Injectable, computed } from '@angular/core';
+import { Injectable, computed, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BehaviorSubject } from 'rxjs';
 
@@ -36,6 +36,8 @@ export class SettingsService {
   selectedPromptTemplate$ = this._selectedPromptTemplate.asObservable();
   selectedTemperature$ = this._selectedTemperature.asObservable();
 
+  transcribeHeaders = signal<boolean>(true);
+
   readonly selectedPromptTemplateSig = toSignal(this.selectedPromptTemplate$, {
     initialValue: 'Alt text',
   });
@@ -56,7 +58,8 @@ export class SettingsService {
       language: this.selectedLanguage,
       descriptionLength: this.selectedDescLength,
       promptTemplate: this.selectedPromptTemplate,
-      includeFilename: this.includeFilename
+      includeFilename: this.includeFilename,
+      transcribeHeaders: this.transcribeHeaders()
     }
     return settings;
   }
@@ -85,10 +88,19 @@ export class SettingsService {
   updateSelectedPromptTemplate(template: string) {
     this._selectedPromptTemplate.next(template);
     this.setModel(); // Update selected model whenever the prompt template changes
+    if (template === 'Transcription') {
+      this.updateSelectedTemperature(0.0);
+    } else {
+      this.updateSelectedTemperature(1.0);
+    }
   }
 
   updateSelectedTemperature(value: number) {
     this._selectedTemperature.next(value);
+  }
+
+  updateSelectedTranscribeHeaders(value: boolean) {
+    this.transcribeHeaders.set(value);
   }
 
   getSelectedPromptOption(): PromptOption | undefined {
