@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Option to export generated descriptions as separate plain text (txt) files that are zipped for downloading.
 - Support for the OpenAI [`gpt-5.2`](https://platform.openai.com/docs/models/gpt-5.2) model.
+- Option to export generated descriptions in TEI XML format, either with line beginning encoding or not. Replaces the previous XML export option.
 
 ### Changed
 

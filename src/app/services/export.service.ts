@@ -16,7 +16,8 @@ export const EXPORT_FORMAT_OPTIONS: ExportFormatOption[] = [
   { fileFormat: 'docx', label: 'Word-document, paragraph-formatted (*.docx)', fileExt: 'docx' },
   { fileFormat: 'txt', label: 'Plain text, single document (*.txt)', fileExt: 'txt' },
   { fileFormat: 'txt-zip', label: 'Plain text, one document per image, zipped (*.zip)', fileExt: 'zip' },
-  { fileFormat: 'xml', label: 'XML-document (*.xml)', fileExt: 'xml' },
+  { fileFormat: 'tei-xml', label: 'TEI XML-document (*.xml)', fileExt: 'xml' },
+  { fileFormat: 'tei-xml-lb', label: 'TEI XML-document, with line beginning encoding (*.xml)', fileExt: 'xml' },
   { fileFormat: 'csv', label: 'Comma-separated values (*.csv)', fileExt: 'csv' },
   { fileFormat: 'tab', label: 'Tab-separated values (*.tab)', fileExt: 'tab' },
 ];
@@ -44,8 +45,8 @@ export class ExportService {
       this.generateCSV(this.imageListService.imageList, safeBaseFilename);
     } else if (fileFormat == 'tab') {
       this.generateTAB(this.imageListService.imageList, safeBaseFilename);
-    } else if (fileFormat == 'xml') {
-      this.generateXML(this.imageListService.imageList, safeBaseFilename);
+    } else if (fileFormat == 'tei-xml' || fileFormat == 'tei-xml-lb') {
+      this.generateXML(this.imageListService.imageList, safeBaseFilename, fileFormat);
     } else if (fileFormat == 'txt') {
       this.generateTXT(this.imageListService.imageList, safeBaseFilename);
     } else if (fileFormat == 'txt-zip') {
@@ -185,8 +186,12 @@ export class ExportService {
     this.initiateDownload(blob, `${filename}.tab`);
   }
 
-  generateXML(imageFiles: ImageData[], filename: string = FALLBACK_FILENAME): void {
-    let data = this.convertToXML(imageFiles);
+  generateXML(
+    imageFiles: ImageData[],
+    filename: string = FALLBACK_FILENAME,
+    fileFormat: string = 'tei-xml'
+  ): void {
+    let data = this.convertToTEIXML(imageFiles, fileFormat, filename);
     data = this.ensureNewlineEnding(data);
     const blob = new Blob([data], { type: 'application/xml;charset=UTF-8' });
     this.initiateDownload(blob, `${filename}.xml`);
@@ -259,21 +264,47 @@ export class ExportService {
     return contentStr;
   }
 
-  private convertToXML(imageFiles: ImageData[]): string {
+  private convertToTEIXML(imageFiles: ImageData[], fileFormat: string, filename: string): string {
+    const useLb: boolean = (fileFormat == 'tei-xml-lb');
+
     let contentStr = '<?xml version="1.0" encoding="UTF-8"?>\r\n';
-    contentStr += '<imageToText>\r\n';
+    contentStr += '<TEI xmlns="http://www.tei-c.org/ns/1.0">\r\n';
+    contentStr += '\t<teiHeader>\r\n';
+    contentStr += '\t\t<fileDesc>\r\n';
+    contentStr += '\t\t\t<titleStmt>\r\n';
+    contentStr += '\t\t\t\t<title>' + filename + '</title>\r\n';
+    contentStr += '\t\t\t</titleStmt>\r\n';
+    contentStr += '\t\t\t<publicationStmt>\r\n';
+    contentStr += '\t\t\t\t<publisher></publisher>\r\n';
+    contentStr += '\t\t\t</publicationStmt>\r\n';
+    contentStr += '\t\t\t<sourceDesc>\r\n';
+    contentStr += '\t\t\t\t<p></p>\r\n';
+    contentStr += '\t\t\t</sourceDesc>\r\n';
+    contentStr += '\t\t</fileDesc>\r\n';
+    contentStr += '\t</teiHeader>\r\n';
+    contentStr += '\t<text>\r\n';
+    contentStr += '\t\t<body xml:space="preserve">\r\n';
 
     let imageCounter = 0;
+    let bodyStr = '';
     imageFiles.forEach((imageObj: ImageData) => {
       imageCounter += 1;
       let description = this.getActiveDescription(imageObj)?.description ?? '';
-      description = description.replaceAll('"', '”').replaceAll('\r', '').replaceAll('\n', '\r\n');
-      contentStr += '\t<pb n="' + imageCounter + '" facs="' + imageObj.filename + '"/>\r\n';
-      contentStr += '\t<p>\r\n';
-      contentStr += '\t\t<lb break="line"/>' + description.replaceAll('\r\n', '\r\n\t\t<lb break="line"/>');
-      contentStr += '\r\n\t</p>\r\n';
+      description = this.tidyString(description);
+      bodyStr += '\t\t\t<pb n="' + imageCounter + '" facs="' + imageObj.filename + '"/>\r\n';
+      bodyStr += '\t\t\t<p>\r\n';
+      bodyStr += `\t\t\t\t${useLb ? '<lb break="line"/>' : ''}` + description.replaceAll('\r\n', `\r\n\t\t\t\t${useLb ? '<lb break="line"/>' : ''}`);
+      bodyStr += '\r\n\t\t\t</p>\r\n';
     });
-    contentStr += '</imageToText>\r\n';
+
+    if (useLb) {
+      bodyStr = this.fixLbEncoding(bodyStr);
+    }
+
+    contentStr += bodyStr;
+    contentStr += '\t\t</body>\r\n';
+    contentStr += '\t</text>\r\n';
+    contentStr += '</TEI>\r\n';
     return contentStr;
   }
 
@@ -380,8 +411,65 @@ export class ExportService {
   }
 
   private ensureNewlineEnding(s: string): string {
+    const newLine = s.includes('\r\n') ? '\r\n' : '\n';
     // Ensure the content ends with exactly one newline
-    return !s.endsWith('\n') ? s += '\n' : s;
+    return !s.endsWith(newLine) ? s += newLine : s;
+  }
+
+  private fixLbEncoding(s: string): string {
+    const newLine = s.includes('\r\n') ? '\r\n' : '\n';
+    const text = s.replaceAll('\r', '');
+    const lines = text.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      if (i > 0 && lines[i-1].endsWith('-') && !lines[i-1].endsWith(' -')) {
+        lines[i] = lines[i].replace('<lb break="line"/>', '<lb break="word"/>');
+      }
+    }
+
+    return lines.join(newLine);
+  }
+
+  private tidyString(s: string, outputNewline: string = '\r\n'): string {
+    // Remove all carriage returns for processing
+    let text = s.replaceAll('\r', '');
+    // Remove soft hyphen (U+00AD; &shy;) (invisible in VS Code)
+    text = text.replaceAll('­', '');
+    // Replace no-break spaces with ordinary spaces
+    text = text.replaceAll(' ', '');
+    // Replace not signs with hyphens when followed by newlines
+    text = text.replaceAll('¬\n', '-\n');
+    // Replace hyphens with dashes when surrounded by combinations of space and newline
+    text = text.replaceAll(' -\n', ' –\n');
+    text = text.replaceAll('\n- ', '\n– ');
+    text = text.replaceAll(' - ', ' – ');
+    // Replace em dash with en dash
+    text = text.replaceAll('—', '–');
+    // Replace apostrophe-like characters
+    text = text.replaceAll("'", '’');
+    text = text.replaceAll('´', '’');
+    text = text.replaceAll('"', '”');
+    // Replace fractions (avoid when followed by a 2-, 3-, or 4-digit "year")
+    text = text.replace(/ 1\/2 (?!\d{2,4})/g, ' ½ ');
+    text = text.replace(/ 1\/3 (?!\d{2,4})/g, ' ⅓ ');
+    text = text.replace(/ 2\/3 (?!\d{2,4})/g, ' ⅔ ');
+    text = text.replace(/ 1\/4 (?!\d{2,4})/g, ' ¼ ');
+    text = text.replace(/ 3\/4 (?!\d{2,4})/g, ' ¾ ');
+    text = text.replace(/ 1\/5 (?!\d{2,4})/g, ' ⅕ ');
+    text = text.replace(/ 2\/5 (?!\d{2,4})/g, ' ⅖ ');
+    text = text.replace(/ 3\/5 (?!\d{2,4})/g, ' ⅗ ');
+    text = text.replace(/ 4\/5 (?!\d{2,4})/g, ' ⅘ ');
+    text = text.replace(/ 1\/6 (?!\d{2,4})/g, ' ⅙ ');
+    text = text.replace(/ 5\/6 (?!\d{2,4})/g, ' ⅚ ');
+    text = text.replace(/ 1\/7 (?!\d{2,4})/g, ' ⅐ ');
+    text = text.replace(/ 1\/8 (?!\d{2,4})/g, ' ⅛ ');
+    text = text.replace(/ 3\/8 (?!\d{2,4})/g, ' ⅜ ');
+    text = text.replace(/ 5\/8 (?!\d{2,4})/g, ' ⅝ ');
+    text = text.replace(/ 7\/8 (?!\d{2,4})/g, ' ⅞ ');
+    text = text.replace(/ 1\/9 (?!\d{2,4})/g, ' ⅑ ');
+    text = text.replace(/ 1\/10 (?!\d{2,4})/g, ' ⅒ ');
+
+    return text.replaceAll('\n', outputNewline);
   }
 
 }
