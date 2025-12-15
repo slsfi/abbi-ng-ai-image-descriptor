@@ -367,8 +367,15 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     const promptData: Prompt | undefined = prompts.find(p => p.languageCode === this.settings.selectedLanguage);
     if (promptData) {
       const selectedPromptOption = promptData.promptOptions.find((t: PromptOption) => t.type === this.settings.selectedPromptTemplate);
-      promptTemplate = selectedPromptOption?.prompt ?? '';
-      if (this.settings.includeFilename && promptTemplate) {
+      if (this.settings.selectedPromptTemplate === 'Transcription' && !this.settings.transcribeHeaders()) {
+        promptTemplate = selectedPromptOption?.alternativePrompt ?? '';
+      } else {
+        promptTemplate = selectedPromptOption?.prompt ?? '';
+      }
+      if (
+        this.settings.selectedPromptTemplate !== 'Transcription' &&
+        this.settings.includeFilename && promptTemplate
+      ) {
         promptTemplate = promptTemplate + ' ' + promptData.filenamePrompt;
       }
     }

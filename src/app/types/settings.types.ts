@@ -7,4 +7,5 @@ export type RequestSettings = {
   descriptionLength: number;
   promptTemplate: string;
   includeFilename: boolean;
+  transcribeHeaders: boolean;
 };

@@ -1,6 +1,7 @@
 export type PromptOption = {
   type: 'Alt text' | 'Transcription';
   prompt: string;
+  alternativePrompt?: string;
   modelRestrictions?: string[];
 };
 
@@ -31,4 +32,12 @@ export const promptOptionNouns: Record<
     singular: 'transcription',
     plural: 'transcriptions'
   }
+}
+
+export const taskTypeLabels: Record<
+  Extract<PromptOption['type'], 'Alt text' | 'Transcription'>,
+  string
+> = {
+  'Alt text': 'Generate alt texts',
+  'Transcription': 'Transcribe text (OCR/HTR)'
 }

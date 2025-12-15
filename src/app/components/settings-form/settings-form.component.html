@@ -1,74 +1,121 @@
+@let taskNoun = settings.promptNouns();
+@let selectedTaskType = settings.selectedPromptTemplate$ | async;
+
 <div class="settings-column-wrapper">
   <div class="parameters-wrapper">
-    <h3>a) Image description settings</h3>
-    <div class="form-field-wrapper">
-      <mat-form-field appearance="outline">
-        <mat-label>Language</mat-label>
-        <mat-select
-              [value]="settings.selectedLanguage$ | async"
-              (valueChange)="setLanguage($event)"
-              name="language"
-        >
-          @for (language of settings.languages$ | async; track language.code) {
-            <mat-option [value]="language.code">{{ language.name }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    </div>
+    <h3>
+      <span>a) Task settings</span>
+      <button matIconButton
+            aria-label="Select what you want the AI to generate."
+            matTooltip="Select what you want the AI to generate."
+            matTooltipPosition="above"
+      >
+        <mat-icon>info</mat-icon>
+      </button>
+    </h3>
 
     <div class="form-field-wrapper">
-      <div class="slider-wrapper">
-        <div class="slider-label-wrapper">
-          <label id="len-slider-label" class="slider-label">Approximate length:</label>
-          <label class="slider-value-label">{{descLengthSlider.value}} characters</label>
-        </div>
-        <mat-slider
-            [max]="descLengthMax"
-            [min]="descLengthMin"
-            [step]="25"
-            [discrete]="true"
-            [showTickMarks]="true"
-            [disabled]="(settings.selectedPromptTemplate$ | async) === 'Transcription'"
-        >
-          <input matSliderThumb
-                [value]="settings.selectedDescLength$ | async"
-                (valueChange)="setDescLength($event)"
-                #descLengthSlider
-          >
-        </mat-slider>
-      </div>
-    </div>
-  </div>
-
-  <div class="parameters-wrapper">
-    <h3>b) Prompt settings</h3>
-    <div class="form-field-wrapper">
       <mat-form-field appearance="outline">
-        <mat-label>Prompt template</mat-label>
+        <mat-label>Task type</mat-label>
         <mat-select
               [value]="settings.selectedPromptTemplate$ | async"
               (valueChange)="setPromptTemplateType($event)"
               name="promptTemplate"
         >
           @for (template of settings.promptTemplates$ | async; track template.type) {
-            <mat-option [value]="template.type">{{ template.type }}</mat-option>
+            <mat-option [value]="template.type">{{ taskLabels[template.type] }}</mat-option>
           }
         </mat-select>
       </mat-form-field>
     </div>
 
-    <div class="form-field-wrapper">
-      <mat-slide-toggle
-            color="primary"
-            [checked]="settings.includeFilename$ | async"
-            (change)="setIncludeFilename($event)"
-            [disabled]="(settings.selectedPromptTemplate$ | async) === 'Transcription'"
-      >Include image filename in prompt</mat-slide-toggle>
-    </div>
+    @if (selectedTaskType !== 'Transcription') {
+      <div class="form-field-wrapper">
+        <mat-slide-toggle
+              color="primary"
+              [checked]="settings.includeFilename$ | async"
+              (change)="setIncludeFilename($event)"
+              matTooltip="Enable this if your image filenames contain helpful context (e.g., names, dates). The filename will be included in the prompt to improve alt text quality."
+        >Include filenames as contextual input</mat-slide-toggle>
+      </div>
+    }
   </div>
 
   <div class="parameters-wrapper">
-    <h3>c) Model settings</h3>
+    <h3>
+      <span>b) Output settings</span>
+      <button matIconButton
+            aria-label="Adjust how the results should be formatted."
+            matTooltip="Adjust how the results should be formatted."
+            matTooltipPosition="above"
+      >
+        <mat-icon>info</mat-icon>
+      </button>
+    </h3>
+
+    @if (selectedTaskType !== 'Transcription') {
+      <div class="form-field-wrapper">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ taskNoun.singular | upperFirstLetter }} language</mat-label>
+          <mat-select
+                [value]="settings.selectedLanguage$ | async"
+                (valueChange)="setLanguage($event)"
+                name="language"
+          >
+            @for (language of settings.languages$ | async; track language.code) {
+              <mat-option [value]="language.code">{{ language.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    
+      <div class="form-field-wrapper">
+        <div class="slider-wrapper">
+          <div class="slider-label-wrapper">
+            <label id="len-slider-label" class="slider-label">Approximate length:</label>
+            <label class="slider-value-label">{{descLengthSlider.value}} characters</label>
+          </div>
+          <mat-slider
+              [max]="descLengthMax"
+              [min]="descLengthMin"
+              [step]="25"
+              [discrete]="true"
+              [showTickMarks]="true"
+          >
+            <input matSliderThumb
+                  [value]="settings.selectedDescLength$ | async"
+                  (valueChange)="setDescLength($event)"
+                  #descLengthSlider
+            >
+          </mat-slider>
+        </div>
+      </div>
+    }
+
+    @if (selectedTaskType === 'Transcription') {
+      <div class="form-field-wrapper">
+        <mat-slide-toggle
+              color="primary"
+              [checked]="settings.transcribeHeaders()"
+              (change)="setTranscribeHeaders($event)"
+              matTooltip="Enable this to include headers, footers, and page numbers in the transcription output."
+        >Transcribe headers, footers &amp; page numbers</mat-slide-toggle>
+      </div>
+    }
+  </div>
+
+  <div class="parameters-wrapper">
+    <h3>
+      <span>c) Model settings</span>
+      <button matIconButton
+            aria-label="Adjust how the AI processes and interprets your images."
+            matTooltip="Adjust how the AI processes and interprets your images."
+            matTooltipPosition="above"
+      >
+        <mat-icon>info</mat-icon>
+      </button>
+    </h3>
+
     <div class="form-field-wrapper">
       <mat-form-field appearance="outline">
         <mat-label>AI-model</mat-label>

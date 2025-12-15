@@ -13,7 +13,8 @@ export const prompts: Prompts = [
       },
       {
         type: 'Transcription',
-        prompt: 'Transkribera texten i bilden. Ignorera strykningar och text på eventuella färgkort i bilden. Bibehåll radbrytningar. Svara endast med själva transkriptionen.',
+        prompt: 'Your task is to accurately transcribe handwritten, typewritten or printed historical documents, minimizing the CER and WER. Work character by character, word by word, line by line, transcribing the text exactly as it appears on the page. To maintain the authenticity of the historical text, retain spelling errors, grammar, syntax, capitalization, and punctuation as well as line breaks. Transcribe all the text on the page including headers, footers, marginalia, insertions, page numbers, etc. If insertions or marginalia are present, insert them where indicated by the author (as applicable). Exclude archival stamps, text on colour patches, and document references from your transcription. In your final response write only your transcription.',
+        alternativePrompt: 'Your task is to accurately transcribe handwritten, typewritten or printed historical documents, minimizing the CER and WER. Work character by character, word by word, line by line, transcribing the text exactly as it appears on the page. To maintain the authenticity of the historical text, retain spelling errors, grammar, syntax, capitalization, and punctuation as well as line breaks. Include marginalia and insertions in your transcription, but ignore headers, footers and page numbers. If insertions or marginalia are present, insert them where indicated by the author (as applicable). Exclude archival stamps, text on colour patches, and document references from your transcription. In your final response write only your transcription.',
         modelRestrictions: ['gpt-4.1', 'gpt-5.1']
       }
     ],
@@ -31,7 +32,8 @@ export const prompts: Prompts = [
       },
       {
         type: 'Transcription',
-        prompt: 'Transkriboi kuvan teksti. Ohita pyyhitty teksti ja mahdollisten värikorttien tekstit. Säilytä rivinvaihdot. Vastaa ainoastaan transkriboidulla tekstillä.',
+        prompt: 'Your task is to accurately transcribe handwritten, typewritten or printed historical documents, minimizing the CER and WER. Work character by character, word by word, line by line, transcribing the text exactly as it appears on the page. To maintain the authenticity of the historical text, retain spelling errors, grammar, syntax, capitalization, and punctuation as well as line breaks. Transcribe all the text on the page including headers, footers, marginalia, insertions, page numbers, etc. If insertions or marginalia are present, insert them where indicated by the author (as applicable). Exclude archival stamps, text on colour patches, and document references from your transcription. In your final response write only your transcription.',
+        alternativePrompt: 'Your task is to accurately transcribe handwritten, typewritten or printed historical documents, minimizing the CER and WER. Work character by character, word by word, line by line, transcribing the text exactly as it appears on the page. To maintain the authenticity of the historical text, retain spelling errors, grammar, syntax, capitalization, and punctuation as well as line breaks. Include marginalia and insertions in your transcription, but ignore headers, footers and page numbers. If insertions or marginalia are present, insert them where indicated by the author (as applicable). Exclude archival stamps, text on colour patches, and document references from your transcription. In your final response write only your transcription.',
         modelRestrictions: ['gpt-4.1', 'gpt-5.1']
       }
     ],
@@ -49,7 +51,8 @@ export const prompts: Prompts = [
       },
       {
         type: 'Transcription',
-        prompt: 'Transcribe the text in the image. Ignore deleted text and all text on colour control patches if present. Preserve line breaks. Answer with just the actual transcription.',
+        prompt: 'Your task is to accurately transcribe handwritten, typewritten or printed historical documents, minimizing the CER and WER. Work character by character, word by word, line by line, transcribing the text exactly as it appears on the page. To maintain the authenticity of the historical text, retain spelling errors, grammar, syntax, capitalization, and punctuation as well as line breaks. Transcribe all the text on the page including headers, footers, marginalia, insertions, page numbers, etc. If insertions or marginalia are present, insert them where indicated by the author (as applicable). Exclude archival stamps, text on colour patches, and document references from your transcription. In your final response write only your transcription.',
+        alternativePrompt: 'Your task is to accurately transcribe handwritten, typewritten or printed historical documents, minimizing the CER and WER. Work character by character, word by word, line by line, transcribing the text exactly as it appears on the page. To maintain the authenticity of the historical text, retain spelling errors, grammar, syntax, capitalization, and punctuation as well as line breaks. Include marginalia and insertions in your transcription, but ignore headers, footers and page numbers. If insertions or marginalia are present, insert them where indicated by the author (as applicable). Exclude archival stamps, text on colour patches, and document references from your transcription. In your final response write only your transcription.',
         modelRestrictions: ['gpt-4.1', 'gpt-5.1']
       }
     ],

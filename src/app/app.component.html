@@ -1,4 +1,4 @@
-@let promptType = settings.promptNouns();
+@let taskNoun = settings.promptNouns();
 
 <div class="content-wrapper">
   <app-header></app-header>
@@ -56,15 +56,15 @@
       </mat-step>
 
       <!-- Step 4: Generate image descriptions -->
-      <mat-step [label]="`Generate ${promptType.plural}`">
-        <h2 id="generate-step-title">Generate {{ promptType.plural }}</h2>
+      <mat-step [label]="`Generate ${taskNoun.plural}`">
+        <h2 id="generate-step-title">Generate {{ taskNoun.plural }}</h2>
         <!-- Defer loading the generate-descriptions component until the API key in step 2 has validated -->
         @defer (when isApiKeyFormValid) {
           <generate-descriptions></generate-descriptions>
         } @loading (minimum 500ms) {
           <p>Loading component ...</p>
         } @error {
-          <p>Error loading component for generating {{ promptType.plural }}. Please try to reload the web page.</p>
+          <p>Error loading component for generating {{ taskNoun.plural }}. Please try to reload the web page.</p>
         }
         <div class="stepper-nav">
           <button mat-button color="primary" matStepperPrevious>Back</button>
