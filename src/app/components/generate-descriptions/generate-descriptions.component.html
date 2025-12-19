@@ -16,7 +16,7 @@
         [disabled]="generating || !o.imageList?.length || exporting"
         (click)="export()"
       >
-        @if (exporting) { Exporting... } @else { Export }
+        @if (exporting) { Exporting {{ taskNoun.plural }}... } @else { Export {{ taskNoun.plural }} }
       </button>
       <button matButton="outlined"
         class="right-aligned"
