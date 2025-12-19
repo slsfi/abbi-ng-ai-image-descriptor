@@ -18,8 +18,11 @@ export class ImageListService {
 
   private _imageList: BehaviorSubject<ImageData[]> = new BehaviorSubject<ImageData[]>([]);
   imageList$: Observable<ImageData[]> = this._imageList.asObservable();
+  private nextId = 0;
 
-  constructor() { }
+  generateId(): number {
+    return this.nextId++;
+  }
 
   resizeImage(img: HTMLImageElement): any {
     const selectedModel = this.settings.selectedModel;

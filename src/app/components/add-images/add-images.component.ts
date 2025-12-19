@@ -23,67 +23,77 @@ export class AddImagesComponent {
 
   @Output() addingImages = new EventEmitter<boolean>(false);
 
-  idCounter: number = 0;
   processedCounter: number = 0;
   progressPercentage: number = 0;
   totalFileCount: number = 0;
+  private resetTimer?: ReturnType<typeof setTimeout>;
 
-  addImageFiles(files: File[]): void {
-    if (files.length) {
-      this.addingImages.emit(true);
-      this.processedCounter = 0;
-      this.totalFileCount = files.length;
-      this.progressPercentage = 0;
-      const processedFiles: ImageData[] = [];
+  async addImageFiles(files: File[]): Promise<void> {
+    if (!files.length) return;
 
-      // Process the selected files
-      const promises = Array.from(files).map((file, index) => {
-        return new Promise<void>((resolve) => {
-          const img = new Image();
-          const reader = new FileReader();
+    // cancel any pending reset
+    if (this.resetTimer) {
+      clearTimeout(this.resetTimer);
+    }
 
-          reader.onload = (e: any) => {
-            img.src = e.target.result;
-            img.onload = () => {
-              const resizedImgDetails = this.imageListService.resizeImage(img);
-              processedFiles[index] = {
-                id: this.idCounter++,
-                filename: file.name,
-                base64Image: resizedImgDetails.base64,
-                height: resizedImgDetails.height,
-                width: resizedImgDetails.width,
-                descriptions: [],
-                activeDescriptionIndex: 0,
-                generating: false
-              };
-              
-              // Update progress bar
-              this.processedCounter++;
-              this.progressPercentage = (this.processedCounter / this.totalFileCount) * 100.0;
+    this.addingImages.emit(true);
+    this.processedCounter = 0;
+    this.totalFileCount = files.length;
+    this.progressPercentage = 0;
 
-              resolve();
-            };
+    const processedFiles: ImageData[] = [];
+
+    // Process the selected files
+    for (const file of files) {
+      await new Promise<void>((resolve, reject) => {
+        const img = new Image();
+        const reader = new FileReader();
+
+        reader.onerror = () => reject(reader.error);
+        reader.onload = (e: any) => {
+          img.onload = () => {
+            const resized = this.imageListService.resizeImage(img);
+            processedFiles.push({
+              id: this.imageListService.generateId(),
+              filename: file.name,
+              base64Image: resized.base64,
+              height: resized.height,
+              width: resized.width,
+              descriptions: [],
+              activeDescriptionIndex: 0,
+              generating: false
+            });
+
+            this.processedCounter++;
+            this.progressPercentage = Math.min(
+              100,
+              Math.round((this.processedCounter / this.totalFileCount) * 100)
+            );
+
+            resolve();
           };
-          reader.readAsDataURL(file);
-        });
-      });
+          img.onerror = () => reject(new Error(`Failed to load image: ${file.name}`));
+          img.src = e.target.result;
+        };
 
-      Promise.all(promises).then(() => {
-        // Add the added, processed images to the images array in ImageListService
-        const imageList = this.imageListService.imageList;
-        imageList.push(...processedFiles);
-        this.imageListService.updateImageList(imageList);
-
-        this.addingImages.emit(false);
-
-        // Reset the progress bar with a slight delay
-        setTimeout(() => {
-          this.totalFileCount = 0;
-          this.processedCounter = 0;
-          this.progressPercentage = 0;
-        }, 1000);
+        reader.readAsDataURL(file);
       });
     }
+
+    // Add the added, processed images to the images array in ImageListService
+    const imageList = this.imageListService.imageList;
+    imageList.push(...processedFiles);
+    this.imageListService.updateImageList(imageList);
+
+    this.addingImages.emit(false);
+
+    // Reset the progress bar with a slight delay
+    this.resetTimer = setTimeout(() => {
+      this.totalFileCount = 0;
+      this.processedCounter = 0;
+      this.progressPercentage = 0;
+    }, 1000);     
+
   }
 
 }
