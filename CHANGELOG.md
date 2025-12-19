@@ -28,7 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Normalise indentation.
 - Improve image handling.
 - Improve alt text prompt structure.
-- Deps: update `@angular/cli` to 21.0.3, `@angular/core` to 21.0.5, `@angular/cdk` to 21.0.3 and `@angular/material` to 21.0.3.
+- Deps: update `@angular/cli` to 21.0.4, `@angular/core` to 21.0.6, `@angular/cdk` to 21.0.5 and `@angular/material` to 21.0.5.
 - Deps: update `openai` to 6.15.0.
 - Deps: update `zone.js` t0 0.16.0.
 
