@@ -6,6 +6,9 @@
 // rpm = max requests per minute the model accepts at current usage tier
 // default = (optional) boolean indicating which model is the default
 // parameters = an object with model parameters:
+//     maxImageShortsidePx = (optional) max supported image short side
+//                           length in pixels, set to null for no limit,
+//                           defaults to 768 if undefined
 //     reasoningEffort = (optional, required for reasoning models)
 //                        reasoning effort constraint for reasoning
 //                        models, supported values are `none`, `minimal`,
@@ -25,5 +28,6 @@ export interface Model {
 export type Models = Model[];
 
 export interface ModelParameters {
+  maxImageShortsidePx?: number | null;
   reasoningEffort?: string;
 }
