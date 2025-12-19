@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Normalisation of characters in descriptions.
 - Ability to zoom image when editing generated description.
 - Property `parameters.maxImageShortsidePx` to the model object to allow configuration of the size of images in prompts. The value defaults to `768` if omitted. Setting the value to `null` means that the images are not resized.
+- Support for tiered model pricing.
 
 ### Changed
 

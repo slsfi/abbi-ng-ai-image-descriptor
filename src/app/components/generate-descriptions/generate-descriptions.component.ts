@@ -20,13 +20,13 @@ import { EditDescriptionDialogComponent } from '../edit-description-dialog/edit-
 import { ExportDialogComponent } from '../export-dialog/export-dialog.component';
 import { TranslateDescriptionDialogComponent } from '../translate-description-dialog/translate-description-dialog.component';
 import { CharacterCountPipe } from '../../pipes/character-count.pipe';
+import { CostService } from '../../services/cost.service';
 import { ExportService } from '../../services/export.service';
 import { ImageListService } from '../../services/image-list.service';
 import { OpenAiService } from '../../services/openai.service';
 import { SettingsService } from '../../services/settings.service';
 import { DescriptionData } from '../../types/description-data.types';
 import { ImageData } from '../../types/image-data.types';
-import { Model } from '../../types/model.types';
 import { Prompt, PromptOption } from '../../types/prompt.types';
 import { RequestSettings } from '../../types/settings.types';
 
@@ -54,6 +54,7 @@ import { RequestSettings } from '../../types/settings.types';
 export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   private destroyRef = inject(DestroyRef);
   private readonly dialog = inject(MatDialog);
+  readonly costService = inject(CostService);
   private readonly exportService = inject(ExportService);
   public readonly imageListService = inject(ImageListService);
   private readonly openaiService = inject(OpenAiService);
@@ -65,7 +66,6 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   displayedColumns: string[] = ['imagePreview', 'description', 'actions'];
   exporting: boolean = false;
   generating: boolean = false;
-  totalCost: number = 0;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -102,8 +102,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         const eMessage = `Error communicating with the ${this.settings.selectedModel?.provider} API: ${e.message}`;
         this.showAPIErrorMessage(eMessage);
       } else {
-        const cost = this.calculateCostFromResponse(settings.model, response?.usage);
-        this.totalCost += cost;
+        const cost = this.costService.updateCostFromResponse(settings.model, response?.usage);
         const newDescription: DescriptionData = {
           description: this.exportService.normaliseCharacters(respContent),
           language: settings.language,
@@ -159,8 +158,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
           this.showAPIErrorMessage(eMessage);
           this.generating = false;
         } else {
-          const cost = this.calculateCostFromResponse(settings.model, response?.usage);
-          this.totalCost += cost;
+          const cost = this.costService.updateCostFromResponse(settings.model, response?.usage);
           const newDescription: DescriptionData = {
             description: this.exportService.normaliseCharacters(respContent),
             language: settings.language,
@@ -200,8 +198,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         const eMessage = `Error communicating with the ${settings.model?.provider} API: ${e.code} ${e.message}`;
         this.showAPIErrorMessage(eMessage);
       } else {
-        const cost = this.calculateCostFromResponse(settings.model, response?.usage);
-        this.totalCost += cost;
+        const cost = this.costService.updateCostFromResponse(settings.model, response?.usage);
         const newDescription: DescriptionData = {
           description: this.exportService.normaliseCharacters(respContent),
           language: targetLanguageCode,
@@ -388,16 +385,6 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       prompt = prompt.replaceAll('{{FILENAME}}', imageObj.filename);
     }
     return prompt;
-  }
-
-  private calculateCostFromResponse(model?: Model, usage?: any): number {
-    if (model && usage) {
-      const inputCost: number = ((usage.input_tokens ?? 0) / 1000000.0) * model.inputPrice;
-      const outputCost: number = ((usage.output_tokens ?? 0) / 1000000.0) * model.outputPrice;
-      return inputCost + outputCost;
-    } else {
-      return 0;
-    }
   }
 
   private showAPIErrorMessage(message: string): void {
