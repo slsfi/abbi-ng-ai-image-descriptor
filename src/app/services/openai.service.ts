@@ -53,7 +53,7 @@ export class OpenAiService {
       max_tokens = settings?.descriptionLength ? settings?.descriptionLength + 1000 : null;
     }
 
-    const reasoning_effort: string | null = settings?.model?.reasoning ?? null;
+    const reasoningEffort: string | null = settings?.model?.parameters?.reasoningEffort ?? null;
 
     const payload = {
       model: settings?.model?.id ?? 'gpt-4.1',
@@ -73,9 +73,9 @@ export class OpenAiService {
           ],
         }
       ],
-      ...(reasoning_effort ? { reasoning: { effort: reasoning_effort } } : {}),
-      ...((!reasoning_effort || reasoning_effort === 'none') ? { temperature: settings?.temperature ?? null } : {}),
-      ...((!reasoning_effort || reasoning_effort === 'none') ? { max_output_tokens: max_tokens } : {})
+      ...(reasoningEffort ? { reasoning: { effort: reasoningEffort } } : {}),
+      ...((!reasoningEffort || reasoningEffort === 'none') ? { temperature: settings?.temperature ?? null } : {}),
+      ...((!reasoningEffort || reasoningEffort === 'none') ? { max_output_tokens: max_tokens } : {})
     };
     // console.log(payload);
 
@@ -98,12 +98,12 @@ export class OpenAiService {
       return { error: { code: 400, message: 'Missing prompt.' }};
     }
 
-    const reasoning_effort: string | null = settings?.model?.reasoning ?? null;
+    const reasoningEffort: string | null = settings?.model?.parameters?.reasoningEffort ?? null;
 
     const payload = {
       model: settings?.model?.id ?? 'gpt-4.1',
       input: prompt,
-      ...(reasoning_effort ? { reasoning: { effort: reasoning_effort } } : {})
+      ...(reasoningEffort ? { reasoning: { effort: reasoningEffort } } : {})
     };
     // console.log(payload);
 

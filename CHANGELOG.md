@@ -38,6 +38,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deprecated `provideAnimationsAsync()` from `app.config.ts`.
 - The `gpt-5.1` model.
 
+### BREAKING CHANGES
+
+- The `reasoning` property of model objects has been replaced with `parameters.reasoningEffort`.
+
 
 
 ## [1.5.0] – 2025-12-08

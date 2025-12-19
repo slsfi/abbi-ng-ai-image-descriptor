@@ -11,34 +11,44 @@ import { Models } from '../../app/types/model.types'
 //             `none`, `minimal`, `low`, `medium` and `high` depending
 //             on the model
 // default = (optional) boolean indicating which model is the default
+// parameters = an object with model parameters:
+//     maxImageShortsidePx = (optional) max supported image short side
+//                           length in pixels, set to null for no limit,
+//                           defaults to 768 if undefined
+//     reasoningEffort = (optional, required for reasoning models)
+//                        reasoning effort constraint for reasoning
+//                        models, supported values are `none`, `minimal`,
+//                        `low`, `medium` and `high` depending on the model
 
 // OpenAI Responses API reference: https://platform.openai.com/docs/api-reference/responses/create
 
 export const models: Models = [
   {
-    provider: "OpenAI",
-    name: "GPT-4.1",
-    id: "gpt-4.1",
+    provider: 'OpenAI',
+    name: 'GPT-4.1',
+    id: 'gpt-4.1',
     inputPrice: 2.0,
     outputPrice: 8.0,
     rpm: 5000,
     default: true
   },
   {
-    provider: "OpenAI",
-    name: "GPT-4.1 mini",
-    id: "gpt-4.1-mini",
+    provider: 'OpenAI',
+    name: 'GPT-4.1 mini',
+    id: 'gpt-4.1-mini',
     inputPrice: 0.4,
     outputPrice: 1.6,
     rpm: 5000
   },
   {
-    provider: "OpenAI",
-    name: "GPT-5.2",
-    id: "gpt-5.2",
+    provider: 'OpenAI',
+    name: 'GPT-5.2',
+    id: 'gpt-5.2',
     inputPrice: 1.75,
     outputPrice: 14.0,
     rpm: 5000,
-    reasoning: "none"
+    parameters: {
+      reasoningEffort: 'none'
+    }
   }
 ]

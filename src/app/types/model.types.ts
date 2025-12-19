@@ -1,12 +1,29 @@
-export type Model = {
+// provider = name of model creator
+// name = display name of the model
+// id = the API id or name of the model
+// inputPrice = $/1M tokens in prompt
+// outputPrice = $/1M tokens in model output
+// rpm = max requests per minute the model accepts at current usage tier
+// default = (optional) boolean indicating which model is the default
+// parameters = an object with model parameters:
+//     reasoningEffort = (optional, required for reasoning models)
+//                        reasoning effort constraint for reasoning
+//                        models, supported values are `none`, `minimal`,
+//                        `low`, `medium` and `high` depending on the model
+
+export interface Model {
   provider: 'OpenAI';
   name: string;
   id: string;
   inputPrice: number;
   outputPrice: number;
   rpm: number;
-  reasoning?: string;
   default?: boolean;
+  parameters?: ModelParameters;
 };
 
 export type Models = Model[];
+
+export interface ModelParameters {
+  reasoningEffort?: string;
+}
