@@ -9,7 +9,7 @@
         (click)="generateImageDescriptionsAll()"
         [disabled]="generating || !o.imageList?.length"
       >Generate all ({{ o.imageList?.length ?? 0 }} {{ ((o.imageList?.length ?? 2) > 1) ? 'images' : 'image' }})</button>
-      <div class="cost right-aligned">Cumulative cost: ${{ this.totalCost | number }}</div>
+      <div class="cost right-aligned">Cumulative cost: ${{ this.costService.cumulativeCost() | number }}</div>
     </div>
     <div class="buttons-row">
       <button matButton="outlined"
