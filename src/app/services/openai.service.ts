@@ -12,8 +12,6 @@ export class OpenAiService {
   client: any = null;
   modelList: any[] = [];
 
-  constructor() { }
-
   updateClient(apiKey: string, orgKey?: string): void {
     if (apiKey !== this.apiKey) {
       this.apiKey = apiKey;
