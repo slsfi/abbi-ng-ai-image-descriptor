@@ -10,18 +10,18 @@ import { FileInputComponent } from '../file-input/file-input.component';
 import { OpenAiService } from '../../services/openai.service';
 
 @Component({
-    selector: 'api-key-form',
-    imports: [
-        FormsModule,
-        ReactiveFormsModule,
-        MatButtonModule,
-        MatFormFieldModule,
-        MatIconModule,
-        MatInputModule,
-        FileInputComponent
-    ],
-    templateUrl: './api-key-form.component.html',
-    styleUrl: './api-key-form.component.scss'
+  selector: 'api-key-form',
+  imports: [
+    FormsModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    FileInputComponent
+  ],
+  templateUrl: './api-key-form.component.html',
+  styleUrl: './api-key-form.component.scss'
 })
 export class ApiKeyFormComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);

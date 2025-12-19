@@ -16,18 +16,18 @@ import { SettingsService } from '../../services/settings.service';
 import { prompts } from '../../../assets/config/prompts';
 
 @Component({
-    selector: 'translate-description-dialog',
-    imports: [
-      FormsModule,
-      MatButtonModule,
-      MatDialogActions,
-      MatDialogClose,
-      MatDialogContent,
-      MatDialogTitle,
-      MatRadioModule
-    ],
-    templateUrl: './translate-description-dialog.component.html',
-    styleUrl: './translate-description-dialog.component.scss'
+  selector: 'translate-description-dialog',
+  imports: [
+    FormsModule,
+    MatButtonModule,
+    MatDialogActions,
+    MatDialogClose,
+    MatDialogContent,
+    MatDialogTitle,
+    MatRadioModule
+  ],
+  templateUrl: './translate-description-dialog.component.html',
+  styleUrl: './translate-description-dialog.component.scss'
 })
 export class TranslateDescriptionDialogComponent implements OnInit {
   imageObj = inject<ImageData>(MAT_DIALOG_DATA);

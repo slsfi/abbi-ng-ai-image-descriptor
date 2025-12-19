@@ -47,7 +47,7 @@ import { RequestSettings } from '../../types/settings.types';
     MatTableModule,
     MatTooltipModule,
     CharacterCountPipe
-],
+  ],
   templateUrl: './generate-descriptions.component.html',
   styleUrl: './generate-descriptions.component.scss'
 })

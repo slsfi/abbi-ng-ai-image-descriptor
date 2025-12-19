@@ -12,16 +12,16 @@ export interface DialogData {
 }
 
 @Component({
-    selector: 'app-confirm-action-dialog',
-    imports: [
-      MatButtonModule,
-      MatDialogActions,
-      MatDialogClose,
-      MatDialogTitle,
-      MatDialogContent
-    ],
-    templateUrl: './confirm-action-dialog.component.html',
-    styleUrl: './confirm-action-dialog.component.scss'
+  selector: 'app-confirm-action-dialog',
+  imports: [
+    MatButtonModule,
+    MatDialogActions,
+    MatDialogClose,
+    MatDialogTitle,
+    MatDialogContent
+  ],
+  templateUrl: './confirm-action-dialog.component.html',
+  styleUrl: './confirm-action-dialog.component.scss'
 })
 export class ConfirmActionDialogComponent {
   data = inject<DialogData>(MAT_DIALOG_DATA);

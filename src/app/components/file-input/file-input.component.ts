@@ -2,10 +2,10 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-    selector: 'file-input',
-    imports: [MatButtonModule],
-    templateUrl: './file-input.component.html',
-    styleUrl: './file-input.component.scss'
+  selector: 'file-input',
+  imports: [MatButtonModule],
+  templateUrl: './file-input.component.html',
+  styleUrl: './file-input.component.scss'
 })
 export class FileInputComponent implements OnInit {
   @Input() acceptedFileTypes: string = '';
