@@ -1,5 +1,5 @@
-@let taskNoun = settings.promptNouns();
-@let selectedTaskType = settings.selectedPromptTemplate$ | async;
+@let taskNoun = settings.taskNouns();
+@let selectedTaskType = settings.selectedTaskType();
 
 @if ({ imageList: imageListService.imageList$ | async }; as o) {
   <div class="generate-desc-wrapper" [class.hide]="!o.imageList?.length">
@@ -90,7 +90,7 @@
                   >
                     <mat-icon>edit</mat-icon>
                   </button>
-                  @if (selectedTaskType === 'Alt text') {
+                  @if (selectedTaskType === 'altText') {
                     <button matIconButton color="primary"
                       [matTooltip]="`Translate ${taskNoun.singular}`"
                       class="translate-button"

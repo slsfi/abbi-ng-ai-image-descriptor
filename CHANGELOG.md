@@ -28,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Normalise indentation.
 - Improve image handling.
 - Improve alt text prompt structure.
+- Decouple prompts by task type, move model compatibility to models, and replace BehaviorSubjects with signals.
 - Deps: update `@angular/cli` to 21.0.4, `@angular/core` to 21.0.6, `@angular/cdk` to 21.0.5 and `@angular/material` to 21.0.5.
 - Deps: update `openai` to 6.15.0.
 - Deps: update `zone.js` t0 0.16.0.
@@ -47,6 +48,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### BREAKING CHANGES
 
 - The `reasoning` property of model objects has been replaced with `parameters.reasoningEffort`.
+- The shape of AI model and prompt definitions in `src/assets/config/models.ts` and `src/assets/config/prompts.ts` has been updated.
 
 
 

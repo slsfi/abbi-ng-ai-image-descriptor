@@ -1,4 +1,4 @@
-@let taskNoun = settings.promptNouns();
+@let taskNoun = settings.taskNouns();
 
 <div class="content-wrapper">
   <app-header></app-header>
@@ -25,13 +25,10 @@
 
       <!-- Step 2: Enter API key -->
       <mat-step [stepControl]="apiKeyFormGroup" label="Enter API key">
-        @if ({ selectedModel: settings.selectedModel$ | async }; as s) {
-          <h2>Enter your {{ s.selectedModel?.provider || '' }} API key</h2>
-          <api-key-form
-            [modelProvider]="s.selectedModel?.provider || ''"
-            (formGroupOutput)="setApiKeyFormGroup($event)"
-          ></api-key-form>
-        }
+        <h2>Enter your {{ settings.selectedModel().provider }} API key</h2>
+        <api-key-form
+          (formGroupOutput)="setApiKeyFormGroup($event)"
+        ></api-key-form>
         <div class="stepper-nav">
           <button mat-button color="primary" matStepperPrevious>Back</button>
           <button mat-button color="primary" matStepperNext>Next</button>
@@ -39,7 +36,7 @@
       </mat-step>
 
       <!-- Step 3: Add images -->
-      <mat-step label="Add images" [completed]="((imageListService.imageList$ | async)?.length || false) && !addingImages">
+      <mat-step label="Add images" [completed]="((imageListService.imageList$ | async)?.length || false) && !addingImages()">
         <h2>Add images</h2>
         <!-- Defer loading the add-images component until the browser is idle -->
         @defer (on idle) {

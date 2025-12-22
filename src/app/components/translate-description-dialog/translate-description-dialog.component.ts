@@ -1,19 +1,14 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogActions,
-  MatDialogClose,
-  MatDialogContent,
-  MatDialogTitle
-} from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose,
+         MatDialogContent, MatDialogTitle
+        } from '@angular/material/dialog';
 import { MatRadioModule } from '@angular/material/radio';
 
 import { ImageData } from '../../types/image-data.types';
-import { Prompt } from '../../types/prompt.types';
 import { SettingsService } from '../../services/settings.service';
-import { prompts } from '../../../assets/config/prompts';
+import { LanguageCode } from '../../../assets/config/prompts';
 
 @Component({
   selector: 'translate-description-dialog',
@@ -34,22 +29,22 @@ export class TranslateDescriptionDialogComponent implements OnInit {
   readonly settings = inject(SettingsService);
 
   translateLanguages: any[] = [];
-  selectedLanguageCode: string = '';
+  selectedLanguageCode?: LanguageCode;
 
   ngOnInit(): void {
     const currentLanguage = this.imageObj.descriptions[this.imageObj.activeDescriptionIndex].language;
 
     // Filter out the source language
-    prompts.forEach((prompt: Prompt) => {
-      if (prompt.languageCode !== currentLanguage) {
+    this.settings.languages().forEach((lang: any) => {
+      if (lang.code !== currentLanguage) {
         this.translateLanguages.push({
-          languageCode: prompt.languageCode,
-          languageDisplayName: prompt.languageDisplayName
+          languageCode: lang.code,
+          languageDisplayName: lang.name
         });
 
         // Set the default selected language to the first language in the list
         if (!this.selectedLanguageCode) {
-          this.selectedLanguageCode = prompt.languageCode;
+          this.selectedLanguageCode = lang.code;
         }
       }
     });

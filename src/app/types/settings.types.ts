@@ -1,11 +1,13 @@
 import { Model } from "./model.types";
+import { PromptVariant } from "./prompt.types";
+import { LanguageCode, TaskTypeId } from "../../assets/config/prompts";
 
-export type RequestSettings = {
-  model?: Model;
-  temperature: number;
-  language: string;
+export interface RequestSettings {
+  model: Model;
+  language?: LanguageCode;
+  taskType: TaskTypeId;
+  temperature: number | null;
   descriptionLength: number;
-  promptTemplate: string;
+  promptVariant: PromptVariant;
   includeFilename: boolean;
-  transcribeHeaders: boolean;
 };

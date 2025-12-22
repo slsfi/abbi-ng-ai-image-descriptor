@@ -1,5 +1,4 @@
-import { Component, inject } from '@angular/core';
-import { AsyncPipe } from '@angular/common';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -13,12 +12,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { UpperFirstLetterPipe } from '../../pipes/upper-first-letter.pipe';
 import { SettingsService } from '../../services/settings.service';
 import { Model } from '../../types/model.types';
-import { taskTypeLabels } from '../../types/prompt.types';
+import { TaskTypeId } from '../../../assets/config/prompts';
 
 @Component({
   selector: 'settings-form',
   imports: [
-    AsyncPipe,
     FormsModule,
     MatButtonModule,
     MatExpansionModule,
@@ -36,7 +34,7 @@ import { taskTypeLabels } from '../../types/prompt.types';
 export class SettingsFormComponent {
   settings = inject(SettingsService);
 
-  taskLabels = taskTypeLabels;
+  transcribeHeaders = signal<boolean>(true);
 
   descLengthMax: number = 300;
   descLengthMin: number = 150;
@@ -52,19 +50,25 @@ export class SettingsFormComponent {
   }
 
   setTranscribeHeaders(event: MatSlideToggleChange): void {
-    this.settings.updateSelectedTranscribeHeaders(event.checked);
+    if (event.checked) {
+      this.settings.updateSelectedVariantId('default');
+      this.transcribeHeaders.set(true);
+    } else {
+      this.settings.updateSelectedVariantId('noHeaders');
+      this.transcribeHeaders.set(false);
+    }
   }
 
-  setLanguage(language: string): void {
-    this.settings.updateSelectedLanguage(language);
+  setTaskVariant(id: string): void {
+    this.settings.updateSelectedVariantId(id);
   }
 
   setModel(model: Model): void {
     this.settings.updateSelectedModel(model);
   }
 
-  setPromptTemplateType(type: string): void {
-    this.settings.updateSelectedPromptTemplate(type);
+  setTaskType(type: TaskTypeId): void {
+    this.settings.updateSelectedTaskType(type);
   }
 
   setTemperature(temperature: number): void {

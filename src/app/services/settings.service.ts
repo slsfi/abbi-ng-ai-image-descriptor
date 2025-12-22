@@ -1,197 +1,151 @@
-import { Injectable, computed, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { BehaviorSubject } from 'rxjs';
+import { Injectable, computed, effect, signal, untracked } from '@angular/core';
 
-import { models } from '../../assets/config/models';
-import { prompts } from '../../assets/config/prompts';
-import { Model, Models } from '../types/model.types';
-import { Prompt, PromptOption, promptOptionNouns } from '../types/prompt.types';
+import { MODELS, ModelId, getModelsForTaskType,
+         isModelAllowedForTaskType
+        } from '../../assets/config/models';
+import { LanguageCode, TaskTypeId, TASK_CONFIGS, TASK_TYPES_BY_ID } from '../../assets/config/prompts';
+import { Model } from '../types/model.types';
+import { PromptVariant } from '../types/prompt.types';
 import { RequestSettings } from '../types/settings.types';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SettingsService {
-  private _availableModels = new BehaviorSubject<Models>(models);
-  private _includeFilename = new BehaviorSubject<boolean>(true);
-  private _languages = new BehaviorSubject<any[]>(
-    prompts.map(p => ({ code: p.languageCode, name: p.languageDisplayName }))
+  // --- User-controlled state ---
+  selectedTaskType = signal<TaskTypeId>(TASK_CONFIGS[0].taskType);
+  readonly selectedVariantId = signal<string>(TASK_CONFIGS[0].variants[0].id);
+  readonly selectedModelId = signal<ModelId>(TASK_CONFIGS[0].defaultModel);
+
+  readonly includeFilename = signal<boolean>(true);
+  readonly selectedDescLength = signal<number>(175);
+  readonly selectedTemperature = signal<number>(1.0);
+
+  // --- Derived config ---
+  readonly taskConfigs = signal(TASK_CONFIGS);
+
+  readonly availableModels = computed<Model[]>(() => getModelsForTaskType(this.selectedTaskType()));
+
+  readonly selectedTaskConfig = computed(() => TASK_TYPES_BY_ID[this.selectedTaskType()]);
+
+  readonly selectedModel = computed<Model>(() =>
+    MODELS.find(m => m.id === this.selectedModelId()) ?? MODELS[0]
   );
-  private _promptTemplates = new BehaviorSubject<PromptOption[]>([]);
-  private _selectedDescLength = new BehaviorSubject<number>(175);
-  private _selectedLanguage = new BehaviorSubject<string>('sv');
-  private _selectedModel = new BehaviorSubject<Model|undefined>(
-    models.filter((model) => model.default)[0]
-  );
-  private _selectedPromptTemplate = new BehaviorSubject<string>('Alt text');
-  private _selectedTemperature = new BehaviorSubject<number>(1.0);
 
-  availableModels$ = this._availableModels.asObservable();
-  includeFilename$ = this._includeFilename.asObservable();
-  languages$ = this._languages.asObservable();
-  promptTemplates$ = this._promptTemplates.asObservable();
-  selectedDescLength$ = this._selectedDescLength.asObservable();
-  selectedLanguage$ = this._selectedLanguage.asObservable();
-  selectedModel$ = this._selectedModel.asObservable();
-  selectedPromptTemplate$ = this._selectedPromptTemplate.asObservable();
-  selectedTemperature$ = this._selectedTemperature.asObservable();
+  readonly languages = computed(() => {
+    const cfg = this.selectedTaskConfig();
 
-  transcribeHeaders = signal<boolean>(true);
-
-  readonly selectedPromptTemplateSig = toSignal(this.selectedPromptTemplate$, {
-    initialValue: 'Alt text',
+    if (cfg.taskType === 'altText') {
+      return cfg.variants
+        .filter(v => !!v.languageCode)
+        .map(v => ({ code: v.languageCode as LanguageCode, name: v.label }));
+    } else {
+      return [];
+    }
   });
 
-  readonly promptNouns = computed(
-    () => promptOptionNouns[this.selectedPromptTemplateSig() as keyof typeof promptOptionNouns]
-  );
+  readonly taskNouns = computed(() =>  this.selectedTaskConfig().nouns);
+
+  readonly selectedVariant = computed<PromptVariant>(() => {
+    const cfg = this.selectedTaskConfig();
+    const wantedId = this.selectedVariantId();
+
+    return cfg.variants.find(v => v.id === wantedId) ?? cfg.variants[0];
+  });
 
   constructor() {
-    // Initialize promptTemplates and selectedPromptTemplate
-    this.setPromptTemplate();
+    // Keep selectedModel compatible with task type
+    effect(() => {
+      const modelId = this.selectedModelId();
+
+      untracked(() => {
+        const taskType = this.selectedTaskType();
+
+        if (!isModelAllowedForTaskType(modelId, taskType)) {
+          const compatible = getModelsForTaskType(taskType);
+          const fallback = compatible[0]?.id;
+
+          if (fallback) {
+            this.selectedModelId.set(fallback);
+          }
+        }
+      });
+    });
+
+    // Set default model when task type changes
+    effect(() => {
+      const cfg = this.selectedTaskConfig();
+
+      const taskDefaultModelId = cfg.defaultModel;
+      if (!isModelAllowedForTaskType(taskDefaultModelId, cfg.taskType)) {
+        const compatible = getModelsForTaskType(cfg.taskType);
+        const fallback = compatible[0]?.id;
+
+        if (fallback) {
+          this.selectedModelId.set(fallback);
+        }
+      } else {
+        this.selectedModelId.set(taskDefaultModelId);
+      }
+    });
+
+    // Apply temperature defaults per task type (matches your old behavior)
+    effect(() => {
+      const taskType = this.selectedTaskType();
+      this.selectedTemperature.set(taskType === 'transcription' ? 0.0 : 1.0);
+    });
+
+    // Ensure selectedVariantId is sane when task type changes
+    effect(() => {
+      const cfg = this.selectedTaskConfig();
+
+      // keep current if exists, otherwise default to first
+      const current = this.selectedVariantId();
+      const exists = cfg.variants.some(v => v.id === current);
+      if (!exists) {
+        this.selectedVariantId.set(cfg.variants[0]?.id ?? 'default');
+      }
+    });
   }
 
   getSettings(): RequestSettings {
-    const settings: RequestSettings = {
-      model: this.selectedModel,
-      temperature: this.selectedTemperature,
-      language: this.selectedLanguage,
-      descriptionLength: this.selectedDescLength,
-      promptTemplate: this.selectedPromptTemplate,
-      includeFilename: this.includeFilename,
-      transcribeHeaders: this.transcribeHeaders()
-    }
-    return settings;
+    return {
+      model: this.selectedModel(),
+      language: this.selectedVariant().languageCode,
+      taskType: this.selectedTaskType(),
+      temperature: this.selectedTemperature(),
+      descriptionLength: this.selectedDescLength(),
+      promptVariant: this.selectedVariant(),
+      includeFilename: this.includeFilename(),
+    };
   }
 
-  updateIncludeFilename(value: boolean) {
-    this._includeFilename.next(value);
+  updateSelectedTaskType(value: TaskTypeId) {
+    this.selectedTaskType.set(value);
   }
 
-  updatePromptTemplates(templates: any[]) {
-    this._promptTemplates.next(templates);
-  }
-
-  updateSelectedDescLength(value: number) {
-    this._selectedDescLength.next(value);
-  }
-
-  updateSelectedLanguage(language: string) {
-    this._selectedLanguage.next(language);
-    this.setPromptTemplate();  // Update prompt templates whenever the language changes
+  updateSelectedVariantId(value: string) {
+    this.selectedVariantId.set(value);
   }
 
   updateSelectedModel(value: Model | undefined) {
-    this._selectedModel.next(value);
+    if (value) this.selectedModelId.set(value.id);
   }
 
-  updateSelectedPromptTemplate(template: string) {
-    this._selectedPromptTemplate.next(template);
-    this.setModel(); // Update selected model whenever the prompt template changes
-    if (template === 'Transcription') {
-      this.updateSelectedTemperature(0.0);
-    } else {
-      this.updateSelectedTemperature(1.0);
-    }
+  updateSelectedModelId(value: ModelId) {
+    this.selectedModelId.set(value);
+  }
+
+  updateIncludeFilename(value: boolean) {
+    this.includeFilename.set(value);
+  }
+
+  updateSelectedDescLength(value: number) {
+    this.selectedDescLength.set(value);
   }
 
   updateSelectedTemperature(value: number) {
-    this._selectedTemperature.next(value);
-  }
-
-  updateSelectedTranscribeHeaders(value: boolean) {
-    this.transcribeHeaders.set(value);
-  }
-
-  getSelectedPromptOption(): PromptOption | undefined {
-    const selectedPrompt: Prompt | undefined = this.getSelectedPrompt();
-    if (selectedPrompt) {
-      const selectedPromptOption = selectedPrompt.promptOptions.find(
-        (t: PromptOption) => t.type === this.selectedPromptTemplate
-      );
-      return selectedPromptOption;
-    }
-    return undefined;
-  }
-
-  private getSelectedPrompt(): Prompt | undefined {
-    return prompts.find(
-      (p: Prompt) => p.languageCode === this.selectedLanguage
-    );
-  }
-
-  private setPromptTemplate() {
-    const selectedPrompt: Prompt | undefined = this.getSelectedPrompt();
-    if (selectedPrompt) {
-      this.updatePromptTemplates(selectedPrompt.promptOptions);
-      const defaultTemplate = selectedPrompt.promptOptions.find(
-        (t: PromptOption) => t.type === 'Alt text'
-      );
-      this.updateSelectedPromptTemplate(
-        this.selectedPromptTemplate ? this.selectedPromptTemplate :
-          defaultTemplate ? 'Alt text' :
-          selectedPrompt.promptOptions[0].type
-      );
-    }
-  }
-
-  private setModel() {
-    const currentPromptOption = this.getSelectedPromptOption();
-    let setModel: Model | undefined = undefined;
-    if (currentPromptOption?.modelRestrictions && currentPromptOption?.modelRestrictions.length > 0) {
-      if (currentPromptOption.modelRestrictions?.includes(this.selectedModel?.id || '')) {
-        setModel = this.selectedModel;
-      } else {
-        setModel = models.find(
-          (model: Model) => currentPromptOption.modelRestrictions?.includes(model.id)
-        );
-      }
-    } else {
-      if (this.selectedModel) {
-        setModel = this.selectedModel;
-      } else {
-        setModel = models.find(
-          (model: Model) => model.default === true
-        );
-      }
-    }
-    this.updateSelectedModel(setModel ? setModel : models[0])
-  }
-
-  get availableModels(): Models {
-    return this._availableModels.getValue();
-  }
-
-  get includeFilename(): boolean {
-    return this._includeFilename.getValue();
-  }
-
-  get languages(): any[] {
-    return this._languages.getValue();
-  }
-
-  get promptTemplates(): any[] {
-    return this._promptTemplates.getValue();
-  }
-
-  get selectedDescLength(): number {
-    return this._selectedDescLength.getValue();
-  }
-
-  get selectedLanguage(): string {
-    return this._selectedLanguage.getValue();
-  }
-
-  get selectedModel(): Model | undefined {
-    return this._selectedModel.getValue();
-  }
-
-  get selectedPromptTemplate(): string {
-    return this._selectedPromptTemplate.getValue();
-  }
-
-  get selectedTemperature(): number {
-    return this._selectedTemperature.getValue();
+    this.selectedTemperature.set(value);
   }
 
 }

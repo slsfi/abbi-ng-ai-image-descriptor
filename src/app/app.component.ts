@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, NgZone, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit, inject, signal } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { FormGroup } from '@angular/forms';
 import { BreakpointObserver } from '@angular/cdk/layout';
@@ -34,12 +34,12 @@ import { SettingsService } from './services/settings.service';
 export class AppComponent implements OnInit {
   private breakpointObserver = inject(BreakpointObserver);
   private cdRef = inject(ChangeDetectorRef);
-  imageListService = inject(ImageListService);
   private matIconReg = inject(MatIconRegistry);
   private ngZone = inject(NgZone);
+  imageListService = inject(ImageListService);
   settings = inject(SettingsService);
 
-  addingImages: boolean = false;
+  addingImages = signal<boolean>(false);
   apiKeyFormGroup!: FormGroup;
   appVersion = APP_VERSION;
 
@@ -66,7 +66,7 @@ export class AppComponent implements OnInit {
   }
 
   setAddingImages(status: boolean): void {
-    this.addingImages = status;
+    this.addingImages.set(status);
   }
 
   get isApiKeyFormValid(): boolean {

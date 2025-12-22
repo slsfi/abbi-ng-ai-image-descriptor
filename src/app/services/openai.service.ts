@@ -47,14 +47,14 @@ export class OpenAiService {
     }
 
     let max_tokens = null;
-    if (settings?.promptTemplate === 'Alt text') {
-      max_tokens = settings?.descriptionLength ? settings?.descriptionLength + 1000 : null;
+    if (settings.taskType === 'altText') {
+      max_tokens = settings.descriptionLength ? settings.descriptionLength + 1000 : null;
     }
 
-    const reasoningEffort: string | null = settings?.model?.parameters?.reasoningEffort ?? null;
+    const reasoningEffort: string | null = settings.model.parameters?.reasoningEffort ?? null;
 
     const payload = {
-      model: settings?.model?.id ?? 'gpt-4.1',
+      model: settings.model.id,
       input : [
         {
           role: 'user',
@@ -72,7 +72,7 @@ export class OpenAiService {
         }
       ],
       ...(reasoningEffort ? { reasoning: { effort: reasoningEffort } } : {}),
-      ...((!reasoningEffort || reasoningEffort === 'none') ? { temperature: settings?.temperature ?? null } : {}),
+      ...((!reasoningEffort || reasoningEffort === 'none') ? { temperature: settings.temperature ?? null } : {}),
       ...((!reasoningEffort || reasoningEffort === 'none') ? { max_output_tokens: max_tokens } : {})
     };
     // console.log(payload);
@@ -96,10 +96,10 @@ export class OpenAiService {
       return { error: { code: 400, message: 'Missing prompt.' }};
     }
 
-    const reasoningEffort: string | null = settings?.model?.parameters?.reasoningEffort ?? null;
+    const reasoningEffort: string | null = settings.model.parameters?.reasoningEffort ?? null;
 
     const payload = {
-      model: settings?.model?.id ?? 'gpt-4.1',
+      model: settings.model.id,
       input: prompt,
       ...(reasoningEffort ? { reasoning: { effort: reasoningEffort } } : {})
     };
