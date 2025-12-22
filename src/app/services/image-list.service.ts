@@ -25,7 +25,7 @@ export class ImageListService {
   }
 
   resizeImage(img: HTMLImageElement): any {
-    const selectedModel = this.settings.selectedModel;
+    const selectedModel = this.settings.selectedModel();
     const shortSideMax: number | null = (selectedModel?.parameters?.maxImageShortsidePx === undefined)
           ? IMG_SHORT_SIDE_MAX
           : selectedModel?.parameters?.maxImageShortsidePx;

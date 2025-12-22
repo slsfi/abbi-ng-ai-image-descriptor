@@ -1,43 +1,26 @@
-export type PromptOption = {
-  type: 'Alt text' | 'Transcription';
+import { ModelId } from "../../assets/config/models";
+import { LanguageCode, TaskTypeId } from "../../assets/config/prompts";
+
+export type PromptVariant = {
+  id: string;
+  label: string;
   prompt: string;
-  alternativePrompt?: string;
-  modelRestrictions?: string[];
+  languageCode?: LanguageCode;
 };
 
-export type Prompt = {
-  languageCode: string;
-  languageDisplayName: string;
-  filenamePrompt: string;
-  promptOptions: PromptOption[];
-  translatePrompt: string;
-};
-
-export type Prompts = Prompt[];
-
-export interface PromptNounObj {
+export type TaskNouns = {
   singular: string;
   plural: string;
 }
 
-export const promptOptionNouns: Record<
-  Extract<PromptOption['type'], 'Alt text' | 'Transcription'>,
-  PromptNounObj
-> = {
-  'Alt text': {
-    singular: 'alt text',
-    plural: 'alt texts'
-  },
-  'Transcription': {
-    singular: 'transcription',
-    plural: 'transcriptions'
-  }
-}
-
-export const taskTypeLabels: Record<
-  Extract<PromptOption['type'], 'Alt text' | 'Transcription'>,
-  string
-> = {
-  'Alt text': 'Generate alt texts',
-  'Transcription': 'Transcribe text (OCR/HTR)'
-}
+export type TaskTypeConfig = {
+  taskType: TaskTypeId;
+  label: string;
+  nouns: TaskNouns;
+  defaultModel: ModelId;
+  variants: PromptVariant[];
+  helpers?: {
+    filenamePrompt?: Record<LanguageCode, string>;
+    translatePrompt?: Record<LanguageCode, string>;
+  };
+};

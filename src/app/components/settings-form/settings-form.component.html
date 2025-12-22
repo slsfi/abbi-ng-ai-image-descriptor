@@ -1,5 +1,5 @@
-@let taskNoun = settings.promptNouns();
-@let selectedTaskType = settings.selectedPromptTemplate$ | async;
+@let selectedTaskTypeValue = settings.selectedTaskType();
+@let selectedTaskVariants = settings.selectedTaskConfig().variants;
 
 <div class="settings-column-wrapper">
   <div class="parameters-wrapper">
@@ -18,22 +18,22 @@
       <mat-form-field appearance="outline">
         <mat-label>Task type</mat-label>
         <mat-select
-              [value]="settings.selectedPromptTemplate$ | async"
-              (valueChange)="setPromptTemplateType($event)"
-              name="promptTemplate"
+              [value]="selectedTaskTypeValue"
+              (valueChange)="setTaskType($event)"
+              name="taskType"
         >
-          @for (template of settings.promptTemplates$ | async; track template.type) {
-            <mat-option [value]="template.type">{{ taskLabels[template.type] }}</mat-option>
+          @for (task of settings.taskConfigs(); track task.taskType) {
+            <mat-option [value]="task.taskType">{{ task.label }}</mat-option>
           }
         </mat-select>
       </mat-form-field>
     </div>
 
-    @if (selectedTaskType !== 'Transcription') {
+    @if (selectedTaskTypeValue === 'altText') {
       <div class="form-field-wrapper">
         <mat-slide-toggle
               color="primary"
-              [checked]="settings.includeFilename$ | async"
+              [checked]="settings.includeFilename()"
               (change)="setIncludeFilename($event)"
               matTooltip="Enable this if your image filenames contain helpful context (e.g., names, dates). The filename will be included in the prompt to improve alt text quality."
         >Include filenames as contextual input</mat-slide-toggle>
@@ -53,17 +53,17 @@
       </button>
     </h3>
 
-    @if (selectedTaskType !== 'Transcription') {
+    @if (selectedTaskTypeValue === 'altText') {
       <div class="form-field-wrapper">
         <mat-form-field appearance="outline">
-          <mat-label>{{ taskNoun.singular | upperFirstLetter }} language</mat-label>
+          <mat-label>{{ settings.taskNouns().singular | upperFirstLetter }} language</mat-label>
           <mat-select
-                [value]="settings.selectedLanguage$ | async"
-                (valueChange)="setLanguage($event)"
+                [value]="settings.selectedVariantId()"
+                (valueChange)="setTaskVariant($event)"
                 name="language"
           >
-            @for (language of settings.languages$ | async; track language.code) {
-              <mat-option [value]="language.code">{{ language.name }}</mat-option>
+            @for (variant of selectedTaskVariants; track variant.id) {
+              <mat-option [value]="variant.id">{{ variant.label }}</mat-option>
             }
           </mat-select>
         </mat-form-field>
@@ -83,7 +83,7 @@
               [showTickMarks]="true"
           >
             <input matSliderThumb
-                  [value]="settings.selectedDescLength$ | async"
+                  [value]="settings.selectedDescLength()"
                   (valueChange)="setDescLength($event)"
                   #descLengthSlider
             >
@@ -92,11 +92,11 @@
       </div>
     }
 
-    @if (selectedTaskType === 'Transcription') {
+    @if (selectedTaskTypeValue === 'transcription') {
       <div class="form-field-wrapper">
         <mat-slide-toggle
               color="primary"
-              [checked]="settings.transcribeHeaders()"
+              [checked]="transcribeHeaders()"
               (change)="setTranscribeHeaders($event)"
               matTooltip="Enable this to include headers, footers, and page numbers in the transcription output."
         >Transcribe headers, footers &amp; page numbers</mat-slide-toggle>
@@ -120,15 +120,12 @@
       <mat-form-field appearance="outline">
         <mat-label>AI-model</mat-label>
         <mat-select
-              [value]="settings.selectedModel$ | async"
+              [value]="settings.selectedModel()"
               (valueChange)="setModel($event)"
               name="model"
         >
-          @let selectedPromptOption = settings.getSelectedPromptOption();
-          @for (model of settings.availableModels$ | async; track model.id) {
-            @if (!selectedPromptOption?.modelRestrictions || selectedPromptOption?.modelRestrictions?.includes(model.id)) {
-              <mat-option [value]="model">{{model.provider}} {{model.name}}</mat-option>
-            }
+          @for (model of settings.availableModels(); track model.id) {
+            <mat-option [value]="model">{{model.provider}} {{model.name}}</mat-option>
           }
         </mat-select>
       </mat-form-field>
@@ -154,7 +151,7 @@
               [showTickMarks]="true"
           >
             <input matSliderThumb
-                  [value]="settings.selectedTemperature$ | async"
+                  [value]="settings.selectedTemperature()"
                   (valueChange)="setTemperature($event)"
                   #temperatureSlider
             >

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,6 +8,7 @@ import { catchError, debounceTime, Observable, of, Subscription, switchMap } fro
 
 import { FileInputComponent } from '../file-input/file-input.component';
 import { OpenAiService } from '../../services/openai.service';
+import { SettingsService } from '../../services/settings.service';
 
 @Component({
   selector: 'api-key-form',
@@ -26,8 +27,8 @@ import { OpenAiService } from '../../services/openai.service';
 export class ApiKeyFormComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private openaiService = inject(OpenAiService);
+  readonly settings = inject(SettingsService);
 
-  @Input() modelProvider: string = ''
   @Output() formGroupOutput = new EventEmitter<FormGroup>();
 
   apiKeyFormGroup: FormGroup;

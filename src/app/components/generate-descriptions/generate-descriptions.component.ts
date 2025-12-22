@@ -14,7 +14,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { prompts } from '../../../assets/config/prompts';
 import { ConfirmActionDialogComponent } from '../confirm-action-dialog/confirm-action-dialog.component';
 import { EditDescriptionDialogComponent } from '../edit-description-dialog/edit-description-dialog.component';
 import { ExportDialogComponent } from '../export-dialog/export-dialog.component';
@@ -27,8 +26,8 @@ import { OpenAiService } from '../../services/openai.service';
 import { SettingsService } from '../../services/settings.service';
 import { DescriptionData } from '../../types/description-data.types';
 import { ImageData } from '../../types/image-data.types';
-import { Prompt, PromptOption } from '../../types/prompt.types';
 import { RequestSettings } from '../../types/settings.types';
+import { LanguageCode } from '../../../assets/config/prompts';
 
 @Component({
   selector: 'generate-descriptions',
@@ -99,7 +98,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       const respContent = response?.output_text ?? '';
       if (!respContent && response?.error) {
         const e = response.error;
-        const eMessage = `Error communicating with the ${this.settings.selectedModel?.provider} API: ${e.message}`;
+        const eMessage = `Error communicating with the ${settings.model.provider} API: ${e.message}`;
         this.showAPIErrorMessage(eMessage);
       } else {
         const cost = this.costService.updateCostFromResponse(settings.model, response?.usage);
@@ -116,7 +115,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       }
     } catch (e: any) {
       console.error(e);
-      this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${this.settings.selectedModel?.provider} API.`);
+      this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model.provider} API.`);
     } finally {
       imageObj.generating = false;
       this.generating = false;
@@ -139,7 +138,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
       counter++;
       snackBarRef?.dismiss();
-      snackBarRef = this.snackBar.open(`Generating ${this.settings.promptNouns().singular} ${counter}/${this.imageListService.imageList.length}`, 'Stop');
+      snackBarRef = this.snackBar.open(`Generating ${this.settings.taskNouns().singular} ${counter}/${this.imageListService.imageList.length}`, 'Stop');
       snackBarRef.onAction().subscribe(() => {
         this.generating = false;
       });
@@ -154,7 +153,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         const respContent = response?.output_text ?? '';
         if (!respContent && response?.error) {
           const e = response.error;
-          const eMessage = `Error communicating with the ${this.settings.selectedModel?.provider} API: ${e.message}`;
+          const eMessage = `Error communicating with the ${settings.model.provider} API: ${e.message}`;
           this.showAPIErrorMessage(eMessage);
           this.generating = false;
         } else {
@@ -172,7 +171,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         }
       } catch (e: any) {
         console.error(e);
-        this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${this.settings.selectedModel?.provider} API.`);
+        this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model.provider} API.`);
         this.generating = false;
       } finally {
         imageObj.generating = false;
@@ -183,7 +182,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     snackBarRef?.dismiss();
   }
 
-  async generateDescriptionTranslation(imageObj: ImageData, prompt: string, targetLanguageCode: string) {
+  async generateDescriptionTranslation(imageObj: ImageData, prompt: string, targetLanguageCode: LanguageCode) {
     imageObj.generating = true;
     this.generating = true;
     const settings: RequestSettings = this.settings.getSettings();
@@ -268,7 +267,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   deleteDescription(imageObj: ImageData): void {
     const dialogRef = this.dialog.open(ConfirmActionDialogComponent, {
       data: {
-        title: `Delete this ${this.settings.promptNouns().singular}?`,
+        title: `Delete this ${this.settings.taskNouns().singular}?`,
         body: 'This action cannot be undone.',
         cancelLabel: 'Cancel',
         confirmLabel: 'Delete'
@@ -301,18 +300,21 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       panelClass: 'translateDescriptionDialog'
     });
 
-    dialogRef.afterClosed().subscribe((targetLanguageCode: string) => {
-      if (targetLanguageCode) {       
+    dialogRef.afterClosed().subscribe((targetLanguageCode: LanguageCode) => {
+      if (targetLanguageCode) {
         // Find the selected language prompt
-        const targetPromptsIndex = prompts.findIndex((p: Prompt) => p.languageCode == targetLanguageCode);
+        const taskConfig = this.settings.selectedTaskConfig();
+        const basePrompt = taskConfig.helpers?.translatePrompt?.[targetLanguageCode] ?? '';
 
-        if (targetPromptsIndex < 0) {
-          console.error("Unable to find prompt for selected language.");
-          return;
+        if (!prompt) {
+          console.error('Unable to find translate prompt for language ', targetLanguageCode);
         }
 
         // Construct the translate prompt
-        let tPrompt = prompts[targetPromptsIndex].translatePrompt.replace('{{ORIG_LANG_CODE}}', imageObj.descriptions[imageObj.activeDescriptionIndex].language);
+        let tPrompt = basePrompt.replace(
+          '{{ORIG_LANG_CODE}}',
+          imageObj.descriptions[imageObj.activeDescriptionIndex].language ?? 'unknown'
+        );
         tPrompt += '\n\n' + imageObj.descriptions[imageObj.activeDescriptionIndex].description;
 
         this.generateDescriptionTranslation(imageObj, tPrompt, targetLanguageCode);
@@ -360,28 +362,24 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   }
 
   private constructPromptTemplate(): string {
-    let promptTemplate: string = '';
-    const promptData: Prompt | undefined = prompts.find(p => p.languageCode === this.settings.selectedLanguage);
-    if (promptData) {
-      const selectedPromptOption = promptData.promptOptions.find((t: PromptOption) => t.type === this.settings.selectedPromptTemplate);
-      if (this.settings.selectedPromptTemplate === 'Transcription' && !this.settings.transcribeHeaders()) {
-        promptTemplate = selectedPromptOption?.alternativePrompt ?? '';
-      } else {
-        promptTemplate = selectedPromptOption?.prompt ?? '';
-      }
-      if (
-        this.settings.selectedPromptTemplate !== 'Transcription' &&
-        this.settings.includeFilename && promptTemplate
-      ) {
-        promptTemplate = promptTemplate + ' ' + promptData.filenamePrompt;
-      }
+    const taskConfig = this.settings.selectedTaskConfig();
+    const promptVariant = this.settings.selectedVariant();
+
+    let promptTemplate = promptVariant.prompt;
+    if (taskConfig.taskType === 'altText' && this.settings.includeFilename() && promptVariant.languageCode) {
+      const filenamePrompt = taskConfig.helpers?.filenamePrompt?.[promptVariant.languageCode] ?? '';
+      promptTemplate = promptTemplate + '\n\n' + filenamePrompt;
     }
+
     return promptTemplate;
   }
 
-  private constructPrompt(prontTemplate: string, imageObj: any): string {
-    let prompt: string = prontTemplate.replaceAll('{{DESC_LENGTH}}', String(this.settings.selectedDescLength));
-    if (this.settings.includeFilename && prompt) {
+  private constructPrompt(promptTemplate: string, imageObj: any): string {
+    let prompt: string = promptTemplate.replaceAll(
+      '{{DESC_LENGTH}}',
+      String(this.settings.selectedDescLength())
+    );
+    if (this.settings.includeFilename() && prompt) {
       prompt = prompt.replaceAll('{{FILENAME}}', imageObj.filename);
     }
     return prompt;

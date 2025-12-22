@@ -1,3 +1,6 @@
+import { TaskTypeId } from "../../assets/config/prompts";
+import { ModelId, ModelProvider } from "../../assets/config/models";
+
 // provider = name of model creator
 // name = display name of the model
 // id = the API id or name of the model
@@ -6,7 +9,7 @@
 // outputPrice = Either a flat price ($/1M tokens in model output) or a
 //               tiered price depending on token count.
 // rpm = max requests per minute the model accepts at current usage tier
-// default = (optional) boolean indicating which model is the default
+// supportedTaskTypes = array of task types the model can be used for
 // parameters = an object with model parameters:
 //     maxImageShortsidePx = (optional) max supported image short side
 //                           length in pixels, set to null for no limit,
@@ -17,13 +20,13 @@
 //                        `low`, `medium` and `high` depending on the model
 
 export interface Model {
-  provider: 'OpenAI';
+  provider: ModelProvider;
   name: string;
-  id: string;
+  id: ModelId;
   inputPrice: PricePerMTokens;
   outputPrice: PricePerMTokens;
   rpm: number;
-  default?: boolean;
+  supportedTaskTypes: TaskTypeId[];
   parameters?: ModelParameters;
 };
 

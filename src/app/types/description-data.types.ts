@@ -1,6 +1,8 @@
+import { LanguageCode } from "../../assets/config/prompts";
+
 export type DescriptionData = {
   description: string;
-  language: string;
+  language?: LanguageCode;
   model: string;
   inputTokens: number;
   outputTokens: number;

@@ -1,6 +1,6 @@
 <form [formGroup]="apiKeyFormGroup">
   <mat-form-field appearance="outline">
-    <mat-label>{{ modelProvider }} API key</mat-label>
+    <mat-label>{{ settings.selectedModel().provider }} API key</mat-label>
     <input matInput required
           [type]="hideApiKey ? 'password' : 'text'"
           formControlName="apiKeyFC"
