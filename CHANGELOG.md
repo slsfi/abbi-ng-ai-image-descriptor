@@ -48,6 +48,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### BREAKING CHANGES
 
 - The `reasoning` property of model objects has been replaced with `parameters.reasoningEffort`.
+- The shape of AI model and prompt definitions in `src/assets/config/models.ts` and `src/assets/config/prompts.ts` has been updated.
 
 
 
