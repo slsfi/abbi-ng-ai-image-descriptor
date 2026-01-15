@@ -23,6 +23,7 @@ export type ModelId = 'gpt-4.1-mini' | 'gpt-4.1' | 'gpt-5.2' | 'gemini-3-flash-p
 //                       `low`, `medium` and `high` depending on the model
 
 // OpenAI Responses API reference: https://platform.openai.com/docs/api-reference/responses/create
+// Google GenAI SDK for TypeScript and JavaScript: https://googleapis.github.io/js-genai/release_docs/index.html
 
 export const MODELS: Model[] = [
   {
