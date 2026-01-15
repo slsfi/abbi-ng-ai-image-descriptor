@@ -83,7 +83,7 @@ export class OpenAiService {
       .catch(async (err: any) => {
         if (err instanceof OpenAI.APIError) {
           console.error('API Error:', err);
-          return { error: { code: err.code ?? 400, message: err.message } };
+          return { error: { code: err.code ?? 400, message: err.message ?? 'OpenAI API error' } };
         } else {
           console.error('Unexpected Error:', err);
           return { error: { code: 500, message: 'Internal Server Error.' } };

@@ -35,6 +35,7 @@ export type Models = Model[];
 export interface ModelParameters {
   maxImageShortsidePx?: number | null;
   reasoningEffort?: string;
+  thinkingLevel?: string;
 }
 
 // A fixed price in USD per one million tokens, independent of token count.
