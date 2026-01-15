@@ -15,6 +15,8 @@ import { HeaderComponent } from './components/header/header.component';
 import { SettingsFormComponent } from './components/settings-form/settings-form.component';
 import { ImageListService } from './services/image-list.service';
 import { SettingsService } from './services/settings.service';
+import { ApiKeysService } from './services/api-keys.service';
+import { ModelProvider } from '../assets/config/models';
 
 @Component({
   selector: 'app-root',
@@ -36,6 +38,7 @@ export class AppComponent implements OnInit {
   private cdRef = inject(ChangeDetectorRef);
   private matIconReg = inject(MatIconRegistry);
   private ngZone = inject(NgZone);
+  private apiKeys = inject(ApiKeysService);
   imageListService = inject(ImageListService);
   settings = inject(SettingsService);
 
@@ -53,6 +56,32 @@ export class AppComponent implements OnInit {
   ngOnInit() {
     // Set Angular Material to use the new Material Symbols icon font.
     this.matIconReg.setDefaultFontSetClass('material-symbols-outlined');
+  }
+
+  onProviderChanged(provider: ModelProvider) {
+    const keyCtrl = this.apiKeyFormGroup?.get('apiKeyFC');
+    if (!keyCtrl) return;
+
+    const storedKey = this.apiKeys.getKey(provider);
+
+    if (storedKey) {
+      // Restore & immediately validate
+      keyCtrl.setValue(storedKey);
+      keyCtrl.markAsTouched();
+      keyCtrl.updateValueAndValidity(); // triggers async validator
+    } else {
+      // Clear
+      keyCtrl.reset('');
+      keyCtrl.markAsPristine();
+      keyCtrl.markAsUntouched();
+      this.apiKeyFormGroup?.updateValueAndValidity({ emitEvent: true });
+    }
+  }
+
+  onApiKeyValidated(apiKey: string) {
+    const provider = this.settings.selectedModel().provider as ModelProvider;
+    this.apiKeys.setKey(provider, apiKey);
+    this.apiKeys.markValidated(provider);
   }
 
   setApiKeyFormGroup(formGroup: FormGroup): void {

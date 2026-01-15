@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Output, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -12,6 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { UpperFirstLetterPipe } from '../../pipes/upper-first-letter.pipe';
 import { SettingsService } from '../../services/settings.service';
 import { Model } from '../../types/model.types';
+import { ModelProvider } from '../../../assets/config/models';
 import { TaskTypeId } from '../../../assets/config/prompts';
 
 @Component({
@@ -33,6 +34,8 @@ import { TaskTypeId } from '../../../assets/config/prompts';
 })
 export class SettingsFormComponent {
   settings = inject(SettingsService);
+
+  @Output() providerChanged = new EventEmitter<ModelProvider>();
 
   transcribeHeaders = signal<boolean>(true);
 
@@ -64,7 +67,14 @@ export class SettingsFormComponent {
   }
 
   setModel(model: Model): void {
+    const prevProvider = this.settings.selectedModel().provider;
+
     this.settings.updateSelectedModel(model);
+
+    const nextProvider = model.provider;
+    if (nextProvider !== prevProvider) {
+      this.providerChanged.emit(nextProvider);
+    }
   }
 
   setTaskType(type: TaskTypeId): void {

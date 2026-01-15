@@ -52,7 +52,7 @@ export const TASK_CONFIGS: TaskTypeConfig[] = [
       singular: 'transcription',
       plural: 'transcriptions'
     },
-    defaultModel: 'gpt-5.2',
+    defaultModel: 'gemini-3-pro-preview',
     variants: [
       {
         id: 'default',
