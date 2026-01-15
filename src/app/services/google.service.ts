@@ -24,8 +24,10 @@ export class GoogleService {
     if (apiKey !== this.apiKey) {
       this.apiKey = apiKey;
       this.client = new GoogleGenAI({
-        apiKey: apiKey,
-        apiVersion: 'v1'
+        apiKey: apiKey
+        // NOTE: Do not force apiVersion to 'v1'.
+        // Preview models (e.g. Gemini 3 Pro Preview) require v1beta
+        // for thinkingConfig and mediaResolution.
       });
     }
   }
