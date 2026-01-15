@@ -7,7 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { catchError, debounceTime, Observable, of, Subscription, switchMap } from 'rxjs';
 
 import { FileInputComponent } from '../file-input/file-input.component';
-import { OpenAiService } from '../../services/openai.service';
+import { AiService } from '../../services/ai.service';
 import { SettingsService } from '../../services/settings.service';
 
 @Component({
@@ -26,9 +26,10 @@ import { SettingsService } from '../../services/settings.service';
 })
 export class ApiKeyFormComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
-  private openaiService = inject(OpenAiService);
+  private aiService = inject(AiService);
   readonly settings = inject(SettingsService);
 
+  @Output() apiKeyValidated = new EventEmitter<string>();
   @Output() formGroupOutput = new EventEmitter<FormGroup>();
 
   apiKeyFormGroup: FormGroup;
@@ -60,7 +61,7 @@ export class ApiKeyFormComponent implements OnInit, OnDestroy {
       this.formGroupOutput.emit(this.apiKeyFormGroup);
     });
 
-    // Update the API key and OpenAI client in the OpenaiService
+    // Update the API key and AI client in the AiService
     // when the value of the API key form field changes and the
     // entered key is valid.
     this.formControlChangeSubscr = this.apiKeyFC?.statusChanges.subscribe(status => {
@@ -69,7 +70,9 @@ export class ApiKeyFormComponent implements OnInit, OnDestroy {
           this.apiKeyValidationMessage = 'Validating API key ...';
         } else if (status === 'VALID') {
           this.apiKeyValidationMessage = 'The API key is valid.';
-          this.openaiService.updateClient(this.apiKeyFC.value as string);
+          const key = (this.apiKeyFC.value ?? '').trim();
+          this.aiService.updateClient(key);
+          this.apiKeyValidated.emit(key);
         } else {
           this.apiKeyValidationMessage = null;
         }
@@ -98,7 +101,7 @@ export class ApiKeyFormComponent implements OnInit, OnDestroy {
     if (!control.value) {
       return of(null);
     }
-    return this.openaiService.isValidApiKey(control.value).pipe(
+    return this.aiService.isValidApiKey(control.value).pipe(
       debounceTime(500),
       switchMap(isValid => {
         return isValid ? of(null) : of({ invalidApiKey: true });
