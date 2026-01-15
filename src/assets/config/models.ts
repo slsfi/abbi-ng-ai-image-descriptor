@@ -1,8 +1,8 @@
 import { Model } from '../../app/types/model.types'
 import { TaskTypeId } from './prompts';
 
-export type ModelProvider = 'OpenAI';
-export type ModelId = 'gpt-4.1-mini' | 'gpt-4.1' | 'gpt-5.2';
+export type ModelProvider = 'OpenAI' | 'Google';
+export type ModelId = 'gpt-4.1-mini' | 'gpt-4.1' | 'gpt-5.2' | 'gemini-3-pro-preview';
 
 // provider = name of model creator
 // name = display name of the model
@@ -53,6 +53,19 @@ export const MODELS: Model[] = [
     supportedTaskTypes: ['altText', 'transcription'],
     parameters: {
       reasoningEffort: 'none'
+    }
+  },
+  {
+    provider: 'Google',
+    name: 'Gemini 3 Pro',
+    id: 'gemini-3-pro-preview',
+    inputPrice: { tiers: [{ upToTokens: 200000, per1M: 2.00 }, { upToTokens: null, per1M: 4.00 }] },
+    outputPrice: { tiers: [{ upToTokens: 200000, per1M: 12.00 }, { upToTokens: null, per1M: 18.00 }] },
+    rpm: 5000,
+    supportedTaskTypes: ['altText', 'transcription'],
+    parameters: {
+      thinkingLevel: 'low',
+      maxImageShortsidePx: null
     }
   }
 ];

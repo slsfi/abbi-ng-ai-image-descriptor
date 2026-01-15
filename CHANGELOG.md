@@ -16,7 +16,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Normalisation of characters in descriptions.
 - Ability to zoom image when editing generated description.
 - Property `parameters.maxImageShortsidePx` to the model object to allow configuration of the size of images in prompts. The value defaults to `768` if omitted. Setting the value to `null` means that the images are not resized.
-- Support for tiered model pricing.
+- Support for tiered model pricing. `inputPrice` and `outputPrice` of models can be expressed as either flat prices per 1 million tokens (old behaviour), or as ordered tiers. Each tier defines a price per one million tokens up to a given token limit; the final tier (upToTokens: null) applies to all higher token counts. There must be at least one tier – the `upToTokens: null` – tier, and the tiers must be ordered according to the `upToTokens` value. The "null-tier" must be the last tier. Example:
+
+```typescript
+  inputPrice: { tiers: [{ upToTokens: 200000, per1M: 2.00 }, { upToTokens: null, per1M: 4.00 }] },
+  outputPrice: { tiers: [{ upToTokens: 200000, per1M: 12.00 }, { upToTokens: null, per1M: 18.00 }] },
+```
 
 ### Changed
 
