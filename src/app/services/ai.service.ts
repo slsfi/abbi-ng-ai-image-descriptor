@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { RequestSettings } from '../types/settings.types';
 import { OpenAiService } from './openai.service';
+import { AiResult } from '../types/ai.types';
+import { RequestSettings } from '../types/settings.types';
 
 /**
  * Facade service for AI providers.
@@ -21,12 +22,12 @@ export class AiService {
     return this.openAi.isValidApiKey(apiKey);
   }
 
-  describeImage(settings: RequestSettings, prompt: string, base64Image: string): Promise<any> {
+  describeImage(settings: RequestSettings, prompt: string, base64Image: string): Promise<AiResult> {
     return this.openAi.describeImage(settings, prompt, base64Image);
   }
 
   // Keep the same method name for now to avoid churn.
-  responsesTextTask(settings: RequestSettings, prompt: string): Promise<any> {
+  responsesTextTask(settings: RequestSettings, prompt: string): Promise<AiResult> {
     return this.openAi.responsesTextTask(settings, prompt);
   }
 }

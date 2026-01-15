@@ -92,22 +92,22 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     const prompt: string = this.constructPrompt(promptTemplate, imageObj);
 
     try {
-      const response = await this.aiService.describeImage(settings, prompt, imageObj.base64Image);
-      // console.log(response);
+      const result = await this.aiService.describeImage(settings, prompt, imageObj.base64Image);
+      // console.log(result);
+      const respContent = result?.text ?? '';
 
-      const respContent = response?.output_text ?? '';
-      if (!respContent && response?.error) {
-        const e = response.error;
+      if (!respContent && result?.error) {
+        const e = result.error;
         const eMessage = `Error communicating with the ${settings.model.provider} API: ${e.message}`;
         this.showAPIErrorMessage(eMessage);
       } else {
-        const cost = this.costService.updateCostFromResponse(settings.model, response?.usage);
+        const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
         const newDescription: DescriptionData = {
           description: this.exportService.normaliseCharacters(respContent),
           language: settings.language,
           model: settings.model?.id ?? '',
-          inputTokens: response?.usage?.input_tokens ?? 0,
-          outputTokens: response?.usage?.output_tokens ?? 0,
+          inputTokens: result?.usage?.inputTokens ?? 0,
+          outputTokens: result?.usage?.outputTokens ?? 0,
           cost: cost
         };
         imageObj.descriptions.push(newDescription);
@@ -147,23 +147,23 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       const prompt: string = this.constructPrompt(promptTemplate, imageObj);
 
       try {
-        const response = await this.aiService.describeImage(settings, prompt, imageObj.base64Image);
+        const result = await this.aiService.describeImage(settings, prompt, imageObj.base64Image);
         // console.log(response);
+        const respContent = result?.text ?? '';
 
-        const respContent = response?.output_text ?? '';
-        if (!respContent && response?.error) {
-          const e = response.error;
+        if (!respContent && result?.error) {
+          const e = result.error;
           const eMessage = `Error communicating with the ${settings.model.provider} API: ${e.message}`;
           this.showAPIErrorMessage(eMessage);
           this.generating = false;
         } else {
-          const cost = this.costService.updateCostFromResponse(settings.model, response?.usage);
+          const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
           const newDescription: DescriptionData = {
             description: this.exportService.normaliseCharacters(respContent),
             language: settings.language,
             model: settings.model?.id ?? '',
-            inputTokens: response?.usage?.input_tokens ?? 0,
-            outputTokens: response?.usage?.output_tokens ?? 0,
+            inputTokens: result?.usage?.inputTokens ?? 0,
+            outputTokens: result?.usage?.outputTokens ?? 0,
             cost: cost
           };
           imageObj.descriptions.push(newDescription);
@@ -188,22 +188,22 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     const settings: RequestSettings = this.settings.getSettings();
 
     try {
-      const response = await this.aiService.responsesTextTask(settings, prompt);
+      const result = await this.aiService.responsesTextTask(settings, prompt);
       // console.log(response);
+      const respContent = result?.text ?? '';
 
-      const respContent = response?.output_text ?? '';
-      if (!respContent && response?.error) {
-        const e = response.error;
+      if (!respContent && result?.error) {
+        const e = result.error;
         const eMessage = `Error communicating with the ${settings.model?.provider} API: ${e.code} ${e.message}`;
         this.showAPIErrorMessage(eMessage);
       } else {
-        const cost = this.costService.updateCostFromResponse(settings.model, response?.usage);
+        const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
         const newDescription: DescriptionData = {
           description: this.exportService.normaliseCharacters(respContent),
           language: targetLanguageCode,
           model: settings.model?.id ?? '',
-          inputTokens: response?.usage?.input_tokens ?? 0,
-          outputTokens: response?.usage?.output_tokens ?? 0,
+          inputTokens: result?.usage?.inputTokens ?? 0,
+          outputTokens: result?.usage?.outputTokens ?? 0,
           cost: cost
         };
         imageObj.descriptions.push(newDescription);

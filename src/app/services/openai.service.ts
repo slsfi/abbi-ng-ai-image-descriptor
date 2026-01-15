@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { from, Observable } from 'rxjs';
 import OpenAI from 'openai';
 
+import { AiResult } from '../types/ai.types';
 import { RequestSettings } from '../types/settings.types';
 
 @Injectable({
@@ -40,10 +41,10 @@ export class OpenAiService {
     );
   }
 
-  async describeImage(settings: RequestSettings, prompt: string, base64Image: string): Promise<any> {
+  async describeImage(settings: RequestSettings, prompt: string, base64Image: string): Promise<AiResult> {
     // console.log('Prompt:', prompt);
     if (!prompt) {
-      return { error: { status: 400, message: 'Missing prompt' }};
+      return { text: '', error: { code: 400, message: 'Missing prompt' } };
     }
 
     let max_tokens = null;
@@ -77,23 +78,35 @@ export class OpenAiService {
     };
     // console.log(payload);
 
-    const response = await this.client.responses
+    const raw = await this.client.responses
       .create(payload)
       .catch(async (err: any) => {
         if (err instanceof OpenAI.APIError) {
           console.error('API Error:', err);
-          return { error: { code: err.code ?? 400, message: err.message }};
+          return { error: { code: err.code ?? 400, message: err.message } };
         } else {
           console.error('Unexpected Error:', err);
-          return { error: { code: 500, message: 'Internal Server Error.' }};
+          return { error: { code: 500, message: 'Internal Server Error.' } };
         }
       });
-    return response;
+
+    if (raw?.error) {
+      return { text: '', error: raw.error, raw };
+    }
+
+    return {
+      text: raw?.output_text ?? '',
+      usage: {
+        inputTokens: raw?.usage?.input_tokens ?? 0,
+        outputTokens: raw?.usage?.output_tokens ?? 0
+      },
+      raw
+    };
   }
 
-  async responsesTextTask(settings: RequestSettings, prompt: string): Promise<any> {
+  async responsesTextTask(settings: RequestSettings, prompt: string): Promise<AiResult> {
     if (!prompt) {
-      return { error: { code: 400, message: 'Missing prompt.' }};
+      return { text: '', error: { code: 400, message: 'Missing prompt.' } };
     }
 
     const reasoningEffort: string | null = settings.model.parameters?.reasoningEffort ?? null;
@@ -105,17 +118,29 @@ export class OpenAiService {
     };
     // console.log(payload);
 
-    const response = await this.client.responses
+    const raw = await this.client.responses
       .create(payload)
       .catch(async (err: any) => {
         if (err instanceof OpenAI.APIError) {
           console.error('API Error:', err);
-          return { error: { code: err.code ?? 400, message: err.message }};
+          return { error: { code: err.code ?? 400, message: err.message } };
         } else {
           console.error('Unexpected Error:', err);
           return { error: { code: 500, message: 'Internal Server Error.' }};
         }
       });
-    return response;
+    
+    if (raw?.error) {
+      return { text: '', error: raw.error, raw };
+    }
+
+    return {
+      text: raw?.output_text ?? '',
+      usage: {
+        inputTokens: raw?.usage?.input_tokens ?? 0,
+        outputTokens: raw?.usage?.output_tokens ?? 0
+      },
+      raw
+    };
   }
 }
