@@ -12,6 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { UpperFirstLetterPipe } from '../../pipes/upper-first-letter.pipe';
 import { SettingsService } from '../../services/settings.service';
 import { Model } from '../../types/model.types';
+import { ModelProvider } from '../../../assets/config/models';
 import { TaskTypeId } from '../../../assets/config/prompts';
 
 @Component({
@@ -34,7 +35,7 @@ import { TaskTypeId } from '../../../assets/config/prompts';
 export class SettingsFormComponent {
   settings = inject(SettingsService);
 
-  @Output() providerChanged = new EventEmitter<void>();
+  @Output() providerChanged = new EventEmitter<ModelProvider>();
 
   transcribeHeaders = signal<boolean>(true);
 
@@ -72,7 +73,7 @@ export class SettingsFormComponent {
 
     const nextProvider = model.provider;
     if (nextProvider !== prevProvider) {
-      this.providerChanged.emit();
+      this.providerChanged.emit(nextProvider);
     }
   }
 

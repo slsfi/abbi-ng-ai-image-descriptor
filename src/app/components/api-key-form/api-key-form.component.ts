@@ -29,6 +29,7 @@ export class ApiKeyFormComponent implements OnInit, OnDestroy {
   private aiService = inject(AiService);
   readonly settings = inject(SettingsService);
 
+  @Output() apiKeyValidated = new EventEmitter<string>();
   @Output() formGroupOutput = new EventEmitter<FormGroup>();
 
   apiKeyFormGroup: FormGroup;
@@ -69,7 +70,9 @@ export class ApiKeyFormComponent implements OnInit, OnDestroy {
           this.apiKeyValidationMessage = 'Validating API key ...';
         } else if (status === 'VALID') {
           this.apiKeyValidationMessage = 'The API key is valid.';
-          this.aiService.updateClient(this.apiKeyFC.value as string);
+          const key = (this.apiKeyFC.value ?? '').trim();
+          this.aiService.updateClient(key);
+          this.apiKeyValidated.emit(key);
         } else {
           this.apiKeyValidationMessage = null;
         }
