@@ -1,6 +1,6 @@
 # aBBi – AI-generated image descriptions
 
-aBBi (“AI-bildbeskrivningar”) is a web app for generating image descriptions (e.g. alt texts) using AI. It currently supports OpenAI models with vision capabilities. You need an OpenAI API key to use the tool. It is a frontend app without the need of a backend.
+aBBi (“AI-bildbeskrivningar”) is a web app for generating image descriptions (e.g. alt texts) using AI. It currently supports OpenAI and Google models with vision capabilities. You need an OpenAI or Google API key to use the tool. It is a frontend app without the need of a backend.
 
 The app is built on [Angular][angular] and uses [Angular Material][material] web components.
 
@@ -94,7 +94,7 @@ npm install
 
 ### Modifying available AI-models, languages and prompt types
 
-The available AI-models are defined in [`src/assets/config/models.ts`][models.ts]. Currently, only OpenAI models are supported.
+The available AI-models are defined in [`src/assets/config/models.ts`][models.ts]. Currently, OpenAI and Google (Gemini) models are supported.
 
 The available description languages and prompt types are defined in [`src/assets/config/prompts.ts`][prompts.ts]. In the prompt templates, the strings `{{FILENAME}}` and `{{DESC_LENGTH}}` are replaced with the image filename and desired approximate description length, respectively.
 

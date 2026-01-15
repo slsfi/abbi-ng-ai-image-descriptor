@@ -57,11 +57,11 @@ export const MODELS: Model[] = [
   },
   {
     provider: 'Google',
-    name: 'Gemini 3 Pro',
+    name: 'Gemini 3 Pro Preview',
     id: 'gemini-3-pro-preview',
     inputPrice: { tiers: [{ upToTokens: 200000, per1M: 2.00 }, { upToTokens: null, per1M: 4.00 }] },
     outputPrice: { tiers: [{ upToTokens: 200000, per1M: 12.00 }, { upToTokens: null, per1M: 18.00 }] },
-    rpm: 5000,
+    rpm: 25,
     supportedTaskTypes: ['altText', 'transcription'],
     parameters: {
       thinkingLevel: 'low',
