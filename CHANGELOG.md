@@ -36,7 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Improve alt text prompt structure.
 - Decouple prompts by task type, move model compatibility to models, and replace BehaviorSubjects with signals.
 - Deps: update `@angular/cli`, `@angular/core`, `@angular/cdk` and `@angular/material` to 21.1.0.
-- Deps: update `openai` to 6.15.0.
+- Deps: update `openai` to 6.16.0.
 - Deps: update `zone.js` t0 0.16.0.
 
 ### Fixed
