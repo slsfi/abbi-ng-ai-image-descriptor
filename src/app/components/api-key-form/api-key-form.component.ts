@@ -60,7 +60,7 @@ export class ApiKeyFormComponent implements OnInit, OnDestroy {
       this.formGroupOutput.emit(this.apiKeyFormGroup);
     });
 
-    // Update the API key and OpenAI client in the OpenaiService
+    // Update the API key and AI client in the AiService
     // when the value of the API key form field changes and the
     // entered key is valid.
     this.formControlChangeSubscr = this.apiKeyFC?.statusChanges.subscribe(status => {

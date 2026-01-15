@@ -55,6 +55,14 @@ export class AppComponent implements OnInit {
     this.matIconReg.setDefaultFontSetClass('material-symbols-outlined');
   }
 
+  invalidateApiKey() {
+    const keyControl = this.apiKeyFormGroup?.get('apiKeyFC');
+    keyControl?.reset(''); // empty => required invalid
+    keyControl?.markAsPristine();
+    keyControl?.markAsUntouched();
+    this.apiKeyFormGroup?.updateValueAndValidity({ emitEvent: true });
+  }
+
   setApiKeyFormGroup(formGroup: FormGroup): void {
     // Wrap the updating of the form group in ngZone and manually
     // trigger change detection to avoid

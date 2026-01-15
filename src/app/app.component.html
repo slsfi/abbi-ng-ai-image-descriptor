@@ -17,7 +17,7 @@
       <!-- Step 1: Configure settings -->
       <mat-step label="Configure settings">
         <h2>Configure settings</h2>
-        <settings-form></settings-form>
+        <settings-form (providerChanged)="invalidateApiKey()"></settings-form>
         <div class="stepper-nav">
           <button mat-button color="primary" matStepperNext>Next</button>
         </div>

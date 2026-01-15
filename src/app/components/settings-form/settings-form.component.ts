@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Output, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -34,6 +34,8 @@ import { TaskTypeId } from '../../../assets/config/prompts';
 export class SettingsFormComponent {
   settings = inject(SettingsService);
 
+  @Output() providerChanged = new EventEmitter<void>();
+
   transcribeHeaders = signal<boolean>(true);
 
   descLengthMax: number = 300;
@@ -64,7 +66,14 @@ export class SettingsFormComponent {
   }
 
   setModel(model: Model): void {
+    const prevProvider = this.settings.selectedModel().provider;
+
     this.settings.updateSelectedModel(model);
+
+    const nextProvider = model.provider;
+    if (nextProvider !== prevProvider) {
+      this.providerChanged.emit();
+    }
   }
 
   setTaskType(type: TaskTypeId): void {
