@@ -5,10 +5,15 @@
   <div class="generate-desc-wrapper" [class.hide]="!o.imageList?.length">
     <div class="buttons-row">
       <button matButton="filled"
-        color="primary"
         (click)="generateImageDescriptionsAll()"
         [disabled]="generating || !o.imageList?.length"
       >Generate all ({{ o.imageList?.length ?? 0 }} {{ ((o.imageList?.length ?? 2) > 1) ? 'images' : 'image' }})</button>
+      @if (selectedTaskType === 'transcription') {
+        <button matButton="outlined"
+          (click)="teiEncodeDescriptionsAll()"
+          [disabled]="generating || !o.imageList?.length || !(o.imageList | allImagesDescribed)"
+        >TEI encode all </button>
+      }
       <div class="cost right-aligned">Cumulative cost: ${{ this.costService.cumulativeCost() | number }}</div>
     </div>
     <div class="buttons-row">
@@ -19,8 +24,7 @@
         @if (exporting) { Exporting {{ taskNoun.plural }}... } @else { Export {{ taskNoun.plural }} }
       </button>
       <button matButton="outlined"
-        class="right-aligned"
-        color="warn"
+        class="right-aligned warn-button"
         [disabled]="generating || !o.imageList?.length"
         (click)="removeAllImages()"
       >Remove all</button>
@@ -42,7 +46,7 @@
             <div class="desc-data">
               @if (file.generating) {
                 <span class="loading-wrapper">
-                  <mat-spinner [diameter]="32"></mat-spinner><span class="spinner-label">Generating {{ taskNoun.singular }}...</span>
+                  <mat-spinner [diameter]="32"></mat-spinner><span class="spinner-label">Generating {{ teiEncoding() ? 'TEI encoding' : taskNoun.singular }}...</span>
                 </span>
               } @else if (file.descriptions.length < 1) {
                 <span class="no-desc">No {{ taskNoun.singular }} generated.</span>
@@ -100,6 +104,16 @@
                       <mat-icon>translate</mat-icon>
                     </button>
                   }
+                  @if (selectedTaskType === 'transcription') {
+                    <button matIconButton color="primary"
+                      [matTooltip]="`TEI encode ${taskNoun.singular}`"
+                      class="tei-encode-button"
+                      [attr.aria-label]="`TEI encode ${taskNoun.singular}`"
+                      (click)="teiEncodeDescription(file)"
+                    >
+                      <mat-icon>integration_instructions</mat-icon>
+                    </button>
+                  }
                   <button matIconButton
                     [matTooltip]="`Delete ${taskNoun.singular}`"
                     class="delete-button"
@@ -125,7 +139,7 @@
               [disabled]="generating"
             >{{ file.descriptions.length > 0 ? 'Regenerate' : 'Generate' }}</button>
             <button matButton="outlined"
-              color="warn"
+              class="warn-button"
               (click)="removeImage(file)"
               [disabled]="generating"
             >Remove image</button>

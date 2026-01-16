@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, DestroyRef, inject, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -18,6 +18,7 @@ import { ConfirmActionDialogComponent } from '../confirm-action-dialog/confirm-a
 import { EditDescriptionDialogComponent } from '../edit-description-dialog/edit-description-dialog.component';
 import { ExportDialogComponent } from '../export-dialog/export-dialog.component';
 import { TranslateDescriptionDialogComponent } from '../translate-description-dialog/translate-description-dialog.component';
+import { AllImagesDescribedPipe } from '../../pipes/all-images-described.pipe';
 import { CharacterCountPipe } from '../../pipes/character-count.pipe';
 import { AiService } from '../../services/ai.service';
 import { CostService } from '../../services/cost.service';
@@ -45,6 +46,7 @@ import { LanguageCode } from '../../../assets/config/prompts';
     MatSelectModule,
     MatTableModule,
     MatTooltipModule,
+    AllImagesDescribedPipe,
     CharacterCountPipe
   ],
   templateUrl: './generate-descriptions.component.html',
@@ -66,6 +68,8 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   exporting: boolean = false;
   generating: boolean = false;
 
+  teiEncoding = signal<boolean>(false);
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   ngOnInit(): void {
@@ -84,12 +88,19 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     this.matTableDataSource.paginator = this.paginator;
   }
 
-  async generateImageDescription(imageObj: ImageData) {
+  async generateImageDescription(imageObj: ImageData, prompt?: string, teiEncode: boolean = false) {
     imageObj.generating = true;
     this.generating = true;
+    if (teiEncode) {
+      this.teiEncoding.set(true);
+    }
+
     const settings: RequestSettings = this.settings.getSettings();
-    const promptTemplate: string = this.constructPromptTemplate();
-    const prompt: string = this.constructPrompt(promptTemplate, imageObj);
+
+    if (!prompt) {
+      const promptTemplate: string = this.constructPromptTemplate();
+      prompt = this.constructPrompt(promptTemplate, imageObj);
+    }
 
     try {
       const result = await this.aiService.describeImage(settings, prompt, imageObj.base64Image);
@@ -103,12 +114,13 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       } else {
         const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
         const newDescription: DescriptionData = {
-          description: this.exportService.normaliseCharacters(respContent),
+          description: this.exportService.normaliseCharacters(respContent, teiEncode),
           language: settings.language,
           model: settings.model?.id ?? '',
           inputTokens: result?.usage?.inputTokens ?? 0,
           outputTokens: result?.usage?.outputTokens ?? 0,
-          cost: cost
+          cost: cost,
+          teiEncoded: teiEncode
         };
         imageObj.descriptions.push(newDescription);
         imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
@@ -119,13 +131,21 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     } finally {
       imageObj.generating = false;
       this.generating = false;
+      this.teiEncoding.set(false);
     }
   }
 
-  async generateImageDescriptionsAll() {
+  async generateImageDescriptionsAll(teiEncode: boolean = false) {
     this.generating = true;
+    if (teiEncode) {
+      this.teiEncoding.set(true);
+    }
+
     const settings: RequestSettings = this.settings.getSettings();
-    const promptTemplate: string = this.constructPromptTemplate();
+
+    const promptTemplate = teiEncode
+      ? this.getTeiEncodePromptTemplate()
+      : this.constructPromptTemplate();
 
     let snackBarRef = null;
     let counter = 0;
@@ -146,13 +166,15 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
       counter++;
       snackBarRef?.dismiss();
-      snackBarRef = this.snackBar.open(`Generating ${this.settings.taskNouns().singular} ${counter}/${this.imageListService.imageList.length}`, 'Stop');
+      snackBarRef = this.snackBar.open(`Generating ${this.teiEncoding() ? 'TEI encoding' : this.settings.taskNouns().singular} ${counter}/${this.imageListService.imageList.length}`, 'Stop');
       snackBarRef.onAction().subscribe(() => {
         this.generating = false;
       });
 
       imageObj.generating = true;
-      const prompt: string = this.constructPrompt(promptTemplate, imageObj);
+      const prompt: string = teiEncode
+        ? this.getTeiEncodePromptForImage(promptTemplate, imageObj)
+        : this.constructPrompt(promptTemplate, imageObj);
 
       try {
         const result = await this.aiService.describeImage(settings, prompt, imageObj.base64Image);
@@ -167,12 +189,13 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         } else {
           const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
           const newDescription: DescriptionData = {
-            description: this.exportService.normaliseCharacters(respContent),
+            description: this.exportService.normaliseCharacters(respContent, teiEncode),
             language: settings.language,
             model: settings.model?.id ?? '',
             inputTokens: result?.usage?.inputTokens ?? 0,
             outputTokens: result?.usage?.outputTokens ?? 0,
-            cost: cost
+            cost: cost,
+            teiEncoded: teiEncode
           };
           imageObj.descriptions.push(newDescription);
           imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
@@ -181,12 +204,14 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         console.error(e);
         this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model.provider} API.`);
         this.generating = false;
+        this.teiEncoding.set(false);
       } finally {
         imageObj.generating = false;
       }
     }
   
     this.generating = false;
+    this.teiEncoding.set(false);
     snackBarRef?.dismiss();
   }
 
@@ -224,6 +249,27 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       imageObj.generating = false;
       this.generating = false;
     }
+  }
+
+  async teiEncodeDescription(imageObj: ImageData) {
+    const promptTemplate = this.getTeiEncodePromptTemplate();
+    const prompt = this.getTeiEncodePromptForImage(promptTemplate, imageObj);
+
+    if (prompt) {
+      this.generateImageDescription(imageObj, prompt, true);
+    } else {
+      const snackBarRef = this.snackBar.open('Undefined prompt for TEI encoding transcription.', 'Dismiss', {
+        duration: undefined,
+        panelClass: 'snackbar-error'
+      });
+      snackBarRef?.onAction().subscribe(() => {
+        snackBarRef.dismiss();
+      });
+    }
+  }
+
+  async teiEncodeDescriptionsAll() {
+    this.generateImageDescriptionsAll(true);
   }
 
   removeImage(imageObj: ImageData): void {
@@ -422,6 +468,19 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       await this.sleep(waitMs);
     }
     return Date.now();
+  }
+
+  private getTeiEncodePromptTemplate(): string {
+    const taskConfig = this.settings.selectedTaskConfig();
+    return taskConfig.helpers?.teiEncodePrompt ?? '';
+  }
+
+  private getTeiEncodePromptForImage(promptTemplate: string, imageObj: ImageData): string {
+    const transcription = imageObj.descriptions[imageObj.activeDescriptionIndex];
+    return promptTemplate.replaceAll(
+      '{{AI_TRANSCIPTION}}',
+      transcription.description
+    );
   }
 
 }

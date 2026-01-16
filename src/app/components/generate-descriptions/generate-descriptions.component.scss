@@ -1,3 +1,5 @@
+@use '@angular/material' as mat;
+
 .generate-desc-wrapper {
   &.hide {
     display: none;
@@ -142,7 +144,7 @@ td {
         }
 
         &.delete-button mat-icon {
-          color: #df0000;
+          color: #A82424;
         }
       }
     }
@@ -183,4 +185,12 @@ td {
       margin-top: 0.5rem;
     }
   }
+}
+
+.warn-button {
+  @include mat.button-overrides((
+    outlined-label-text-color: #A82424,
+    outlined-outline-color: #A82424,
+    outlined-state-layer-color: #b81515
+  ));
 }
