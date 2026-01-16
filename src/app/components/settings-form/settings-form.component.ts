@@ -9,6 +9,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatSlideToggleChange, MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+import { PricePerMTokensPipe } from '../../pipes/price-per-m-tokens.pipe';
 import { UpperFirstLetterPipe } from '../../pipes/upper-first-letter.pipe';
 import { SettingsService } from '../../services/settings.service';
 import { Model } from '../../types/model.types';
@@ -27,6 +28,7 @@ import { TaskTypeId } from '../../../assets/config/prompts';
     MatSliderModule,
     MatSlideToggleModule,
     MatTooltipModule,
+    PricePerMTokensPipe,
     UpperFirstLetterPipe
   ],
   templateUrl: './settings-form.component.html',

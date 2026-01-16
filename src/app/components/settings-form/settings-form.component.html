@@ -1,3 +1,4 @@
+@let model = settings.selectedModel();
 @let selectedTaskTypeValue = settings.selectedTaskType();
 @let selectedTaskVariants = settings.selectedTaskConfig().variants;
 
@@ -120,7 +121,7 @@
       <mat-form-field appearance="outline">
         <mat-label>AI-model</mat-label>
         <mat-select
-              [value]="settings.selectedModel()"
+              [value]="model"
               (valueChange)="setModel($event)"
               name="model"
         >
@@ -157,6 +158,52 @@
             >
           </mat-slider>
         </div>
+      </div>
+    </mat-expansion-panel>
+
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          Model details
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <div class="model-details-wrapper">
+        <h4>{{ model.name }} ({{ model.provider }})</h4>
+        @if (model.description) {
+          <p>{{ model.description }}</p>
+        }
+        <table>
+          <tbody>
+            <tr>
+              <th scope="row">ID:</th>
+              <td>{{ model.id }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Input price:</th>
+              <td>
+                @for (line of model.inputPrice | pricePerMTokens; track $index) {
+                  <div>{{ line }}</div>
+                }
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Output price:</th>
+              <td>
+                @for (line of model.outputPrice | pricePerMTokens; track $index) {
+                  <div>{{ line }}</div>
+                }
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">RPM:</th>
+              <td>{{ model.rpm }}</td>
+            </tr>
+            <tr>
+              <th scope="row">URL:</th>
+              <td><a [href]="model.url" target="_blank"><mat-icon>open_in_new</mat-icon></a></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </mat-expansion-panel>
   </div>
