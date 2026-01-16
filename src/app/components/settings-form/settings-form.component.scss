@@ -72,3 +72,31 @@ mat-slide-toggle.mat-mdc-slide-toggle {
     }
   }
 }
+
+.model-details-wrapper {
+  font-size: 0.875em;
+
+  h4 {
+    font-weight: 500;
+    margin-top: 0;
+  }
+
+  table {
+    border-spacing: 0;
+  }
+  th, td {
+    vertical-align: top;
+  }
+  th {
+    font-weight: 500;
+    text-align: left;
+    padding-right: 0.5em;
+  }
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+    vertical-align: text-bottom;
+  }
+}

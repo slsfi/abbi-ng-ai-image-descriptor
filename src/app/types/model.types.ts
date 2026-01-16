@@ -10,6 +10,8 @@ import { ModelId, ModelProvider } from "../../assets/config/models";
 //               tiered price depending on token count.
 // rpm = max requests per minute the model accepts at current usage tier
 // supportedTaskTypes = array of task types the model can be used for
+// url = URL to details about the model
+// description = short description of the model
 // parameters = an object with model parameters:
 //     maxImageShortsidePx = (optional) max supported image short side
 //                           length in pixels, set to null for no limit,
@@ -27,6 +29,8 @@ export interface Model {
   outputPrice: PricePerMTokens;
   rpm: number;
   supportedTaskTypes: TaskTypeId[];
+  url: string;
+  description?: string;
   parameters?: ModelParameters;
 };
 
