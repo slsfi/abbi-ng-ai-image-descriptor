@@ -130,9 +130,17 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     let snackBarRef = null;
     let counter = 0;
 
+    let lastRequestAt: number | null = null;
+
     for (const imageObj of this.imageListService.imageList) {
       if (!this.generating) {
         // Generation has been stopped by user
+        break;
+      }
+
+      // Throttle (only when rpm < 100)
+      lastRequestAt = await this.enforceRpm(settings.model?.rpm, lastRequestAt);
+      if (!this.generating) {
         break;
       }
 
@@ -393,6 +401,27 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     snackBarRef?.onAction().subscribe(() => {
       snackBarRef.dismiss();
     });
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private async enforceRpm(rpm: number | undefined, lastAt: number | null): Promise<number> {
+    // only throttle low-RPM models
+    if (!rpm || rpm >= 100) {
+      return Date.now();
+    }
+    const minIntervalMs = Math.ceil(60000 / rpm);
+
+    const now = Date.now();
+    const elapsed = lastAt === null ? Infinity : (now - lastAt);
+    const waitMs = Math.max(0, minIntervalMs - elapsed);
+
+    if (waitMs > 0) {
+      await this.sleep(waitMs);
+    }
+    return Date.now();
   }
 
 }
