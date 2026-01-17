@@ -18,7 +18,6 @@ import { ConfirmActionDialogComponent } from '../confirm-action-dialog/confirm-a
 import { EditDescriptionDialogComponent } from '../edit-description-dialog/edit-description-dialog.component';
 import { ExportDialogComponent } from '../export-dialog/export-dialog.component';
 import { TranslateDescriptionDialogComponent } from '../translate-description-dialog/translate-description-dialog.component';
-import { AllImagesDescribedPipe } from '../../pipes/all-images-described.pipe';
 import { CharacterCountPipe } from '../../pipes/character-count.pipe';
 import { AiService } from '../../services/ai.service';
 import { CostService } from '../../services/cost.service';
@@ -46,7 +45,6 @@ import { LanguageCode } from '../../../assets/config/prompts';
     MatSelectModule,
     MatTableModule,
     MatTooltipModule,
-    AllImagesDescribedPipe,
     CharacterCountPipe
   ],
   templateUrl: './generate-descriptions.component.html',
@@ -88,19 +86,34 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     this.matTableDataSource.paginator = this.paginator;
   }
 
-  async generateImageDescription(imageObj: ImageData, prompt?: string, teiEncode: boolean = false) {
+  async generateAll() {
+    const settings: RequestSettings = this.settings.getSettings();
+
+    if (settings.taskType === 'transcription' && settings.teiEncode) {
+      this.transcribeAndTeiEncodeAll();
+    } else {
+      this.generateImageDescriptionsAll();
+    }
+  }
+
+  async generate(imageObj: ImageData) {
+    const settings: RequestSettings = this.settings.getSettings();
+
+    if (settings.taskType === 'transcription' && settings.teiEncode) {
+      this.transcribeAndTeiEncode(imageObj);
+    } else {
+      this.generateImageDescription(imageObj);
+    }
+  }
+
+  private async generateImageDescription(imageObj: ImageData) {
     imageObj.generating = true;
     this.generating = true;
-    if (teiEncode) {
-      this.teiEncoding.set(true);
-    }
 
     const settings: RequestSettings = this.settings.getSettings();
 
-    if (!prompt) {
-      const promptTemplate: string = this.constructPromptTemplate();
-      prompt = this.constructPrompt(promptTemplate, imageObj);
-    }
+    const promptTemplate = this.constructPromptTemplate();
+    const prompt = this.constructPrompt(promptTemplate, imageObj);
 
     try {
       const result = await this.aiService.describeImage(settings, prompt, imageObj.base64Image);
@@ -114,13 +127,13 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       } else {
         const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
         const newDescription: DescriptionData = {
-          description: this.exportService.normaliseCharacters(respContent, teiEncode),
+          description: this.exportService.normaliseCharacters(respContent),
           language: settings.language,
           model: settings.model?.id ?? '',
           inputTokens: result?.usage?.inputTokens ?? 0,
           outputTokens: result?.usage?.outputTokens ?? 0,
           cost: cost,
-          teiEncoded: teiEncode
+          teiEncoded: false
         };
         imageObj.descriptions.push(newDescription);
         imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
@@ -131,21 +144,94 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     } finally {
       imageObj.generating = false;
       this.generating = false;
-      this.teiEncoding.set(false);
     }
   }
 
-  async generateImageDescriptionsAll(teiEncode: boolean = false) {
+  private async transcribeAndTeiEncode(imageObj: ImageData) {
+    imageObj.generating = true;
     this.generating = true;
-    if (teiEncode) {
-      this.teiEncoding.set(true);
-    }
 
     const settings: RequestSettings = this.settings.getSettings();
 
-    const promptTemplate = teiEncode
-      ? this.getTeiEncodePromptTemplate()
-      : this.constructPromptTemplate();
+    const promptTemplate = {
+      transcription: this.constructPromptTemplate(),
+      teiEncoding: this.getTeiEncodePromptTemplate()
+    }
+
+    let transcriptionDesc: DescriptionData | null = null;
+
+    for (const teiEncodingPass of [false, true]) {
+      if (!this.generating) {
+        // Generation has been stopped by user
+        break;
+      }
+
+      imageObj.generating = true;
+      this.teiEncoding.set(teiEncodingPass);
+
+      const prompt: string = (teiEncodingPass && transcriptionDesc)
+        ? this.getTeiEncodePromptForTranscription(promptTemplate.teiEncoding, transcriptionDesc.description)
+        : this.constructPrompt(promptTemplate.transcription, imageObj);
+      
+      try {
+        const result = await this.aiService.describeImage(settings, prompt, imageObj.base64Image);
+        // console.log(response);
+        const respContent = result?.text ?? '';
+
+        if (!respContent && result?.error) {
+          const e = result.error;
+          const eMessage = `Error communicating with the ${settings.model.provider} API: ${e.message}`;
+          this.showAPIErrorMessage(eMessage);
+          this.generating = false;
+        } else {
+          const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
+
+          if (teiEncodingPass) {
+            // in the TEI encoding pass, store the transcribed and encoded data in a new
+            // description and add metrics from the transcription pass
+            const newDescription: DescriptionData = {
+              description: this.exportService.normaliseCharacters(respContent, true),
+              language: settings.language,
+              model: settings.model?.id ?? '',
+              inputTokens: (transcriptionDesc?.inputTokens ?? 0) + (result?.usage?.inputTokens ?? 0),
+              outputTokens: (transcriptionDesc?.outputTokens ?? 0) + (result?.usage?.outputTokens ?? 0),
+              cost: (transcriptionDesc?.cost ?? 0) + cost,
+              teiEncoded: true
+            };
+            imageObj.descriptions.push(newDescription);
+            imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1; 
+          } else {
+            // in the transcription pass, store the transcription data in a temporary variable
+            transcriptionDesc = {
+              description: this.exportService.normaliseCharacters(respContent, false),
+              language: settings.language,
+              model: settings.model?.id ?? '',
+              inputTokens: result?.usage?.inputTokens ?? 0,
+              outputTokens: result?.usage?.outputTokens ?? 0,
+              cost: cost,
+              teiEncoded: false
+            };
+          }
+        }
+      } catch (e: any) {
+        console.error(e);
+        this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model.provider} API.`);
+        this.generating = false;
+      } finally {
+        imageObj.generating = false;
+      }
+    }
+
+    imageObj.generating = false;
+    this.generating = false;
+  }
+
+  private async generateImageDescriptionsAll() {
+    this.generating = true;
+
+    const settings: RequestSettings = this.settings.getSettings();
+
+    const promptTemplate = this.constructPromptTemplate();
 
     let snackBarRef = null;
     let counter = 0;
@@ -166,15 +252,13 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
       counter++;
       snackBarRef?.dismiss();
-      snackBarRef = this.snackBar.open(`Generating ${this.teiEncoding() ? 'TEI encoding' : this.settings.taskNouns().singular} ${counter}/${this.imageListService.imageList.length}`, 'Stop');
+      snackBarRef = this.snackBar.open(`Generating ${this.settings.taskNouns().singular} ${counter}/${this.imageListService.imageList.length}`, 'Stop');
       snackBarRef.onAction().subscribe(() => {
         this.generating = false;
       });
 
       imageObj.generating = true;
-      const prompt: string = teiEncode
-        ? this.getTeiEncodePromptForImage(promptTemplate, imageObj)
-        : this.constructPrompt(promptTemplate, imageObj);
+      const prompt = this.constructPrompt(promptTemplate, imageObj);
 
       try {
         const result = await this.aiService.describeImage(settings, prompt, imageObj.base64Image);
@@ -189,13 +273,13 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         } else {
           const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
           const newDescription: DescriptionData = {
-            description: this.exportService.normaliseCharacters(respContent, teiEncode),
+            description: this.exportService.normaliseCharacters(respContent),
             language: settings.language,
             model: settings.model?.id ?? '',
             inputTokens: result?.usage?.inputTokens ?? 0,
             outputTokens: result?.usage?.outputTokens ?? 0,
             cost: cost,
-            teiEncoded: teiEncode
+            teiEncoded: false
           };
           imageObj.descriptions.push(newDescription);
           imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
@@ -204,18 +288,114 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         console.error(e);
         this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model.provider} API.`);
         this.generating = false;
-        this.teiEncoding.set(false);
       } finally {
         imageObj.generating = false;
       }
     }
   
     this.generating = false;
-    this.teiEncoding.set(false);
     snackBarRef?.dismiss();
   }
 
-  async generateDescriptionTranslation(imageObj: ImageData, prompt: string, targetLanguageCode: LanguageCode) {
+  private async transcribeAndTeiEncodeAll() {
+    this.generating = true;
+    
+    let snackBarRef = null;
+    let counter = 0;
+    let lastRequestAt: number | null = null;
+
+    const settings: RequestSettings = this.settings.getSettings();
+
+    const promptTemplate = {
+      transcription: this.constructPromptTemplate(),
+      teiEncoding: this.getTeiEncodePromptTemplate()
+    }
+
+    loop1: for (const imageObj of this.imageListService.imageList) {
+      counter++;
+
+      snackBarRef?.dismiss();
+      snackBarRef = this.snackBar.open(`Transcribing and TEI encoding ${counter}/${this.imageListService.imageList.length}`, 'Stop');
+      snackBarRef.onAction().subscribe(() => {
+        this.generating = false;
+      });
+
+      let transcriptionDesc: DescriptionData | null = null;
+
+      loop2: for (const teiEncodingPass of [false, true]) {
+        if (!this.generating) {
+          // Generation has been stopped by user
+          break loop1;
+        }
+
+        // Throttle (only when rpm < 100)
+        lastRequestAt = await this.enforceRpm(settings.model?.rpm, lastRequestAt);
+        if (!this.generating) {
+          break loop1;
+        }
+
+        imageObj.generating = true;
+        this.teiEncoding.set(teiEncodingPass);
+
+        const prompt: string = (teiEncodingPass && transcriptionDesc)
+          ? this.getTeiEncodePromptForTranscription(promptTemplate.teiEncoding, transcriptionDesc.description)
+          : this.constructPrompt(promptTemplate.transcription, imageObj);
+        
+        try {
+          const result = await this.aiService.describeImage(settings, prompt, imageObj.base64Image);
+          // console.log(response);
+          const respContent = result?.text ?? '';
+
+          if (!respContent && result?.error) {
+            const e = result.error;
+            const eMessage = `Error communicating with the ${settings.model.provider} API: ${e.message}`;
+            this.showAPIErrorMessage(eMessage);
+            this.generating = false;
+          } else {
+            const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
+
+            if (teiEncodingPass) {
+              // in the TEI encoding pass, store the transcribed and encoded data in a new
+              // description and add metrics from the transcription pass
+              const newDescription: DescriptionData = {
+                description: this.exportService.normaliseCharacters(respContent, true),
+                language: settings.language,
+                model: settings.model?.id ?? '',
+                inputTokens: (transcriptionDesc?.inputTokens ?? 0) + (result?.usage?.inputTokens ?? 0),
+                outputTokens: (transcriptionDesc?.outputTokens ?? 0) + (result?.usage?.outputTokens ?? 0),
+                cost: (transcriptionDesc?.cost ?? 0) + cost,
+                teiEncoded: true
+              };
+              imageObj.descriptions.push(newDescription);
+              imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1; 
+            } else {
+              // in the transcription pass, store the transcription data in a temporary variable
+              transcriptionDesc = {
+                description: this.exportService.normaliseCharacters(respContent, false),
+                language: settings.language,
+                model: settings.model?.id ?? '',
+                inputTokens: result?.usage?.inputTokens ?? 0,
+                outputTokens: result?.usage?.outputTokens ?? 0,
+                cost: cost,
+                teiEncoded: false
+              };
+            }
+          }
+        } catch (e: any) {
+          console.error(e);
+          this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model.provider} API.`);
+          this.generating = false;
+        } finally {
+          imageObj.generating = false;
+        }
+      }
+    }
+    
+    this.generating = false;
+    snackBarRef?.dismiss();
+  }
+
+  private async generateDescriptionTranslation(imageObj: ImageData, prompt: string, targetLanguageCode: LanguageCode) {
     imageObj.generating = true;
     this.generating = true;
     const settings: RequestSettings = this.settings.getSettings();
@@ -249,27 +429,6 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       imageObj.generating = false;
       this.generating = false;
     }
-  }
-
-  async teiEncodeDescription(imageObj: ImageData) {
-    const promptTemplate = this.getTeiEncodePromptTemplate();
-    const prompt = this.getTeiEncodePromptForImage(promptTemplate, imageObj);
-
-    if (prompt) {
-      this.generateImageDescription(imageObj, prompt, true);
-    } else {
-      const snackBarRef = this.snackBar.open('Undefined prompt for TEI encoding transcription.', 'Dismiss', {
-        duration: undefined,
-        panelClass: 'snackbar-error'
-      });
-      snackBarRef?.onAction().subscribe(() => {
-        snackBarRef.dismiss();
-      });
-    }
-  }
-
-  async teiEncodeDescriptionsAll() {
-    this.generateImageDescriptionsAll(true);
   }
 
   removeImage(imageObj: ImageData): void {
@@ -475,11 +634,10 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     return taskConfig.helpers?.teiEncodePrompt ?? '';
   }
 
-  private getTeiEncodePromptForImage(promptTemplate: string, imageObj: ImageData): string {
-    const transcription = imageObj.descriptions[imageObj.activeDescriptionIndex];
+  private getTeiEncodePromptForTranscription(promptTemplate: string, transcription: string): string {
     return promptTemplate.replaceAll(
-      '{{AI_TRANSCIPTION}}',
-      transcription.description
+      '{{AI_TRANSCRIPTION}}',
+      transcription
     );
   }
 
