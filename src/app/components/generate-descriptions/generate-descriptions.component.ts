@@ -253,7 +253,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       counter++;
       snackBarRef?.dismiss();
       snackBarRef = this.snackBar.open(`Generating ${this.settings.taskNouns().singular} ${counter}/${this.imageListService.imageList.length}`, 'Stop');
-      snackBarRef.onAction().subscribe(() => {
+      snackBarRef.onAction().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.generating = false;
       });
 
@@ -316,7 +316,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
       snackBarRef?.dismiss();
       snackBarRef = this.snackBar.open(`Transcribing and TEI encoding ${counter}/${this.imageListService.imageList.length}`, 'Stop');
-      snackBarRef.onAction().subscribe(() => {
+      snackBarRef.onAction().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.generating = false;
       });
 
@@ -603,7 +603,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       duration: undefined,
       panelClass: 'snackbar-error'
     });
-    snackBarRef?.onAction().subscribe(() => {
+    snackBarRef?.onAction().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       snackBarRef.dismiss();
     });
   }
