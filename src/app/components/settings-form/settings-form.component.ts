@@ -39,6 +39,7 @@ export class SettingsFormComponent {
 
   @Output() providerChanged = new EventEmitter<ModelProvider>();
 
+  teiEncode = signal<boolean>(false);
   transcribeHeaders = signal<boolean>(true);
 
   descLengthMax: number = 300;
@@ -52,6 +53,10 @@ export class SettingsFormComponent {
 
   setIncludeFilename(event: MatSlideToggleChange): void {
     this.settings.updateIncludeFilename(event.checked);
+  }
+
+  setTeiEncode(event: MatSlideToggleChange): void {
+    this.settings.updateTeiEncode(event.checked);
   }
 
   setTranscribeHeaders(event: MatSlideToggleChange): void {

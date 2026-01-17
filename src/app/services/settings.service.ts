@@ -20,6 +20,7 @@ export class SettingsService {
   readonly includeFilename = signal<boolean>(true);
   readonly selectedDescLength = signal<number>(175);
   readonly selectedTemperature = signal<number>(1.0);
+  readonly teiEncode = signal<boolean>(false);
 
   // --- Derived config ---
   readonly taskConfigs = signal(TASK_CONFIGS);
@@ -89,7 +90,7 @@ export class SettingsService {
       }
     });
 
-    // Apply temperature defaults per task type (matches your old behavior)
+    // Apply temperature defaults per task type
     effect(() => {
       const taskType = this.selectedTaskType();
       this.selectedTemperature.set(taskType === 'transcription' ? 0.0 : 1.0);
@@ -117,6 +118,7 @@ export class SettingsService {
       descriptionLength: this.selectedDescLength(),
       promptVariant: this.selectedVariant(),
       includeFilename: this.includeFilename(),
+      teiEncode: this.teiEncode(),
     };
   }
 
@@ -146,6 +148,10 @@ export class SettingsService {
 
   updateSelectedTemperature(value: number) {
     this.selectedTemperature.set(value);
+  }
+
+  updateTeiEncode(value: boolean) {
+    this.teiEncode.set(value);
   }
 
 }

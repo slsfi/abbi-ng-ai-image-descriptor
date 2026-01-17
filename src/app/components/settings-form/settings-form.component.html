@@ -33,7 +33,6 @@
     @if (selectedTaskTypeValue === 'altText') {
       <div class="form-field-wrapper">
         <mat-slide-toggle
-              color="primary"
               [checked]="settings.includeFilename()"
               (change)="setIncludeFilename($event)"
               matTooltip="Enable this if your image filenames contain helpful context (e.g., names, dates). The filename will be included in the prompt to improve alt text quality."
@@ -96,11 +95,18 @@
     @if (selectedTaskTypeValue === 'transcription') {
       <div class="form-field-wrapper">
         <mat-slide-toggle
-              color="primary"
               [checked]="transcribeHeaders()"
               (change)="setTranscribeHeaders($event)"
               matTooltip="Enable this to include headers, footers, and page numbers in the transcription output."
         >Transcribe headers, footers &amp; page numbers</mat-slide-toggle>
+      </div>
+
+      <div class="form-field-wrapper">
+        <mat-slide-toggle
+              [checked]="teiEncode()"
+              (change)="setTeiEncode($event)"
+              matTooltip="Enable this to TEI XML encode the transcription output."
+        >TEI encode transcriptions</mat-slide-toggle>
       </div>
     }
   </div>

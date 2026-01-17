@@ -10,4 +10,5 @@ export interface RequestSettings {
   descriptionLength: number;
   promptVariant: PromptVariant;
   includeFilename: boolean;
+  teiEncode: boolean;
 };

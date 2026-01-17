@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { UpperFirstLetterPipe } from '../../pipes/upper-first-letter.pipe';
 import { SettingsService } from '../../services/settings.service';
+import { DescriptionData } from '../../types/description-data.types';
 import { ImageData } from '../../types/image-data.types';
 
 @Component({
@@ -38,6 +39,7 @@ export class EditDescriptionDialogComponent implements OnInit {
   settings = inject(SettingsService);
 
   aspectRatio: number = 1.333;
+  activeDescriptionData?: DescriptionData;
   editedDescription?: string;
 
   // Zoom / pan
@@ -74,6 +76,7 @@ export class EditDescriptionDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.activeDescriptionData = this.imageObj.descriptions[this.imageObj.activeDescriptionIndex];
     this.editedDescription = this.imageObj.descriptions[this.imageObj.activeDescriptionIndex].description;
     this.aspectRatio = this.imageObj.width / this.imageObj.height;
   }

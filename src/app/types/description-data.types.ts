@@ -7,5 +7,6 @@ export type DescriptionData = {
   inputTokens: number;
   outputTokens: number;
   cost: number;
+  teiEncoded?: boolean;
   error?: string;
 }

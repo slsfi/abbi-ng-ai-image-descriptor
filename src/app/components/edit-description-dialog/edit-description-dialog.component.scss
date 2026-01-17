@@ -32,6 +32,16 @@ mat-dialog-content.mat-mdc-dialog-content {
     }
   }
 
+  &.narrower-img-container {
+    > div {
+      width: 40.0%;
+
+      &.textarea-container {
+        width: 60.0%;
+      }
+    }
+  }
+
   .img-container {
     flex-direction: column;
     gap: .75rem;
@@ -91,11 +101,30 @@ mat-dialog-content.mat-mdc-dialog-content {
     gap: 8px;
   }
 
+
   h2,
   mat-form-field,
   .dialog-actions {
     max-width: 700px;
     width: 100%;
+  }
+
+  .textarea-container.tei-encoding {
+    @media (min-width: 1900px) {
+      h2,
+      mat-form-field,
+      .dialog-actions {
+        max-width: 1000px;
+      }
+    }
+
+    textarea {
+      font-family: "Fira Code", monospace;
+      font-optical-sizing: auto;
+      font-weight: 400;
+      font-size: 0.9375em;
+      font-style: normal;
+    }
   }
 
   @media (max-aspect-ratio: 1/1) {

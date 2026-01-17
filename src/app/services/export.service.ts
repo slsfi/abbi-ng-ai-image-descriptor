@@ -446,7 +446,7 @@ export class ExportService {
     return text.replaceAll('\n', newline);
   }
 
-  normaliseCharacters(s: string): string {
+  normaliseCharacters(s: string, teiEncoded: boolean = false): string {
     // Remove all carriage returns
     let text = s.replaceAll('\r', '');
     // Remove soft hyphen (U+00AD; &shy;) (invisible in VS Code)
@@ -464,7 +464,10 @@ export class ExportService {
     // Replace apostrophe-like characters
     text = text.replaceAll("'", '’');
     text = text.replaceAll('´', '’');
-    text = text.replaceAll('"', '”');
+    // Replace double quotes only if not teiEncoded text
+    if (!teiEncoded) {
+      text = text.replaceAll('"', '”');
+    }
     // Replace fractions (avoid when followed by a 2-, 3-, or 4-digit "year")
     text = text.replace(/ 1\/2 (?!\d{2,4})/g, ' ½ ');
     text = text.replace(/ 1\/3 (?!\d{2,4})/g, ' ⅓ ');
@@ -484,6 +487,29 @@ export class ExportService {
     text = text.replace(/ 7\/8 (?!\d{2,4})/g, ' ⅞ ');
     text = text.replace(/ 1\/9 (?!\d{2,4})/g, ' ⅑ ');
     text = text.replace(/ 1\/10 (?!\d{2,4})/g, ' ⅒ ');
+
+    text = text.trim();
+
+    if (teiEncoded) {
+      if (text.startsWith('```') && text.endsWith('```')) {
+        const lines = text.split('\n');
+        let new_text = (lines[0] === '```xml' || lines[0] === '```')
+          ? '' : lines[0] + '\n';
+        
+        for (let i = 1; i < lines.length - 1; i++) {
+          new_text = new_text + lines[i] + '\n';
+        }
+        
+        if (lines.at(-1) !== '```') {
+          new_text = new_text + lines.at(-1) + '\n';
+        }
+
+        text = new_text;
+      }
+
+      text = text.replaceAll('<lb/>', '<lb break="line"/>');
+      text = this.fixLbEncoding(text);
+    }
 
     return text;
   }
