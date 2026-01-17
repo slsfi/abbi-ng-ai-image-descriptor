@@ -90,9 +90,9 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     const settings: RequestSettings = this.settings.getSettings();
 
     if (settings.taskType === 'transcription' && settings.teiEncode) {
-      this.transcribeAndTeiEncodeAll();
+      await this.transcribeAndTeiEncodeAll();
     } else {
-      this.generateImageDescriptionsAll();
+      await this.generateImageDescriptionsAll();
     }
   }
 
@@ -100,9 +100,9 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     const settings: RequestSettings = this.settings.getSettings();
 
     if (settings.taskType === 'transcription' && settings.teiEncode) {
-      this.transcribeAndTeiEncode(imageObj);
+      await this.transcribeAndTeiEncode(imageObj);
     } else {
-      this.generateImageDescription(imageObj);
+      await this.generateImageDescription(imageObj);
     }
   }
 
@@ -519,7 +519,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         const taskConfig = this.settings.selectedTaskConfig();
         const basePrompt = taskConfig.helpers?.translatePrompt?.[targetLanguageCode] ?? '';
 
-        if (!prompt) {
+        if (!basePrompt) {
           console.error('Unable to find translate prompt for language ', targetLanguageCode);
         }
 
