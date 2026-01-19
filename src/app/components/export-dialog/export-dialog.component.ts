@@ -29,7 +29,18 @@ export class ExportDialogComponent {
   private readonly exportService = inject(ExportService);
   readonly settings = inject(SettingsService);
 
-  readonly formatOptions: ExportFormatOption[] = EXPORT_FORMAT_OPTIONS;
+  // If TEI encoding, remove the TEI XML with line beginnings export option
+  // as it is superfluous.
+  private readonly teiEncoded = this.settings.getSettings().teiEncode;
+  readonly formatOptions: ExportFormatOption[] = EXPORT_FORMAT_OPTIONS.filter(
+    (o) => {
+      if (!this.teiEncoded) {
+        return true;
+      } else {
+        return o.fileFormat === 'tei-xml-lb' ? false : true;
+      }
+    }
+  );
 
   selectedFormatOption: ExportFormatOption = this.exportService.getPreviousFileFormat()
     ? this.formatOptions.find(

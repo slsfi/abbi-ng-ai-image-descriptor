@@ -5,6 +5,7 @@ import { Document, IParagraphStyleOptions, Packer, Paragraph, Table,
 import { zipSync, strToU8 } from 'fflate';
 
 import { ImageListService } from './image-list.service';
+import { SettingsService } from './settings.service';
 import { DescriptionData } from '../types/description-data.types';
 import { ImageData } from '../types/image-data.types';
 import { ExportFormatOption } from '../types/export.types';
@@ -27,6 +28,7 @@ export const EXPORT_FORMAT_OPTIONS: ExportFormatOption[] = [
 })
 export class ExportService {
   private readonly imageListService = inject(ImageListService);
+  private readonly settings = inject(SettingsService);
 
   private previousFileFormat: string | null = null;
   private previousFilename: string = FALLBACK_FILENAME;
@@ -271,7 +273,9 @@ export class ExportService {
   }
 
   private convertToTEIXML(imageFiles: ImageData[], fileFormat: string, filename: string): string {
-    const useLb: boolean = (fileFormat == 'tei-xml-lb');
+    // sniff first image description to see if it's TEI encoded
+    const teiEncoded: boolean = imageFiles[0].descriptions[imageFiles[0].activeDescriptionIndex].teiEncoded ?? false;
+    const useLb: boolean = teiEncoded ? false : (fileFormat === 'tei-xml-lb');
 
     let contentStr = '<?xml version="1.0" encoding="UTF-8"?>\r\n';
     contentStr += '<TEI xmlns="http://www.tei-c.org/ns/1.0">\r\n';
@@ -296,11 +300,15 @@ export class ExportService {
     imageFiles.forEach((imageObj: ImageData) => {
       imageCounter += 1;
       let description = this.getActiveDescription(imageObj)?.description ?? '';
-      description = this.normaliseForExport(description);
-      bodyStr += '\t\t\t<pb n="' + imageCounter + '" facs="' + imageObj.filename + '"/>\r\n';
-      bodyStr += '\t\t\t<p>\r\n';
-      bodyStr += `\t\t\t\t${useLb ? '<lb break="line"/>' : ''}` + description.replaceAll('\r\n', `\r\n\t\t\t\t${useLb ? '<lb break="line"/>' : ''}`);
-      bodyStr += '\r\n\t\t\t</p>\r\n';
+      description = this.normaliseForExport(description, '\r\n', teiEncoded);
+      if (teiEncoded) {
+        bodyStr += description + '\r\n';
+      } else {
+        bodyStr += '\t\t\t<pb n="' + imageCounter + '" facs="' + imageObj.filename + '"/>\r\n';
+        bodyStr += '\t\t\t<p>\r\n';
+        bodyStr += `\t\t\t\t${useLb ? '<lb break="line"/>' : ''}` + description.replaceAll('\r\n', `\r\n\t\t\t\t${useLb ? '<lb break="line"/>' : ''}`);
+        bodyStr += '\r\n\t\t\t</p>\r\n';
+      }
     });
 
     if (useLb) {
@@ -436,14 +444,30 @@ export class ExportService {
     return lines.join(newLine);
   }
 
-  private normaliseForExport(s: string, newline = '\r\n'): string {
+  private normaliseForExport(s: string, newline = '\r\n', teiEncoded = false): string {
     // Remove all carriage returns
     let text = s.replaceAll('\r', '');
-    // Replace straight quotation characters
-    text = text.replaceAll("'", '’');
-    text = text.replaceAll('"', '”');
+
+    if (teiEncoded) {
+      text = text.trim();
+      text = this.extractBody(text);
+      text = text.trim();
+    } else {
+      // Replace straight quotation characters
+      text = text.replaceAll("'", '’');
+      text = text.replaceAll('"', '”');
+    }
 
     return text.replaceAll('\n', newline);
+  }
+
+  /**
+   * Removes the opening <body> tag (including any attributes) from the start
+   * of the string and the closing </body> tag from the end, returning only
+   * the content inside the body element.
+   */
+  extractBody(text: string): string {
+    return text.replace(/^<body[^>]*>/i, '').replace(/<\/body>$/i, '');
   }
 
   normaliseCharacters(s: string, teiEncoded: boolean = false): string {
