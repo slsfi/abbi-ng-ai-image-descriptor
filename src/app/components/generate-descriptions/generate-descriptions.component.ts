@@ -120,9 +120,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       const respContent = result?.text ?? '';
 
       if (!respContent && result?.error) {
-        const e = result.error;
-        const eMessage = `Error communicating with the ${settings.model.provider} API: ${e.message}`;
-        this.showAPIErrorMessage(eMessage);
+        this.handleApiFailure(settings, result, false);
       } else {
         const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
         const newDescription: DescriptionData = {
@@ -175,10 +173,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         const respContent = result?.text ?? '';
 
         if (!respContent && result?.error) {
-          const e = result.error;
-          const eMessage = `Error communicating with the ${settings.model.provider} API: ${e.message}`;
-          this.showAPIErrorMessage(eMessage);
-          this.setGeneratingState(false, imageObj);
+          this.handleApiFailure(settings, result, true, imageObj);
         } else {
           const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
 
@@ -259,10 +254,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         const respContent = result?.text ?? '';
 
         if (!respContent && result?.error) {
-          const e = result.error;
-          const eMessage = `Error communicating with the ${settings.model.provider} API: ${e.message}`;
-          this.showAPIErrorMessage(eMessage);
-          this.setGeneratingState(false, imageObj);
+          this.handleApiFailure(settings, result, true, imageObj);
         } else {
           const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
           const newDescription: DescriptionData = {
@@ -340,10 +332,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
           const respContent = result?.text ?? '';
 
           if (!respContent && result?.error) {
-            const e = result.error;
-            const eMessage = `Error communicating with the ${settings.model.provider} API: ${e.message}`;
-            this.showAPIErrorMessage(eMessage);
-            this.setGeneratingState(false, imageObj);
+            this.handleApiFailure(settings, result, true, imageObj);
           } else {
             const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
 
@@ -398,9 +387,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       const respContent = result?.text ?? '';
 
       if (!respContent && result?.error) {
-        const e = result.error;
-        const eMessage = `Error communicating with the ${settings.model?.provider} API: ${e.code} ${e.message}`;
-        this.showAPIErrorMessage(eMessage);
+        this.handleApiFailure(settings, result, false);
       } else {
         const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
         const newDescription: DescriptionData = {
@@ -638,5 +625,17 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       imageObj.generating = isGenerating;
     }
   }
+
+  private handleApiFailure(settings: RequestSettings, result: any, stopGeneration: boolean, imageObj?: ImageData) {
+    const e = result?.error;
+    if (e) {
+      const msg = `Error communicating with the ${settings.model?.provider} API: ${e.message ?? ''}`.trim();
+      this.showAPIErrorMessage(msg);
+      if (stopGeneration) {
+        this.setGeneratingState(false, imageObj);
+      }
+    }
+  }
+
 
 }
