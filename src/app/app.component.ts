@@ -1,4 +1,5 @@
-import { ChangeDetectorRef, Component, NgZone, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit, effect, inject,
+         signal, untracked } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { FormGroup } from '@angular/forms';
 import { BreakpointObserver } from '@angular/cdk/layout';
@@ -53,6 +54,15 @@ export class AppComponent implements OnInit {
     .observe('(min-width: 800px)')
     .pipe(map(({matches}) => (matches ? 'horizontal' : 'vertical')));
   
+  constructor() {
+    effect(() => {
+      const provider = this.settings.selectedModel().provider;
+      // Avoid tracking anything that onProviderChanged reads/writes,
+      // so this effect only depends on selectedModel().provider
+      untracked(() => this.onProviderChanged(provider));
+    });
+  }
+
   ngOnInit() {
     // Set Angular Material to use the new Material Symbols icon font.
     this.matIconReg.setDefaultFontSetClass('material-symbols-outlined');
