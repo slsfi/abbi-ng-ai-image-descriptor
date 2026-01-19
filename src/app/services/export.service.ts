@@ -271,7 +271,9 @@ export class ExportService {
   }
 
   private convertToTEIXML(imageFiles: ImageData[], fileFormat: string, filename: string): string {
-    const useLb: boolean = (fileFormat == 'tei-xml-lb');
+    // sniff first image description to see if it's TEI encoded
+    const teiEncoded: boolean = imageFiles[0].descriptions[imageFiles[0].activeDescriptionIndex].teiEncoded ?? false;
+    const useLb: boolean = teiEncoded ? false : (fileFormat === 'tei-xml-lb');
 
     let contentStr = '<?xml version="1.0" encoding="UTF-8"?>\r\n';
     contentStr += '<TEI xmlns="http://www.tei-c.org/ns/1.0">\r\n';
@@ -296,11 +298,15 @@ export class ExportService {
     imageFiles.forEach((imageObj: ImageData) => {
       imageCounter += 1;
       let description = this.getActiveDescription(imageObj)?.description ?? '';
-      description = this.normaliseForExport(description);
-      bodyStr += '\t\t\t<pb n="' + imageCounter + '" facs="' + imageObj.filename + '"/>\r\n';
-      bodyStr += '\t\t\t<p>\r\n';
-      bodyStr += `\t\t\t\t${useLb ? '<lb break="line"/>' : ''}` + description.replaceAll('\r\n', `\r\n\t\t\t\t${useLb ? '<lb break="line"/>' : ''}`);
-      bodyStr += '\r\n\t\t\t</p>\r\n';
+      description = this.normaliseForExport(description, '\r\n', teiEncoded);
+      if (teiEncoded) {
+        bodyStr += description + '\r\n';
+      } else {
+        bodyStr += '\t\t\t<pb n="' + imageCounter + '" facs="' + imageObj.filename + '"/>\r\n';
+        bodyStr += '\t\t\t<p>\r\n';
+        bodyStr += `\t\t\t\t${useLb ? '<lb break="line"/>' : ''}` + description.replaceAll('\r\n', `\r\n\t\t\t\t${useLb ? '<lb break="line"/>' : ''}`);
+        bodyStr += '\r\n\t\t\t</p>\r\n';
+      }
     });
 
     if (useLb) {
@@ -436,17 +442,33 @@ export class ExportService {
     return lines.join(newLine);
   }
 
-  private normaliseForExport(s: string, newline = '\r\n'): string {
+  private normaliseForExport(s: string, newline = '\r\n', teiEncoded = false): string {
     // Remove all carriage returns
     let text = s.replaceAll('\r', '');
-    // Replace straight quotation characters
-    text = text.replaceAll("'", '’');
-    text = text.replaceAll('"', '”');
+
+    if (teiEncoded) {
+      text = text.trim();
+      text = this.extractBody(text);
+      text = text.trim();
+    } else {
+      // Replace straight quotation characters
+      text = text.replaceAll("'", '’');
+      text = text.replaceAll('"', '”');
+    }
 
     return text.replaceAll('\n', newline);
   }
 
-  normaliseCharacters(s: string): string {
+  /**
+   * Removes the opening <body> tag (including any attributes) from the start
+   * of the string and the closing </body> tag from the end, returning only
+   * the content inside the body element.
+   */
+  extractBody(text: string): string {
+    return text.replace(/^<body[^>]*>/i, '').replace(/<\/body>$/i, '');
+  }
+
+  normaliseCharacters(s: string, teiEncoded: boolean = false): string {
     // Remove all carriage returns
     let text = s.replaceAll('\r', '');
     // Remove soft hyphen (U+00AD; &shy;) (invisible in VS Code)
@@ -464,7 +486,10 @@ export class ExportService {
     // Replace apostrophe-like characters
     text = text.replaceAll("'", '’');
     text = text.replaceAll('´', '’');
-    text = text.replaceAll('"', '”');
+    // Replace double quotes only if not teiEncoded text
+    if (!teiEncoded) {
+      text = text.replaceAll('"', '”');
+    }
     // Replace fractions (avoid when followed by a 2-, 3-, or 4-digit "year")
     text = text.replace(/ 1\/2 (?!\d{2,4})/g, ' ½ ');
     text = text.replace(/ 1\/3 (?!\d{2,4})/g, ' ⅓ ');
@@ -484,6 +509,33 @@ export class ExportService {
     text = text.replace(/ 7\/8 (?!\d{2,4})/g, ' ⅞ ');
     text = text.replace(/ 1\/9 (?!\d{2,4})/g, ' ⅑ ');
     text = text.replace(/ 1\/10 (?!\d{2,4})/g, ' ⅒ ');
+
+    text = text.trim();
+
+    if (teiEncoded) {
+      if (text.startsWith('```') && text.endsWith('```')) {
+        const lines = text.split('\n');
+        let new_text = (lines[0] === '```xml' || lines[0] === '```')
+          ? '' : lines[0] + '\n';
+        
+        for (let i = 1; i < lines.length - 1; i++) {
+          new_text = new_text + lines[i] + '\n';
+        }
+        
+        if (lines.at(-1) !== '```') {
+          new_text = new_text + lines.at(-1) + '\n';
+        }
+
+        text = new_text;
+      }
+
+      text = text.trim();
+      text = this.extractBody(text);
+      text = text.trim();
+
+      text = text.replaceAll('<lb/>', '<lb break="line"/>');
+      text = this.fixLbEncoding(text);
+    }
 
     return text;
   }

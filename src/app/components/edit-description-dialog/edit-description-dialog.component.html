@@ -1,7 +1,10 @@
 @let taskNoun = settings.taskNouns();
 
 <mat-dialog-content>
-  <div class="container" [class.wider-img-container]="aspectRatio > 1.25">
+  <div class="container"
+        [class.wider-img-container]="aspectRatio > 1.25"
+        [class.narrower-img-container]="aspectRatio < 0.8"
+  >
     <div class="img-container">
       <div class="zoom-toolbar">
         <button matIconButton
@@ -45,7 +48,7 @@
         >
       </div>
     </div>
-    <div class="textarea-container">
+    <div class="textarea-container" [class.tei-encoding]="activeDescriptionData?.teiEncoded">
       <h2>Edit {{ taskNoun.singular }}</h2>
       <mat-form-field appearance="outline">
         <mat-label>{{ taskNoun.singular | upperFirstLetter }}</mat-label>

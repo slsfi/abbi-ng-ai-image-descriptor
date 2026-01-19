@@ -22,5 +22,6 @@ export type TaskTypeConfig = {
   helpers?: {
     filenamePrompt?: Record<LanguageCode, string>;
     translatePrompt?: Record<LanguageCode, string>;
+    teiEncodePrompt?: string;
   };
 };

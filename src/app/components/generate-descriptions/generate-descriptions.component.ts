@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, DestroyRef, inject, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -66,6 +66,12 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   exporting: boolean = false;
   generating: boolean = false;
 
+  teiEncoding = signal<boolean>(false);
+
+  private progressSnackRef: any | null = null;
+  private progressStopSub?: { unsubscribe(): void };
+  private lastProgressMessage: string | null = null;
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   ngOnInit(): void {
@@ -84,52 +90,103 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     this.matTableDataSource.paginator = this.paginator;
   }
 
-  async generateImageDescription(imageObj: ImageData) {
-    imageObj.generating = true;
-    this.generating = true;
+  async generateAll() {
     const settings: RequestSettings = this.settings.getSettings();
-    const promptTemplate: string = this.constructPromptTemplate();
-    const prompt: string = this.constructPrompt(promptTemplate, imageObj);
 
-    try {
-      const result = await this.aiService.describeImage(settings, prompt, imageObj.base64Image);
-      // console.log(result);
-      const respContent = result?.text ?? '';
-
-      if (!respContent && result?.error) {
-        const e = result.error;
-        const eMessage = `Error communicating with the ${settings.model.provider} API: ${e.message}`;
-        this.showAPIErrorMessage(eMessage);
-      } else {
-        const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
-        const newDescription: DescriptionData = {
-          description: this.exportService.normaliseCharacters(respContent),
-          language: settings.language,
-          model: settings.model?.id ?? '',
-          inputTokens: result?.usage?.inputTokens ?? 0,
-          outputTokens: result?.usage?.outputTokens ?? 0,
-          cost: cost
-        };
-        imageObj.descriptions.push(newDescription);
-        imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
-      }
-    } catch (e: any) {
-      console.error(e);
-      this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model.provider} API.`);
-    } finally {
-      imageObj.generating = false;
-      this.generating = false;
+    if (settings.taskType === 'transcription' && settings.teiEncode) {
+      await this.transcribeAndTeiEncodeAll();
+    } else {
+      await this.generateImageDescriptionsAll();
     }
   }
 
-  async generateImageDescriptionsAll() {
-    this.generating = true;
+  async generate(imageObj: ImageData) {
     const settings: RequestSettings = this.settings.getSettings();
-    const promptTemplate: string = this.constructPromptTemplate();
 
-    let snackBarRef = null;
+    if (settings.taskType === 'transcription' && settings.teiEncode) {
+      await this.transcribeAndTeiEncode(imageObj);
+    } else {
+      await this.generateImageDescription(imageObj);
+    }
+  }
+
+  private async generateImageDescription(imageObj: ImageData) {
+    this.setGlobalGenerating(true);
+    this.setImageGenerating(imageObj, true);
+
+    const settings: RequestSettings = this.settings.getSettings();
+    const promptTemplate = this.constructPromptTemplate();
+    const prompt = this.constructPrompt(promptTemplate, imageObj);
+
+    const res = await this.runAiTask('image', settings, prompt, false, imageObj);
+    if (res) {
+      const desc = this.buildDescription(settings, res.text, res.usage, res.cost, settings.language, false);
+      this.commitDescription(imageObj, desc);
+    }
+
+    this.setGlobalGenerating(false);
+    this.setImageGenerating(imageObj, false);
+  }
+
+  private async transcribeAndTeiEncode(imageObj: ImageData) {
+    this.setGlobalGenerating(true);
+    this.setImageGenerating(imageObj, true);
+
+    const settings: RequestSettings = this.settings.getSettings();
+    const promptTemplate = {
+      transcription: this.constructPromptTemplate(),
+      teiEncoding: this.getTeiEncodePromptTemplate()
+    }
+
+    let transcriptionDesc: DescriptionData | null = null;
+
+    // Loop over two passes:
+    // 1. transcribe text in image
+    // 2. TEI-encode transcription from previous pass
+    for (const teiEncodingPass of [false, true]) {
+      if (!this.generating) {
+        // Generation has been stopped by user
+        break;
+      }
+
+      this.teiEncoding.set(teiEncodingPass);
+
+      const prompt: string = (teiEncodingPass && transcriptionDesc)
+        ? this.getTeiEncodePromptForTranscription(promptTemplate.teiEncoding, transcriptionDesc.description)
+        : this.constructPrompt(promptTemplate.transcription, imageObj);
+      
+      const res = await this.runAiTask('image', settings, prompt, true, imageObj);
+
+      if (res) {
+        if (teiEncodingPass) {
+          // in the TEI encoding pass, store the transcribed and encoded data in a new
+          // description and add metrics from the transcription pass
+          const totalUsage = {
+            inputTokens: (transcriptionDesc?.inputTokens ?? 0) + (res.usage?.inputTokens ?? 0),
+            outputTokens: (transcriptionDesc?.outputTokens ?? 0) + (res.usage?.outputTokens ?? 0)
+          };
+          const totalCost = (transcriptionDesc?.cost ?? 0) + res.cost;
+          const desc = this.buildDescription(settings, res.text, totalUsage, totalCost, settings.language, true);
+          this.commitDescription(imageObj, desc);
+        } else {
+          // in the transcription pass, store the transcription data in a temporary variable
+          transcriptionDesc = this.buildDescription(settings, res.text, res.usage, res.cost, settings.language, false);
+        }
+      } else {
+        break;
+      }
+    }
+
+    this.setGlobalGenerating(false);
+    this.setImageGenerating(imageObj, false);
+  }
+
+  private async generateImageDescriptionsAll() {
+    this.setGlobalGenerating(true);
+
+    const settings: RequestSettings = this.settings.getSettings();
+    const promptTemplate = this.constructPromptTemplate();
     let counter = 0;
-
     let lastRequestAt: number | null = null;
 
     for (const imageObj of this.imageListService.imageList) {
@@ -145,85 +202,103 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       }
 
       counter++;
-      snackBarRef?.dismiss();
-      snackBarRef = this.snackBar.open(`Generating ${this.settings.taskNouns().singular} ${counter}/${this.imageListService.imageList.length}`, 'Stop');
-      snackBarRef.onAction().subscribe(() => {
-        this.generating = false;
-      });
+      this.openProgressSnack(`Generating ${this.settings.taskNouns().singular} ${counter}/${this.imageListService.imageList.length}`);
 
-      imageObj.generating = true;
-      const prompt: string = this.constructPrompt(promptTemplate, imageObj);
+      this.setImageGenerating(imageObj, true);
+      const prompt = this.constructPrompt(promptTemplate, imageObj);
 
-      try {
-        const result = await this.aiService.describeImage(settings, prompt, imageObj.base64Image);
-        // console.log(response);
-        const respContent = result?.text ?? '';
-
-        if (!respContent && result?.error) {
-          const e = result.error;
-          const eMessage = `Error communicating with the ${settings.model.provider} API: ${e.message}`;
-          this.showAPIErrorMessage(eMessage);
-          this.generating = false;
-        } else {
-          const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
-          const newDescription: DescriptionData = {
-            description: this.exportService.normaliseCharacters(respContent),
-            language: settings.language,
-            model: settings.model?.id ?? '',
-            inputTokens: result?.usage?.inputTokens ?? 0,
-            outputTokens: result?.usage?.outputTokens ?? 0,
-            cost: cost
-          };
-          imageObj.descriptions.push(newDescription);
-          imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
-        }
-      } catch (e: any) {
-        console.error(e);
-        this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model.provider} API.`);
-        this.generating = false;
-      } finally {
-        imageObj.generating = false;
+      const res = await this.runAiTask('image', settings, prompt, true, imageObj);
+      if (res) {
+        const desc = this.buildDescription(settings, res.text, res.usage, res.cost, settings.language, false);
+        this.commitDescription(imageObj, desc);
       }
+
+      this.setImageGenerating(imageObj, false);
     }
   
-    this.generating = false;
-    snackBarRef?.dismiss();
+    this.closeProgressSnack();
+    this.setGlobalGenerating(false);
   }
 
-  async generateDescriptionTranslation(imageObj: ImageData, prompt: string, targetLanguageCode: LanguageCode) {
-    imageObj.generating = true;
-    this.generating = true;
+  private async transcribeAndTeiEncodeAll() {
+    this.setGlobalGenerating(true);
+    
+    let counter = 0;
+    let lastRequestAt: number | null = null;
+    const settings: RequestSettings = this.settings.getSettings();
+    const promptTemplate = {
+      transcription: this.constructPromptTemplate(),
+      teiEncoding: this.getTeiEncodePromptTemplate()
+    }
+
+    loopImages: for (const imageObj of this.imageListService.imageList) {
+      counter++;
+      this.openProgressSnack(`Transcribing and TEI encoding ${counter}/${this.imageListService.imageList.length}`);
+
+      let transcriptionDesc: DescriptionData | null = null;
+
+      for (const teiEncodingPass of [false, true]) {
+        if (!this.generating) {
+          // Generation has been stopped by user
+          break loopImages;
+        }
+
+        // Throttle (only when rpm < 100)
+        lastRequestAt = await this.enforceRpm(settings.model?.rpm, lastRequestAt);
+        if (!this.generating) {
+          break loopImages;
+        }
+
+        this.setImageGenerating(imageObj, true);
+        this.teiEncoding.set(teiEncodingPass);
+
+        const prompt: string = (teiEncodingPass && transcriptionDesc)
+          ? this.getTeiEncodePromptForTranscription(promptTemplate.teiEncoding, transcriptionDesc.description)
+          : this.constructPrompt(promptTemplate.transcription, imageObj);
+        
+        const res = await this.runAiTask('image', settings, prompt, true, imageObj);
+
+        if (res) {
+          if (teiEncodingPass) {
+            // in the TEI encoding pass, store the transcribed and encoded data in a new
+            // description and add metrics from the transcription pass
+            const totalUsage = {
+              inputTokens: (transcriptionDesc?.inputTokens ?? 0) + (res.usage?.inputTokens ?? 0),
+              outputTokens: (transcriptionDesc?.outputTokens ?? 0) + (res.usage?.outputTokens ?? 0)
+            };
+            const totalCost = (transcriptionDesc?.cost ?? 0) + res.cost;
+            const desc = this.buildDescription(settings, res.text, totalUsage, totalCost, settings.language, true);
+            this.commitDescription(imageObj, desc);
+          } else {
+            // in the transcription pass, store the transcription data in a temporary variable
+            transcriptionDesc = this.buildDescription(settings, res.text, res.usage, res.cost, settings.language, false);
+          }
+        } else {
+          break loopImages;
+        }
+
+        this.setImageGenerating(imageObj, false);
+      }
+    }
+
+    this.closeProgressSnack();
+    this.setGlobalGenerating(false);
+  }
+
+  private async generateDescriptionTranslation(imageObj: ImageData, prompt: string, targetLanguageCode: LanguageCode) {
+    this.setGlobalGenerating(true);
+    this.setImageGenerating(imageObj, true);
+
     const settings: RequestSettings = this.settings.getSettings();
 
-    try {
-      const result = await this.aiService.responsesTextTask(settings, prompt);
-      // console.log(response);
-      const respContent = result?.text ?? '';
-
-      if (!respContent && result?.error) {
-        const e = result.error;
-        const eMessage = `Error communicating with the ${settings.model?.provider} API: ${e.code} ${e.message}`;
-        this.showAPIErrorMessage(eMessage);
-      } else {
-        const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
-        const newDescription: DescriptionData = {
-          description: this.exportService.normaliseCharacters(respContent),
-          language: targetLanguageCode,
-          model: settings.model?.id ?? '',
-          inputTokens: result?.usage?.inputTokens ?? 0,
-          outputTokens: result?.usage?.outputTokens ?? 0,
-          cost: cost
-        };
-        imageObj.descriptions.push(newDescription);
-        imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
-      }
-    } catch (e: any) {
-      console.error(e);
-      this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model?.provider} API.`);
-    } finally {
-      imageObj.generating = false;
-      this.generating = false;
+    const res = await this.runAiTask('text', settings, prompt, false);
+    if (res) {
+      const desc = this.buildDescription(settings, res.text, res.usage, res.cost, targetLanguageCode, false);
+      this.commitDescription(imageObj, desc);
     }
+
+    this.setGlobalGenerating(false);
+    this.setImageGenerating(imageObj, false);
   }
 
   removeImage(imageObj: ImageData): void {
@@ -314,7 +389,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         const taskConfig = this.settings.selectedTaskConfig();
         const basePrompt = taskConfig.helpers?.translatePrompt?.[targetLanguageCode] ?? '';
 
-        if (!prompt) {
+        if (!basePrompt) {
           console.error('Unable to find translate prompt for language ', targetLanguageCode);
         }
 
@@ -393,13 +468,49 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     return prompt;
   }
 
+  private openProgressSnack(message: string) {
+    this.lastProgressMessage = message;
+
+    this.progressStopSub?.unsubscribe();
+    this.progressStopSub = undefined;
+
+    this.progressSnackRef?.dismiss();
+    this.progressSnackRef = this.snackBar.open(message, 'Stop');
+    this.progressStopSub = this.progressSnackRef.onAction().subscribe(() => {
+      this.setGlobalGenerating(false);
+    });
+  }
+
+  private closeProgressSnack() {
+    this.progressStopSub?.unsubscribe();
+    this.progressStopSub = undefined;
+    this.progressSnackRef?.dismiss();
+    this.progressSnackRef = null;
+    this.lastProgressMessage = null;
+  }
+
   private showAPIErrorMessage(message: string): void {
-    const snackBarRef = this.snackBar.open(message, 'Dismiss', {
+    // Opening this snackbar will dismiss any existing snackbar (progress)
+    // so we should tear down the progress subscription first.
+    this.progressStopSub?.unsubscribe();
+    this.progressStopSub = undefined;
+    this.progressSnackRef = null;
+
+    const ref = this.snackBar.open(message, 'Dismiss', {
       duration: undefined,
       panelClass: 'snackbar-error'
     });
-    snackBarRef?.onAction().subscribe(() => {
-      snackBarRef.dismiss();
+
+    ref.onAction().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => ref.dismiss());
+
+    // If we're still generating, re-open the progress snackbar after the error is dismissed.
+    ref.afterDismissed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (this.generating && this.lastProgressMessage) {
+        this.openProgressSnack(this.lastProgressMessage);
+      } else {
+        // Not generating anymore → clear stale progress state
+        this.closeProgressSnack();
+      }
     });
   }
 
@@ -422,6 +533,101 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       await this.sleep(waitMs);
     }
     return Date.now();
+  }
+
+  private getTeiEncodePromptTemplate(): string {
+    const taskConfig = this.settings.selectedTaskConfig();
+    return taskConfig.helpers?.teiEncodePrompt ?? '';
+  }
+
+  private getTeiEncodePromptForTranscription(promptTemplate: string, transcription: string): string {
+    return promptTemplate.replaceAll(
+      '{{AI_TRANSCRIPTION}}',
+      transcription
+    );
+  }
+
+  private setGlobalGenerating(isGenerating: boolean) {
+    this.generating = isGenerating;
+  }
+
+  private setImageGenerating(imageObj: ImageData, isGenerating: boolean) {
+    imageObj.generating = isGenerating;
+  }
+
+  private handleApiFailure(settings: RequestSettings, result: any, stopGeneration: boolean, imageObj?: ImageData) {
+    const e = result?.error;
+    if (e) {
+      const msg = `Error communicating with the ${settings.model?.provider} API: ${e.code ? e.code + ' ' : ''}${e.message ?? ''}`.trim();
+      this.showAPIErrorMessage(msg);
+      if (stopGeneration) {
+        this.setGlobalGenerating(false);
+        if (imageObj !== undefined) {
+          this.setImageGenerating(imageObj, false);
+        }
+      }
+    }
+  }
+
+  private async runAiTask(
+    mode: 'image' | 'text',
+    settings: RequestSettings,
+    prompt: string,
+    stopOnError: boolean,
+    imageObj?: ImageData
+  ): Promise<{ text: string; usage: any; cost: number } | null> {
+    try {
+      if (mode === 'image' && !imageObj) {
+        throw new Error('runAiTask called with mode="image" but no imageObj provided');
+      }
+
+      const result = (mode === 'image' && imageObj !== undefined)
+        ? await this.aiService.describeImage(settings, prompt, imageObj.base64Image)
+        : await this.aiService.responsesTextTask(settings, prompt);
+      // console.log(result);
+      const text = result?.text ?? '';
+
+      if (!text && result?.error) {
+        this.handleApiFailure(settings, result, stopOnError, imageObj);
+        return null;
+      }
+
+      const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
+
+      return { text, usage: result?.usage, cost };
+    } catch (e) {
+      console.error(e);
+      this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model?.provider} API: ${e}`);
+
+      if (stopOnError) {
+        this.setGlobalGenerating(false);
+      }
+      return null;
+    }
+  }
+
+  private buildDescription(
+    settings: RequestSettings,
+    text: string,
+    usage: any,
+    cost: number,
+    language?: LanguageCode,
+    teiEncoded?: boolean
+  ): DescriptionData {
+    return {
+      description: this.exportService.normaliseCharacters(text, teiEncoded),
+      language,
+      model: settings.model?.id ?? '',
+      inputTokens: usage?.inputTokens ?? 0,
+      outputTokens: usage?.outputTokens ?? 0,
+      cost,
+      teiEncoded
+    };
+  }
+
+  private commitDescription(imageObj: ImageData, desc: DescriptionData) {
+    imageObj.descriptions.push(desc);
+    imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
   }
 
 }

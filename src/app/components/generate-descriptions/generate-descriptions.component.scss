@@ -1,3 +1,5 @@
+@use '@angular/material' as mat;
+
 .generate-desc-wrapper {
   &.hide {
     display: none;
@@ -142,7 +144,7 @@ td {
         }
 
         &.delete-button mat-icon {
-          color: #df0000;
+          color: #A82424;
         }
       }
     }
@@ -153,6 +155,14 @@ td {
 
     .desc-text {
       white-space: pre-line;
+
+      &.tei-encoding {
+        font-family: "Fira Code", monospace;
+        font-optical-sizing: auto;
+        font-weight: 400;
+        font-size: 0.9375em;
+        font-style: normal;
+      }
     }
 
     .desc-length {
@@ -183,4 +193,12 @@ td {
       margin-top: 0.5rem;
     }
   }
+}
+
+.warn-button {
+  @include mat.button-overrides((
+    outlined-label-text-color: #A82424,
+    outlined-outline-color: #A82424,
+    outlined-state-layer-color: #b81515
+  ));
 }
