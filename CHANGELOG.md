@@ -50,6 +50,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Button label.
 - Persistent subscription to image list.
 - Increase description text area width in edit description dialog.
+- API key form reset on model provider change as part of task change.
 
 ### Removed
 
