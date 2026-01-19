@@ -107,8 +107,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   }
 
   private async generateImageDescription(imageObj: ImageData) {
-    imageObj.generating = true;
-    this.generating = true;
+    this.setGeneratingState(true, imageObj);
 
     const settings: RequestSettings = this.settings.getSettings();
 
@@ -142,14 +141,12 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       console.error(e);
       this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model.provider} API.`);
     } finally {
-      imageObj.generating = false;
-      this.generating = false;
+      this.setGeneratingState(false, imageObj);
     }
   }
 
   private async transcribeAndTeiEncode(imageObj: ImageData) {
-    imageObj.generating = true;
-    this.generating = true;
+    this.setGeneratingState(true, imageObj);
 
     const settings: RequestSettings = this.settings.getSettings();
 
@@ -166,7 +163,6 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         break;
       }
 
-      imageObj.generating = true;
       this.teiEncoding.set(teiEncodingPass);
 
       const prompt: string = (teiEncodingPass && transcriptionDesc)
@@ -182,7 +178,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
           const e = result.error;
           const eMessage = `Error communicating with the ${settings.model.provider} API: ${e.message}`;
           this.showAPIErrorMessage(eMessage);
-          this.generating = false;
+          this.setGeneratingState(false, imageObj);
         } else {
           const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
 
@@ -216,18 +212,15 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       } catch (e: any) {
         console.error(e);
         this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model.provider} API.`);
-        this.generating = false;
-      } finally {
-        imageObj.generating = false;
+        this.setGeneratingState(false, imageObj);
       }
     }
 
-    imageObj.generating = false;
-    this.generating = false;
+    this.setGeneratingState(false, imageObj);
   }
 
   private async generateImageDescriptionsAll() {
-    this.generating = true;
+    this.setGeneratingState(true);
 
     const settings: RequestSettings = this.settings.getSettings();
 
@@ -254,10 +247,10 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       snackBarRef?.dismiss();
       snackBarRef = this.snackBar.open(`Generating ${this.settings.taskNouns().singular} ${counter}/${this.imageListService.imageList.length}`, 'Stop');
       snackBarRef.onAction().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-        this.generating = false;
+        this.setGeneratingState(false);
       });
 
-      imageObj.generating = true;
+      this.setGeneratingState(true, imageObj);
       const prompt = this.constructPrompt(promptTemplate, imageObj);
 
       try {
@@ -269,7 +262,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
           const e = result.error;
           const eMessage = `Error communicating with the ${settings.model.provider} API: ${e.message}`;
           this.showAPIErrorMessage(eMessage);
-          this.generating = false;
+          this.setGeneratingState(false, imageObj);
         } else {
           const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
           const newDescription: DescriptionData = {
@@ -287,18 +280,18 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       } catch (e: any) {
         console.error(e);
         this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model.provider} API.`);
-        this.generating = false;
+        this.setGeneratingState(false);
       } finally {
         imageObj.generating = false;
       }
     }
   
-    this.generating = false;
+    this.setGeneratingState(false);
     snackBarRef?.dismiss();
   }
 
   private async transcribeAndTeiEncodeAll() {
-    this.generating = true;
+    this.setGeneratingState(true);
     
     let snackBarRef = null;
     let counter = 0;
@@ -317,7 +310,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       snackBarRef?.dismiss();
       snackBarRef = this.snackBar.open(`Transcribing and TEI encoding ${counter}/${this.imageListService.imageList.length}`, 'Stop');
       snackBarRef.onAction().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-        this.generating = false;
+        this.setGeneratingState(false);
       });
 
       let transcriptionDesc: DescriptionData | null = null;
@@ -334,7 +327,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
           break loop1;
         }
 
-        imageObj.generating = true;
+        this.setGeneratingState(true, imageObj);
         this.teiEncoding.set(teiEncodingPass);
 
         const prompt: string = (teiEncodingPass && transcriptionDesc)
@@ -350,7 +343,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
             const e = result.error;
             const eMessage = `Error communicating with the ${settings.model.provider} API: ${e.message}`;
             this.showAPIErrorMessage(eMessage);
-            this.generating = false;
+            this.setGeneratingState(false, imageObj);
           } else {
             const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
 
@@ -384,20 +377,19 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         } catch (e: any) {
           console.error(e);
           this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model.provider} API.`);
-          this.generating = false;
+          this.setGeneratingState(false);
         } finally {
           imageObj.generating = false;
         }
       }
     }
     
-    this.generating = false;
+    this.setGeneratingState(false);
     snackBarRef?.dismiss();
   }
 
   private async generateDescriptionTranslation(imageObj: ImageData, prompt: string, targetLanguageCode: LanguageCode) {
-    imageObj.generating = true;
-    this.generating = true;
+    this.setGeneratingState(true, imageObj);
     const settings: RequestSettings = this.settings.getSettings();
 
     try {
@@ -426,8 +418,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       console.error(e);
       this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model?.provider} API.`);
     } finally {
-      imageObj.generating = false;
-      this.generating = false;
+      this.setGeneratingState(false, imageObj);
     }
   }
 
@@ -639,6 +630,13 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       '{{AI_TRANSCRIPTION}}',
       transcription
     );
+  }
+
+  private setGeneratingState(isGenerating: boolean, imageObj?: ImageData) {
+    this.generating = isGenerating;
+    if (imageObj) {
+      imageObj.generating = isGenerating;
+    }
   }
 
 }
