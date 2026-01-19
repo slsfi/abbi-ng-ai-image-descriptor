@@ -5,7 +5,6 @@ import { Document, IParagraphStyleOptions, Packer, Paragraph, Table,
 import { zipSync, strToU8 } from 'fflate';
 
 import { ImageListService } from './image-list.service';
-import { SettingsService } from './settings.service';
 import { DescriptionData } from '../types/description-data.types';
 import { ImageData } from '../types/image-data.types';
 import { ExportFormatOption } from '../types/export.types';
@@ -28,7 +27,6 @@ export const EXPORT_FORMAT_OPTIONS: ExportFormatOption[] = [
 })
 export class ExportService {
   private readonly imageListService = inject(ImageListService);
-  private readonly settings = inject(SettingsService);
 
   private previousFileFormat: string | null = null;
   private previousFilename: string = FALLBACK_FILENAME;
@@ -530,6 +528,10 @@ export class ExportService {
 
         text = new_text;
       }
+
+      text = text.trim();
+      text = this.extractBody(text);
+      text = text.trim();
 
       text = text.replaceAll('<lb/>', '<lb break="line"/>');
       text = this.fixLbEncoding(text);
