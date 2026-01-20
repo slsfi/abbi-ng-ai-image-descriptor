@@ -8,6 +8,9 @@ import { Model } from '../types/model.types';
 import { PromptVariant } from '../types/prompt.types';
 import { RequestSettings } from '../types/settings.types';
 
+const BATCH_SIZE_MIN = 2;
+const BATCH_SIZE_MAX = 30;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -17,10 +20,14 @@ export class SettingsService {
   readonly selectedVariantId = signal<string>(TASK_CONFIGS[0].variants[0].id);
   readonly selectedModelId = signal<ModelId>(TASK_CONFIGS[0].defaultModel);
 
+  readonly batchSize = signal<number>(10);
   readonly includeFilename = signal<boolean>(true);
   readonly selectedDescLength = signal<number>(175);
   readonly selectedTemperature = signal<number>(1.0);
   readonly teiEncode = signal<boolean>(false);
+
+  readonly batchSizeMin = signal<number>(BATCH_SIZE_MIN);
+  readonly batchSizeMax = signal<number>(BATCH_SIZE_MAX);
 
   // --- Derived config ---
   readonly taskConfigs = signal(TASK_CONFIGS);
@@ -93,7 +100,8 @@ export class SettingsService {
     // Apply temperature defaults per task type
     effect(() => {
       const taskType = this.selectedTaskType();
-      this.selectedTemperature.set(taskType === 'transcription' ? 0.0 : 1.0);
+      const isTranscription = taskType === 'transcription' || taskType === 'transcriptionBatchTei';
+      this.selectedTemperature.set(isTranscription ? 0.0 : 1.0);
     });
 
     // Ensure selectedVariantId is sane when task type changes
@@ -105,6 +113,17 @@ export class SettingsService {
       const exists = cfg.variants.some(v => v.id === current);
       if (!exists) {
         this.selectedVariantId.set(cfg.variants[0]?.id ?? 'default');
+      }
+    });
+
+    // Clamp the batchSize to min/max
+    effect(() => {
+      const batchSize = this.batchSize();
+
+      if (batchSize < BATCH_SIZE_MIN) {
+        this.batchSize.set(BATCH_SIZE_MIN);
+      } else if (batchSize > BATCH_SIZE_MAX) {
+        this.batchSize.set(BATCH_SIZE_MAX);
       }
     });
   }
@@ -119,6 +138,7 @@ export class SettingsService {
       promptVariant: this.selectedVariant(),
       includeFilename: this.includeFilename(),
       teiEncode: this.teiEncode(),
+      batchSize: this.batchSize(),
     };
   }
 
@@ -152,6 +172,10 @@ export class SettingsService {
 
   updateTeiEncode(value: boolean) {
     this.teiEncode.set(value);
+  }
+
+  updateBatchSize(value: number) {
+    this.batchSize.set(value);
   }
 
 }

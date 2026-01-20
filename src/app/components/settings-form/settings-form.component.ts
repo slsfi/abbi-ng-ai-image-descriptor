@@ -82,4 +82,8 @@ export class SettingsFormComponent {
     this.settings.updateSelectedTemperature(temperature);
   }
 
+  setBatchSize(size: number): void {
+    this.settings.updateBatchSize(size);
+  }
+
 }

@@ -1,6 +1,6 @@
 import { TaskTypeConfig } from "../../app/types/prompt.types"
 
-export type TaskTypeId = 'altText' | 'transcription';
+export type TaskTypeId = 'altText' | 'transcription' | 'transcriptionBatchTei';
 export type LanguageCode = 'sv' | 'fi' | 'en';
 
 export const TASK_CONFIGS: TaskTypeConfig[] = [
@@ -47,7 +47,7 @@ export const TASK_CONFIGS: TaskTypeConfig[] = [
   },
   {
     taskType: 'transcription',
-    label: 'Transcribe text (OCR/HTR)',
+    label: 'Transcribe',
     nouns: {
       singular: 'transcription',
       plural: 'transcriptions'
@@ -68,6 +68,22 @@ export const TASK_CONFIGS: TaskTypeConfig[] = [
       teiEncodePrompt: '# Task\n\nBelow is an accurate transcription of a handwritten, typewritten or printed historical document. Your task is to enrich the transcription with basic TEI XML markup. Omit the `<teiHeader>` and just answer with the text `<body>`. A facsimile image of the original document is attached for reference.\n\n## Transcription:\n\n```\n{{AI_TRANSCRIPTION}}\n```\n\n## Don’t encode:\n\n- text divisions (`<div>`)\n\n## Encode:\n\n- headings (`<head>`)\n- paragraphs (`<p>`; add `rend="noIndent"` to paragraphs that do not have first line indentation)\n- page beginnings (`<pb/>`; if no page number is visible in the facsimile, omit @n)\n- line beginnings (`<lb/>`)\n- footnotes (`<note>`)\n- line groups (`<lg>`)\n- tables (`<table>`)\n- lists (`<list>`)\n- highlights (`<hi>`; bold, italics, etc.)\n\n## Important:\n\n- Note that the `<lb/>` element marks the beginning of lines and should appear at the start of lines, not at the end.\n- Do not alter the transcribed text.\n- Maintain the line breaks.\n- Do not add text that is not in the transcription (headers, footers, and marginalia might have been omitted on purpose).\n\n## Example of TEI encoded text (the text itself has nothing to do with the attached transcription):\n\n```\n<body>\n<pb n="22"/>\n<p><lb/>I detta ögonblick hördes helt nära uppå det af eldarna\n<lb/>svagt belysta fältet en jemrande stämma ömkligen bönfalla om\n<lb/>hjelp. Soldaterna, vana vid sådant, hörde på den främmande\n<lb/>brytningen att mannen icke var deras och gjorde sig intet omak.\n<lb/>Men jemrandet fortfor, klagande och skärande, utan uppehåll.</p>\n<head><lb/><hi rend="italics">Slaget</hi></head>\n<p rend="noIndent"><lb/>Pekka, en af Bertilas fyra dragoner, kortvext, men stark som en\n<lb/>björn, gick motvilligt att tysta den jemrandes mun.</p>\n</body>\n```\n'
     }
   },
+  {
+    taskType: 'transcriptionBatchTei',
+    label: 'Transcribe + TEI encode (batched)',
+    nouns: {
+      singular: 'TEI transcription',
+      plural: 'TEI transcriptions'
+    },
+    defaultModel: 'gemini-3-pro-preview',
+    variants: [
+      {
+        id: 'default',
+        label: 'TEI body (batched, no running headers)',
+        prompt: 'You are transcribing a multi-page document from a sequence of images (each image is one page). The pages are provided in order. Your task is to produce a TEI (Text Encoding Initiative) XML transcription of the document content.\n\nOUTPUT REQUIREMENTS\n- Output ONLY a single TEI <body> element (no <TEI>, no <text>, no <teiHeader>, no commentary).\n- The output must be valid XML.\n- Do not wrap the output in code fences.\n\nPAGE ORDER AND PAGE BREAKS\n- Treat the images as consecutive pages in the exact order provided.\n- At the start of each page, insert an empty page break milestone: <pb n="1"/>, <pb n="2"/>, ... (use 1-based numbering matching the order of images). <pb/> can appear inside, for example, a paragraph.\n\nWHAT TO TRANSCRIBE (INCLUDE / EXCLUDE)\nInclude:\n- Main text, headings, subheadings, lists, tables (as best as reasonable), and signatures.\n- Marginalia, corrections, interlinear additions, and annotations that belong to the document content.\n- Footnotes and endnotes, including footnote markers/references and the note text.\n\nExclude:\n- Running headers and running footers that repeat on most pages (e.g., book title, author name, chapter title repeated at top, repeating footer text).\n- Page numbers (standalone page numbers in header/footer areas).\nIf you are unsure whether something is a running header/footer vs. meaningful content, prefer excluding it ONLY when it is clearly repetitive and purely navigational.\n\nSTRUCTURE AND TAGGING (TEI)\n- Wrap the full transcription in <body> ... </body>.\n- Use textual divisions with <div> and headings with <head>. This is REQUIRED:\n  - Every time the document presents a NEW HEADING LEVEL, start a new <div>.\n    Examples: Part → Chapter → Section → Subsection; or Heading 1 → Heading 2 → Heading 3.\n  - Do NOT start a new <div> for subtitles that belong to the same heading (e.g., a smaller line directly under a main heading that functions as a subtitle/strapline). Instead, encode subtitles within the SAME division, immediately after the main <head>, using <head type="sub">...</head>.\n  - Nest divisions by level: higher-level headings contain lower-level <div> elements.\n  - If the level is unclear, infer it cautiously from typography/numbering/indentation and be consistent across the document. Do not invent extra levels.\n\n- Within divisions:\n  - Use <p> for paragraphs.\n  - Use <lb/> for line breaks in paragraphs and headings. You must preserve the line breaks from the transcription in paragraphs!\n  - Use <list> and <item> for lists when the structure is clear.\n  - For tables, preserve as best as reasonable using lines and <lb/> or a simple list structure; do not hallucinate perfect table markup.\n\nNOTES (FOOTNOTES AND MARGINALIA)\n- Use <note> for footnotes/endnotes and for marginal notes. Preserve the association:\n  - If a footnote marker exists in the main text (e.g., *, 1, ²), encode the footnote content as a <note> that appears at the point where the marker occurs in reading order Place the footnote marker in @n.\n  - For marginalia, use <note place="margin"> ... </note> placed at the point in the main text where it most clearly applies. If placement is unclear, insert it near the closest relevant passage and keep it short and faithful.\n\nREADING ORDER\n- Maintain the natural reading order on each page: top to bottom, left to right.\n\nUNCLEAR TEXT\n- Do not guess. If text is unreadable, use <gap reason="illegible"/> for the missing portion.\n- If you can read part of a word/name but not all, transcribe the readable part and use <gap reason="illegible"/> where needed.\n\nNORMALIZATION\n- To maintain the authenticity of the historical text, retain spelling errors, grammar, syntax, capitalization, and punctuation as well as line breaks.\n- Do not expand abbreviations.\n- Do not modernize language.\n\nFINAL CHECK\n- Ensure well-formed XML.\n- Ensure there is exactly one <body> root element in the output.\n'
+      }
+    ]
+  }
 ] as const;
 
 // Map of task types for lookups

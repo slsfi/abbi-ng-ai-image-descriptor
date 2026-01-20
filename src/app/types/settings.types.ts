@@ -11,4 +11,5 @@ export interface RequestSettings {
   promptVariant: PromptVariant;
   includeFilename: boolean;
   teiEncode: boolean;
+  batchSize: number;
 };
