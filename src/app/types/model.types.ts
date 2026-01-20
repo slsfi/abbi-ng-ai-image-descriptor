@@ -16,10 +16,13 @@ import { ModelId, ModelProvider } from "../../assets/config/models";
 //     maxImageShortsidePx = (optional) max supported image short side
 //                           length in pixels, set to null for no limit,
 //                           defaults to 768 if undefined
-//     reasoningEffort = (optional, required for reasoning models)
-//                        reasoning effort constraint for reasoning
-//                        models, supported values are `none`, `minimal`,
-//                        `low`, `medium` and `high` depending on the model
+//     mediaResolution = (optional, Google Gemini only)
+//     reasoningEffort = (optional, required for OpenAI reasoning models)
+//                       reasoning effort constraint for reasoning
+//                       models, supported values are `none`, `minimal`,
+//                       `low`, `medium` and `high` depending on the model
+//     thinkingBudget = (optional, Google Gemini only, required for 2.5)
+//     thinkingLevel = (optional, Google Gemini only, required for 3)
 
 export interface Model {
   provider: ModelProvider;
@@ -38,8 +41,10 @@ export type Models = Model[];
 
 export interface ModelParameters {
   maxImageShortsidePx?: number | null;
+  mediaResolution?: string;
   reasoningEffort?: string;
   thinkingLevel?: string;
+  thinkingBudget?: number;
 }
 
 // A fixed price in USD per one million tokens, independent of token count.

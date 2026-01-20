@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Added
 
-- Support for Google GenAI models: [`gemini-3-flash-preview`](https://ai.google.dev/gemini-api/docs/models#gemini-3-flash) and [`gemini-3-pro-preview`](https://ai.google.dev/gemini-api/docs/models#gemini-3-pro).
+- Support for Google GenAI models: [`gemini-3-flash-preview`](https://ai.google.dev/gemini-api/docs/models#gemini-3-flash), [`gemini-3-pro-preview`](https://ai.google.dev/gemini-api/docs/models#gemini-3-pro), [`gemini-2.5-flash`](https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash) and [`gemini-2.5-pro`](https://ai.google.dev/gemini-api/docs/models#gemini-2.5-pro).
 - Support for the OpenAI [`gpt-5.2`](https://platform.openai.com/docs/models/gpt-5.2) model.
 - Option to export generated descriptions as separate plain text (txt) files that are zipped for downloading.
 - Option to export generated descriptions in TEI XML format, either with line beginning encoding or not. Replaces the previous XML export option.

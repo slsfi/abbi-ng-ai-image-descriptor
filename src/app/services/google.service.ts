@@ -64,13 +64,19 @@ export class GoogleService {
       return { text: '', error: { code: 400, message: 'Invalid image data URL' } };
     }
 
-    let maxOutput = null;
+    let maxOutputTokens = null;
     if (settings.taskType === 'altText') {
-      maxOutput = settings.descriptionLength ? settings.descriptionLength + 1000 : null;
+      maxOutputTokens = settings.descriptionLength ? settings.descriptionLength + 1000 : null;
     }
 
     try {
+      const mediaResolution = this.mediaResolutionFromModel(settings);
       const thinkingLevel = this.thinkingLevelFromModel(settings);
+
+      let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
+      if (thinkingLevel) {
+        thinkingBudget = null;
+      }
 
       const payload = {
         model: settings.model.id,
@@ -84,10 +90,11 @@ export class GoogleService {
           { text: prompt },
         ],
         config: {
-          ...(maxOutput ? { maxOutputTokens: maxOutput } : {}),
-          mediaResolution: MediaResolution.MEDIA_RESOLUTION_HIGH,
+          ...(maxOutputTokens ? { maxOutputTokens: maxOutputTokens } : {}),
+          ...(mediaResolution ? { mediaResolution: mediaResolution } : {}),
           ...(settings.temperature ? { temperature: settings.temperature } : {}),
-          ...(thinkingLevel ? { thinkingConfig: { thinkingLevel: thinkingLevel } } : {})
+          ...(thinkingLevel ? { thinkingConfig: { thinkingLevel: thinkingLevel } } : {}),
+          ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget: thinkingBudget } } : {})
         }
       };
       // console.log(payload);
@@ -169,6 +176,18 @@ export class GoogleService {
     } catch (err: any) {
       return { text: '', error: { code: 500, message: err?.message ?? 'Error generating content using Google API' }, raw: err };
     }
+  }
+
+  private mediaResolutionFromModel(settings: RequestSettings): MediaResolution | null {
+    const modelMediaResolution = settings.model.parameters?.mediaResolution ?? null;
+    const mediaResolution = modelMediaResolution === 'low'
+      ? MediaResolution.MEDIA_RESOLUTION_LOW
+      : modelMediaResolution === 'medium'
+      ? MediaResolution.MEDIA_RESOLUTION_MEDIUM
+      : modelMediaResolution === 'high'
+      ? MediaResolution.MEDIA_RESOLUTION_HIGH
+      : null
+    return mediaResolution;
   }
 
   private thinkingLevelFromModel(settings: RequestSettings): ThinkingLevel | null {
