@@ -1,0 +1,41 @@
+@if (batchResults.hasResults()) {
+  <div class="batch-results-wrapper">
+    <div class="header">
+      <h3>Batch results</h3>
+      <button mat-stroked-button (click)="clearAll()">Clear</button>
+    </div>
+
+    <div class="results">
+      @for (r of batchResults.results(); track r.id) {
+        <mat-card class="result-card">
+          <mat-card-title>
+            Batch {{ r.batchIndex ?? '?' }} — {{ r.imageIds.length }} images
+          </mat-card-title>
+
+          <mat-card-subtitle>
+            Status: {{ r.status }}
+            @if (r.modelId) { <span> · Model: {{ r.modelId }}</span> }
+          </mat-card-subtitle>
+
+          @if (r.status === 'error') {
+            <p class="error">{{ r.error }}</p>
+          }
+
+          @if (r.teiBody) {
+            <div class="actions">
+              <button mat-stroked-button (click)="copyTei(r)">Copy TEI</button>
+              <button mat-stroked-button (click)="downloadTei(r)">Download .tei.xml</button>
+              <button mat-button (click)="removeOne(r.id)">Remove</button>
+            </div>
+
+            <pre class="preview">{{ r.teiBody }}</pre>
+          } @else {
+            <div class="actions">
+              <button mat-button (click)="removeOne(r.id)">Remove</button>
+            </div>
+          }
+        </mat-card>
+      }
+    </div>
+  </div>
+}

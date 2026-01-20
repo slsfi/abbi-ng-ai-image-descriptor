@@ -14,6 +14,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+import { BatchResultsComponent } from '../batch-results/batch-results.component';
 import { ConfirmActionDialogComponent } from '../confirm-action-dialog/confirm-action-dialog.component';
 import { EditDescriptionDialogComponent } from '../edit-description-dialog/edit-description-dialog.component';
 import { ExportDialogComponent } from '../export-dialog/export-dialog.component';
@@ -45,6 +46,7 @@ import { LanguageCode } from '../../../assets/config/prompts';
     MatSelectModule,
     MatTableModule,
     MatTooltipModule,
+    BatchResultsComponent,
     CharacterCountPipe
   ],
   templateUrl: './generate-descriptions.component.html',
