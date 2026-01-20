@@ -6,8 +6,9 @@ export interface BatchResult {
   taskType: 'transcriptionBatchTei';
 
   // Which images were included (ordered)
-  imageIds: string[];
+  imageIds: number[];
   imageNames?: string[];      // optional, for nicer display
+  fileApiImageIds?: string[];
 
   // The output (TEI <body>…</body>)
   teiBody?: string;

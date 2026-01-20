@@ -56,12 +56,16 @@ export class AddImagesComponent {
             processedFiles.push({
               id: this.imageListService.generateId(),
               filename: file.name,
+              mimeType: resized.mimeType,
               base64Image: resized.base64,
               height: resized.height,
               width: resized.width,
               descriptions: [],
               activeDescriptionIndex: 0,
-              generating: false
+              generating: false,
+              filesApiId: undefined,
+              filesApiUri: undefined,
+              filesApiProvider: undefined,
             });
 
             this.processedCounter++;

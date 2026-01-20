@@ -47,6 +47,19 @@ export class AiService {
     return Promise.resolve({ text: '', error: { code: 400, message: `Unsupported provider: ${settings.model.provider}` } });
   }
 
+  describeImages(settings: RequestSettings, prompt: string, base64Images: string[]): Promise<AiResult> {
+    if (settings.model.provider === 'Google') {
+      return this.google.describeImages(settings, prompt, base64Images);
+    } else if (settings.model.provider === 'OpenAI') {
+      // Phase 5
+      return Promise.resolve({
+        text: '',
+        error: { code: 400, message: 'Batch transcription is currently supported only for Google models.' }
+      });
+    }
+    return Promise.resolve({ text: '', error: { code: 400, message: `Unsupported provider: ${settings.model.provider}` } });
+  }
+
   // Keep the same method name for now to avoid churn.
   responsesTextTask(settings: RequestSettings, prompt: string): Promise<AiResult> {
     if (settings.model.provider === 'OpenAI') {

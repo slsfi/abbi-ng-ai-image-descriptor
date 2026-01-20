@@ -84,7 +84,8 @@ export class ImageListService {
     const imgDetails = {
       base64: canvas.toDataURL('image/jpeg'),
       height: imgHeight,
-      width: imgWidth
+      width: imgWidth,
+      mimeType: 'image/jpeg',
     }
     canvas = null;
     return imgDetails;

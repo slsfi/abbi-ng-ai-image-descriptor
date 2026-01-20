@@ -21,10 +21,12 @@ import { ExportDialogComponent } from '../export-dialog/export-dialog.component'
 import { TranslateDescriptionDialogComponent } from '../translate-description-dialog/translate-description-dialog.component';
 import { CharacterCountPipe } from '../../pipes/character-count.pipe';
 import { AiService } from '../../services/ai.service';
+import { BatchResultsService } from '../../services/batch-results.service';
 import { CostService } from '../../services/cost.service';
 import { ExportService } from '../../services/export.service';
 import { ImageListService } from '../../services/image-list.service';
 import { SettingsService } from '../../services/settings.service';
+import { BatchResult } from '../../types/batch-result.types';
 import { DescriptionData } from '../../types/description-data.types';
 import { ImageData } from '../../types/image-data.types';
 import { RequestSettings } from '../../types/settings.types';
@@ -59,6 +61,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   private readonly exportService = inject(ExportService);
   public readonly imageListService = inject(ImageListService);
   private readonly aiService = inject(AiService);
+  private readonly batchResults = inject(BatchResultsService);
   readonly settings = inject(SettingsService);
   private readonly snackBar = inject(MatSnackBar);
 
@@ -95,7 +98,9 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   async generateAll() {
     const settings: RequestSettings = this.settings.getSettings();
 
-    if (settings.taskType === 'transcription' && settings.teiEncode) {
+    if (settings.taskType === 'transcriptionBatchTei') {
+      await this.transcribeAndTeiEncodeBatchedAll();
+    } else if (settings.taskType === 'transcription' && settings.teiEncode) {
       await this.transcribeAndTeiEncodeAll();
     } else {
       await this.generateImageDescriptionsAll();
@@ -281,6 +286,98 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
         this.setImageGenerating(imageObj, false);
       }
+    }
+
+    this.closeProgressSnack();
+    this.setGlobalGenerating(false);
+  }
+
+  private async transcribeAndTeiEncodeBatchedAll() {
+    this.setGlobalGenerating(true);
+
+    // optional: clear old batch results at the start of a run
+    // (if you prefer to keep history, remove this)
+    // this.batchResults.clear();
+
+    const settings: RequestSettings = this.settings.getSettings();
+    const prompt = this.constructPromptTemplate();
+
+    const images = this.imageListService.imageList;
+    const batchSize = settings.batchSize || 10;
+    const batches = this.chunkArray(images, batchSize);
+
+    let lastRequestAt: number | null = null;
+
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      if (!this.generating) {
+        break;
+      }
+
+      // Throttle per REQUEST (per batch)
+      lastRequestAt = await this.enforceRpm(settings.model?.rpm, lastRequestAt);
+      if (!this.generating) {
+        break;
+      }
+
+      const batch = batches[batchIndex];
+
+      this.openProgressSnack(`Generating TEI batch ${batchIndex + 1}/${batches.length} (${batch.length} pages)`);
+
+      // mark images generating (even if table hidden, keeps state consistent)
+      for (const img of batch) {
+        this.setImageGenerating(img, true);
+      }
+
+      const batchId = (globalThis.crypto && 'randomUUID' in globalThis.crypto)
+        ? globalThis.crypto.randomUUID()
+        : `${Date.now()}-${batchIndex}-${Math.random().toString(16).slice(2)}`;
+
+      const pending: BatchResult = {
+        id: batchId,
+        createdAt: new Date().toISOString(),
+        taskType: 'transcriptionBatchTei',
+        status: 'pending',
+        imageIds: batch.map(i => i.id),
+        imageNames: batch.map(i => i.filename),
+        modelId: settings.model.id,
+        batchIndex: batchIndex + 1,
+        batchSize: batch.length,
+      };
+
+      this.batchResults.add(pending);
+
+      const res = await this.runAiTaskBatchImages(settings, prompt, batch.map(i => i.base64Image));
+      if (res) {
+        // normaliseCharacters already strips/normalizes; pass teiEncoded=true
+        const teiBody = this.exportService.normaliseCharacters(res.text, true);
+
+        this.batchResults.update(batchId, {
+          status: 'success',
+          teiBody,
+          inputTokens: res.usage?.inputTokens ?? 0,
+          outputTokens: res.usage?.outputTokens ?? 0,
+          cost: res.cost,
+        });
+      } else {
+        // runAiTaskBatchImages already showed a snackbar; mark the batch as error
+        this.batchResults.update(batchId, {
+          status: 'error',
+          error: 'Batch request failed. See error message above.',
+        });
+
+        // For stop-on-error behavior: stop the run when batch fails
+        // If you prefer to continue to next batch, remove this block.
+        break;
+      }
+
+      for (const img of batch) {
+        this.setImageGenerating(img, false);
+      }
+    }
+
+    // Ensure any “generating” flags are cleared (if user hit Stop mid-batch)
+    for (const img of this.imageListService.imageList) {
+      this.setImageGenerating(img, false);
     }
 
     this.closeProgressSnack();
@@ -608,6 +705,31 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     }
   }
 
+  private async runAiTaskBatchImages(
+    settings: RequestSettings,
+    prompt: string,
+    base64Images: string[],
+  ): Promise<{ text: string; usage: any; cost: number } | null> {
+    try {
+      const result = await this.aiService.describeImages(settings, prompt, base64Images);
+
+      const text = result?.text ?? '';
+      if (!text && result?.error) {
+        // no imageObj here; still show the provider error
+        this.handleApiFailure(settings, result, true);
+        return null;
+      }
+
+      const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
+      return { text, usage: result?.usage, cost };
+    } catch (e) {
+      console.error(e);
+      this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model?.provider} API: ${e}`);
+      this.setGlobalGenerating(false);
+      return null;
+    }
+  }
+
   private buildDescription(
     settings: RequestSettings,
     text: string,
@@ -630,6 +752,14 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   private commitDescription(imageObj: ImageData, desc: DescriptionData) {
     imageObj.descriptions.push(desc);
     imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
+  }
+
+  private chunkArray<T>(arr: T[], chunkSize: number): T[][] {
+    const out: T[][] = [];
+    for (let i = 0; i < arr.length; i += chunkSize) {
+      out.push(arr.slice(i, i + chunkSize));
+    }
+    return out;
   }
 
 }

@@ -128,6 +128,97 @@ export class GoogleService {
     }
   }
 
+  async describeImages(settings: RequestSettings, prompt: string, base64Images: string[]): Promise<AiResult> {
+    if (!this.client) {
+      return { text: '', error: { code: 401, message: 'Google API key not set.' } };
+    }
+
+    if (!prompt) {
+      return { text: '', error: { code: 400, message: 'Missing prompt' } };
+    }
+
+    if (!base64Images?.length) {
+      return { text: '', error: { code: 400, message: 'No images provided' } };
+    }
+
+    // Parse all images first so we can fail fast with a good error
+    const parsedImages: ParsedDataUrl[] = [];
+    for (let i = 0; i < base64Images.length; i++) {
+      const parsed = parseDataUrl(base64Images[i]);
+      if (!parsed) {
+        return { text: '', error: { code: 400, message: `Invalid image data URL at index ${i}` } };
+      }
+      parsedImages.push(parsed);
+    }
+
+    let maxOutputTokens = null;
+    if (settings.taskType === 'altText') {
+      maxOutputTokens = settings.descriptionLength ? settings.descriptionLength + 1000 : null;
+    }
+
+    try {
+      const mediaResolution = this.mediaResolutionFromModel(settings);
+      const thinkingLevel = this.thinkingLevelFromModel(settings);
+
+      let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
+      if (thinkingLevel) {
+        thinkingBudget = null;
+      }
+
+      // Build contents as: [inlineData, inlineData, ..., {text: prompt}]
+      const contents: any[] = parsedImages.map(p => ({
+        inlineData: {
+          mimeType: p.mimeType,
+          data: p.dataBase64
+        }
+      }));
+      contents.push({ text: prompt });
+
+      const payload = {
+        model: settings.model.id,
+        contents,
+        config: {
+          ...(maxOutputTokens ? { maxOutputTokens } : {}),
+          ...(mediaResolution ? { mediaResolution } : {}),
+          ...(settings.temperature ? { temperature: settings.temperature } : {}),
+          ...(thinkingLevel ? { thinkingConfig: { thinkingLevel } } : {}),
+          ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget } } : {})
+        }
+      };
+
+      const raw = await this.client.models
+        .generateContent(payload)
+        .catch(async (e: any) => {
+          if (e instanceof ApiError) {
+            console.error('API Error:', e);
+            return { error: { code: e.status ?? 400, message: e.message ?? 'Google API error' } };
+          } else {
+            console.error('Unexpected Error:', e);
+            return { error: { code: 500, message: 'Internal Server Error.' } };
+          }
+        });
+
+      if (raw?.error) {
+        return { text: '', error: raw.error, raw };
+      }
+
+      return {
+        text: raw?.text ?? '',
+        usage: {
+          inputTokens: raw?.usageMetadata?.promptTokenCount ?? 0,
+          outputTokens: raw?.usageMetadata?.candidatesTokenCount ?? 0
+        },
+        raw
+      };
+    } catch (err: any) {
+      return {
+        text: '',
+        error: { code: 500, message: err?.message ?? 'Error generating content using Google API' },
+        raw: err
+      };
+    }
+  }
+
   async responsesTextTask(settings: RequestSettings, prompt: string): Promise<AiResult> {
     if (!this.client) {
       return { text: '', error: { code: 401, message: 'Google API key not set.' } };
