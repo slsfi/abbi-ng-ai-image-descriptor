@@ -29,6 +29,7 @@ import { SettingsService } from '../../services/settings.service';
 import { BatchResult } from '../../types/batch-result.types';
 import { DescriptionData } from '../../types/description-data.types';
 import { ImageData } from '../../types/image-data.types';
+import { AiResult } from '../../types/ai.types';
 import { RequestSettings } from '../../types/settings.types';
 import { LanguageCode } from '../../../assets/config/prompts';
 
@@ -346,7 +347,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
       this.batchResults.add(pending);
 
-      const res = await this.runAiTaskBatchImages(settings, prompt, batch.map(i => i.base64Image));
+      const res = await this.runAiTaskBatchImages('filesApiImages', settings, prompt, undefined, batch);
       if (res) {
         // normaliseCharacters already strips/normalizes; pass teiEncoded=true
         const teiBody = this.exportService.normaliseCharacters(res.text, true);
@@ -412,7 +413,9 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
     dialogRef.afterClosed().subscribe((remove: boolean) => {
       if (remove) {
-        this.imageListService.removeImage(imageObj);
+        this.aiService.deleteUploadedFile(imageObj).finally(() => {
+          this.imageListService.removeImage(imageObj);
+        });
       }
     });
   }
@@ -429,7 +432,8 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
     dialogRef.afterClosed().subscribe((remove: boolean) => {
       if (remove) {
-        this.imageListService.updateImageList([]);
+        Promise.allSettled(this.imageListService.imageList.map(img => this.aiService.deleteUploadedFile(img)))
+          .finally(() => this.imageListService.updateImageList([]));
       }
     });
   }
@@ -706,12 +710,31 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   }
 
   private async runAiTaskBatchImages(
+    mode: 'inlineImages' | 'filesApiImages',
     settings: RequestSettings,
     prompt: string,
-    base64Images: string[],
+    base64Images?: string[],
+    images?: ImageData[]
   ): Promise<{ text: string; usage: any; cost: number } | null> {
     try {
-      const result = await this.aiService.describeImages(settings, prompt, base64Images);
+      let result: AiResult | null = null;
+
+      if (mode === 'inlineImages' && base64Images !== undefined) {
+        result = await this.aiService.describeImages(settings, prompt, base64Images);
+      } else if (mode === 'filesApiImages' && images !== undefined) {
+        try {
+          result = await this.aiService.describeImagesFilesApi(settings, prompt, images);
+        } finally {
+          // delete the uploaded files
+          await Promise.allSettled(
+            images
+              .filter(img => img.filesApiProvider === settings.model.provider && !!img.filesApiId)
+              .map(img => this.aiService.deleteUploadedFile(img))
+          );
+        }
+      } else {
+        throw new Error('Batch image mode and provided data does not match.');
+      }
 
       const text = result?.text ?? '';
       if (!text && result?.error) {
