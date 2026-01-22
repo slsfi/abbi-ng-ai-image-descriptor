@@ -22,7 +22,7 @@
 
         <div class="buttons-row">
           <button matButton="outlined"
-            [disabled]="generating || !o.imageList?.length || exporting"
+            [disabled]="generating || !o.imageList?.length || !batchResults.hasResults() || exporting"
             (click)="exportTeiTranscriptions()"
           >
             @if (exporting) { Exporting TEI transcriptions... } @else { Export TEI transcriptions }
@@ -34,7 +34,7 @@
             (click)="removeAllImages()"
           >Remove all images</button>
         </div>
-        <batch-results></batch-results>
+        <batch-results (generateBatch)="transcribeAndTeiEncodeBatch($event)"></batch-results>
       </div>
 
     } @else {

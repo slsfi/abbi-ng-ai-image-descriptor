@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -27,13 +27,14 @@ export class BatchResultsComponent {
   readonly exportService = inject(ExportService);
   readonly snackBar = inject(MatSnackBar);
 
+  generateBatch = output<BatchResult>();
+
   downloadTei(result: BatchResult) {
     this.exportService.generateXMLFromBatch(result);
   }
 
-  clearAll() {
-    this.batchResults.clear();
-    this.snackBar.open('Cleared batch results', 'OK', { duration: 2000 });
+  generateOne(result: BatchResult) {
+    this.generateBatch.emit(result);
   }
 
   removeOne(id: string) {

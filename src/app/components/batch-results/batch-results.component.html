@@ -25,6 +25,13 @@
             }
             
             <button matIconButton
+              (click)="generateOne(r)"
+              [attr.aria-label]="'Regenerate'"
+              [matTooltip]="'Regenerate'"
+            >
+              <mat-icon>refresh</mat-icon>
+            </button>
+            <button matIconButton
               (click)="removeOne(r.id)"
               class="warn-button"
               [attr.aria-label]="'Remove'"
@@ -44,7 +51,7 @@
         } @else if (r.status === 'pending') {
           <div class="batch-status batch-pending">
             <mat-icon>pending</mat-icon>
-            <p>Processing not started.</p>
+            <p>Pending...</p>
           </div>
         } @else if (r.status === 'error') {
           <div class="batch-status batch-error">

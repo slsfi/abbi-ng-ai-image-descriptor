@@ -64,7 +64,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   private readonly exportService = inject(ExportService);
   public readonly imageListService = inject(ImageListService);
   private readonly aiService = inject(AiService);
-  private readonly batchResults = inject(BatchResultsService);
+  readonly batchResults = inject(BatchResultsService);
   readonly settings = inject(SettingsService);
   private readonly snackBar = inject(MatSnackBar);
 
@@ -393,6 +393,64 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
     // Ensure any “generating” flags are cleared (if user hit Stop mid-batch)
     for (const img of this.imageListService.imageList) {
+      this.setImageGenerating(img, false);
+    }
+
+    this.closeProgressSnack();
+    this.setGlobalGenerating(false);
+  }
+
+  async transcribeAndTeiEncodeBatch(batch: BatchResult) {
+    // regenerate single batch
+    this.setGlobalGenerating(true);
+
+    const settings: RequestSettings = this.settings.getSettings();
+    const prompt = this.constructPromptTemplate();
+    const batchId = batch.id;
+    const batchImages = this.imageListService.imageList.filter(
+      (img: ImageData) => batch.imageIds.includes(img.id)
+    );
+
+    if (batchImages.length !== batch.batchSize) {
+      console.error('Batch size does not correspond to number of images in batch.');
+      return;
+    }
+
+    // mark images generating (even if table hidden, keeps state consistent)
+    for (const img of batchImages) {
+      this.setImageGenerating(img, true);
+    }
+
+    this.openProgressSnack(`Regenerating TEI batch ${batch.batchIndex} (${batch.imageIds.length} ${batch.imageIds.length === 1 ? 'image' : 'images'})`);
+
+    const generating: Partial<BatchResult> = {
+        status: 'generating',
+        modelId: settings.model.id,
+      };
+
+    this.batchResults.update(batchId, generating);
+
+    const res = await this.runAiTaskBatchImages('filesApiImages', settings, prompt, undefined, batchImages);
+    if (res) {
+      // normaliseCharacters already strips/normalizes; pass teiEncoded=true
+      const teiBody = this.exportService.normaliseCharacters(res.text, true);
+
+      this.batchResults.update(batchId, {
+        status: 'success',
+        teiBody,
+        inputTokens: (batch.inputTokens ?? 0) + (res.usage?.inputTokens ?? 0),
+        outputTokens: (batch.outputTokens ?? 0) + (res.usage?.outputTokens ?? 0),
+        cost: (batch.cost ?? 0) + (res.cost),
+      });
+    } else {
+      // runAiTaskBatchImages already showed a snackbar; mark the batch as error
+      this.batchResults.update(batchId, {
+        status: 'error',
+        error: 'Batch request failed.',
+      });
+    }
+
+    for (const img of batchImages) {
       this.setImageGenerating(img, false);
     }
 
