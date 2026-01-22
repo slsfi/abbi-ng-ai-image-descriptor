@@ -17,8 +17,8 @@
               </button>
               <button matIconButton
                 (click)="downloadTei(r)"
-                [attr.aria-label]="'Download .tei.xml'"
-                [matTooltip]="'Download .tei.xml'"
+                [attr.aria-label]="'Download XML'"
+                [matTooltip]="'Download XML'"
               >
                 <mat-icon>download</mat-icon>
               </button>
@@ -27,8 +27,8 @@
             <button matIconButton
               (click)="removeOne(r.id)"
               class="warn-button"
-              [attr.aria-label]="'Remove transcription'"
-              [matTooltip]="'Remove transcription'"
+              [attr.aria-label]="'Remove'"
+              [matTooltip]="'Remove'"
             >
               <mat-icon>delete</mat-icon>
             </button>
@@ -44,7 +44,7 @@
         } @else if (r.status === 'pending') {
           <div class="batch-status batch-pending">
             <mat-icon>pending</mat-icon>
-            <p>Waiting for previous batches to finish...</p>
+            <p>Processing not started.</p>
           </div>
         } @else if (r.status === 'error') {
           <div class="batch-status batch-error">
@@ -52,7 +52,14 @@
             <p>{{ r.error }}</p>
           </div>
         } @else {
-          <div class="preview">{{ r.teiBody ?? 'The result body is empty: the AI model returned no content.' }}</div>
+          @if (r.teiBody) {
+            <div class="preview">{{ r.teiBody || 'The result body is empty: the AI model returned no content.' }}</div>
+          } @else {
+            <div class="batch-status">
+              <mat-icon>warning</mat-icon>
+              <p>The result body is empty: the AI model did not error, but returned no content.</p>
+            </div>
+          }
         }
       </div>
     </div>

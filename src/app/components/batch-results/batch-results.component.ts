@@ -7,6 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { BatchResultsService } from '../../services/batch-results.service';
+import { ExportService } from '../../services/export.service';
 import { BatchResult } from '../../types/batch-result.types';
 
 @Component({
@@ -23,32 +24,11 @@ import { BatchResult } from '../../types/batch-result.types';
 })
 export class BatchResultsComponent {
   readonly batchResults = inject(BatchResultsService);
+  readonly exportService = inject(ExportService);
   readonly snackBar = inject(MatSnackBar);
 
-  async copyTei(result: BatchResult) {
-    const text = result.teiBody ?? '';
-    try {
-      await navigator.clipboard.writeText(text);
-      this.snackBar.open('Copied TEI to clipboard', 'OK', { duration: 2000 });
-    } catch {
-      this.snackBar.open('Could not copy to clipboard', 'OK', { duration: 2500 });
-    }
-  }
-
   downloadTei(result: BatchResult) {
-    const tei = result.teiBody ?? '';
-    const blob = new Blob([tei], { type: 'application/xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-
-    const date = new Date(result.createdAt).toISOString().slice(0, 10);
-    const filename = `tei-batch-${date}-${result.id}.tei.xml`;
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-
-    URL.revokeObjectURL(url);
+    this.exportService.generateXMLFromBatch(result);
   }
 
   clearAll() {

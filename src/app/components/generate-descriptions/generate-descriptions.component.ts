@@ -523,8 +523,11 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     });
   }
 
-  export(): void {
-    const dialogRef = this.dialog.open(ExportDialogComponent, { minWidth: '500px' });
+  export(teiTranscriptions = false): void {
+    const dialogRef = this.dialog.open(ExportDialogComponent, {
+      data: { teiTranscriptions },
+      minWidth: '500px'
+    });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result?.value && result?.selectedExportFormat) {
@@ -536,6 +539,10 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         this.exporting = false;
       }
     });
+  }
+
+  exportTeiTranscriptions(): void {
+    this.export(true);
   }
 
   /**

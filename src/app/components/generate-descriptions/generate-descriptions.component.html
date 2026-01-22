@@ -22,10 +22,10 @@
 
         <div class="buttons-row">
           <button matButton="outlined"
-            [disabled]="true"
-            matTooltip="Batch export will be enabled in Phase 3."
+            [disabled]="generating || !o.imageList?.length || exporting"
+            (click)="exportTeiTranscriptions()"
           >
-            Export batch results
+            @if (exporting) { Exporting TEI transcriptions... } @else { Export TEI transcriptions }
           </button>
 
           <button matButton="outlined"
