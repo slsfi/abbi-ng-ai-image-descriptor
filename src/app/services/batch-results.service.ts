@@ -15,7 +15,7 @@ export class BatchResultsService {
   }
 
   add(result: BatchResult): void {
-    this.results.update(arr => [result, ...arr]); // newest first
+    this.results.update(arr => [...arr, result]);
   }
 
   update(id: string, patch: Partial<BatchResult>): void {

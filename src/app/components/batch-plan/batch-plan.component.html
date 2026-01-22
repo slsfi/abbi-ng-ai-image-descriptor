@@ -1,0 +1,5 @@
+@let images = imageCount();
+@let batches = batchPlan().length;
+@let imagesPerBatch = settings.batchSize();
+
+<p>Transcribe and TEI encode <strong>{{ images }} @if (images === 1) { {{ 'image' }} } @else { {{ 'images' }} } </strong> in <strong>{{ batches }} @if (batches === 1) { {{ 'batch' }} } @else { {{ 'batches' }} }</strong> (batch size {{ imagesPerBatch }} @if (imagesPerBatch === 1) { {{ 'image' }}} @else { {{ 'images' }}}).</p>

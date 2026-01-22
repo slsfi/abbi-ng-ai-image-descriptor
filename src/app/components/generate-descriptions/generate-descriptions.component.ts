@@ -14,6 +14,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+import { BatchPlanComponent } from '../batch-plan/batch-plan.component';
 import { BatchResultsComponent } from '../batch-results/batch-results.component';
 import { ConfirmActionDialogComponent } from '../confirm-action-dialog/confirm-action-dialog.component';
 import { EditDescriptionDialogComponent } from '../edit-description-dialog/edit-description-dialog.component';
@@ -50,8 +51,9 @@ import { LanguageCode } from '../../../assets/config/prompts';
     MatTableModule,
     MatTooltipModule,
     BatchResultsComponent,
-    CharacterCountPipe
-  ],
+    CharacterCountPipe,
+    BatchPlanComponent
+],
   templateUrl: './generate-descriptions.component.html',
   styleUrl: './generate-descriptions.component.scss'
 })
@@ -296,9 +298,8 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   private async transcribeAndTeiEncodeBatchedAll() {
     this.setGlobalGenerating(true);
 
-    // optional: clear old batch results at the start of a run
-    // (if you prefer to keep history, remove this)
-    // this.batchResults.clear();
+    // clear old batch results at the start of a run
+    this.batchResults.clear();
 
     const settings: RequestSettings = this.settings.getSettings();
     const prompt = this.constructPromptTemplate();
@@ -309,25 +310,9 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
     let lastRequestAt: number | null = null;
 
+    // Create batch results with pending status
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
-      if (!this.generating) {
-        break;
-      }
-
-      // Throttle per REQUEST (per batch)
-      lastRequestAt = await this.enforceRpm(settings.model?.rpm, lastRequestAt);
-      if (!this.generating) {
-        break;
-      }
-
       const batch = batches[batchIndex];
-
-      this.openProgressSnack(`Generating TEI batch ${batchIndex + 1}/${batches.length} (${batch.length} pages)`);
-
-      // mark images generating (even if table hidden, keeps state consistent)
-      for (const img of batch) {
-        this.setImageGenerating(img, true);
-      }
 
       const batchId = (globalThis.crypto && 'randomUUID' in globalThis.crypto)
         ? globalThis.crypto.randomUUID()
@@ -346,6 +331,36 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       };
 
       this.batchResults.add(pending);
+    }
+
+    // Process each batch
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      if (!this.generating) {
+        break;
+      }
+
+      // Throttle per REQUEST (per batch)
+      lastRequestAt = await this.enforceRpm(settings.model?.rpm, lastRequestAt);
+      if (!this.generating) {
+        break;
+      }
+
+      const batch = batches[batchIndex];
+
+      this.openProgressSnack(`Generating TEI batch ${batchIndex + 1}/${batches.length} (${batch.length} images)`);
+
+      // mark images generating (even if table hidden, keeps state consistent)
+      for (const img of batch) {
+        this.setImageGenerating(img, true);
+      }
+
+      const batchId = this.batchResults.results()[batchIndex].id;
+
+      const generating: Partial<BatchResult> = {
+        status: 'generating',
+      };
+
+      this.batchResults.update(batchId, generating);
 
       const res = await this.runAiTaskBatchImages('filesApiImages', settings, prompt, undefined, batch);
       if (res) {
@@ -363,7 +378,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         // runAiTaskBatchImages already showed a snackbar; mark the batch as error
         this.batchResults.update(batchId, {
           status: 'error',
-          error: 'Batch request failed. See error message above.',
+          error: 'Batch request failed.',
         });
 
         // For stop-on-error behavior: stop the run when batch fails

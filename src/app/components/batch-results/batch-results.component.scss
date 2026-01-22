@@ -1,0 +1,76 @@
+@use '@angular/material' as mat;
+
+:host {
+  display: block;
+  margin-top: 2rem;
+}
+
+.batch-result-wrapper {
+  margin: 1em 0;
+  padding: 1em;
+  border-top: 1px solid #dbdbdb;
+  border-bottom: 1px solid transparent;
+}
+
+.batch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.batch-title {
+  display: flex;
+  align-items: center;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+}
+
+.batch-result {
+  margin: 1em 0 0 0;
+}
+
+.batch-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+
+  p {
+    margin: 0;
+  }
+}
+
+.preview {
+  background-color: #f5f5f5;
+  border: 1px solid #dbdbdb;
+  border-radius: 2px;
+  font-family: "Fira Code", monospace;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-size: 0.875em;
+  font-style: normal;
+  padding: 0.5em 0.75em;
+  overflow-x: auto;
+  white-space: pre;
+  width: calc(100% - 1.5em);
+}
+
+.warn-button,
+.batch-error mat-icon {
+  @include mat.icon-overrides((
+    color: #A82424,
+  ));
+}
+
+.batch-pending mat-icon {
+  @include mat.icon-overrides((
+    color: #0622c2,
+  ));
+}

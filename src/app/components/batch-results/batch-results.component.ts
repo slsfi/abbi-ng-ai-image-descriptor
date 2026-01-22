@@ -1,7 +1,10 @@
 import { Component, inject } from '@angular/core';
+import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { BatchResultsService } from '../../services/batch-results.service';
 import { BatchResult } from '../../types/batch-result.types';
@@ -9,8 +12,11 @@ import { BatchResult } from '../../types/batch-result.types';
 @Component({
   selector: 'batch-results',
   imports: [
+    ClipboardModule,
     MatButtonModule,
-    MatCardModule
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule,
   ],
   templateUrl: './batch-results.component.html',
   styleUrls: ['./batch-results.component.scss'],

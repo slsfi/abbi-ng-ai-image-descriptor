@@ -72,8 +72,8 @@ export const TASK_CONFIGS: TaskTypeConfig[] = [
     taskType: 'transcriptionBatchTei',
     label: 'Transcribe + TEI encode (batched)',
     nouns: {
-      singular: 'TEI transcription',
-      plural: 'TEI transcriptions'
+      singular: 'TEI transcription (batched)',
+      plural: 'TEI transcriptions (batched)'
     },
     defaultModel: 'gemini-3-pro-preview',
     variants: [

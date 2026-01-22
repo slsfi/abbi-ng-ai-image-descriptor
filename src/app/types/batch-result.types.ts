@@ -1,4 +1,4 @@
-export type BatchResultStatus = 'pending' | 'success' | 'error';
+export type BatchResultStatus = 'pending' | 'success' | 'error' | 'generating';
 
 export interface BatchResult {
   id: string;                 // unique id for this batch run
@@ -17,12 +17,12 @@ export interface BatchResult {
   status: BatchResultStatus;
   error?: string;
 
-  // Optional: pricing/usage (wire up later)
+  // Pricing
   inputTokens?: number;
   outputTokens?: number;
   cost?: number;
 
-  // For reproducibility / UI details (optional but useful)
+  // UI details
   modelId?: string;
   batchIndex?: number;        // e.g. 1 of N
   batchSize?: number;         // actual size for this batch

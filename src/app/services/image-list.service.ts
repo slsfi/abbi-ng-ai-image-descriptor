@@ -126,6 +126,9 @@ export class ImageListService {
 
   updateImageList(list: ImageData[]): void {
     this._imageList.next(list);
+    if (list.length === 0) {
+      this.nextId = 0;
+    }
   }
 
   get imageList(): ImageData[] {

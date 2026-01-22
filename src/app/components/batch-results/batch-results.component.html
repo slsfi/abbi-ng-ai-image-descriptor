@@ -1,41 +1,60 @@
 @if (batchResults.hasResults()) {
-  <div class="batch-results-wrapper">
-    <div class="header">
-      <h3>Batch results</h3>
-      <button mat-stroked-button (click)="clearAll()">Clear</button>
-    </div>
-
-    <div class="results">
-      @for (r of batchResults.results(); track r.id) {
-        <mat-card class="result-card">
-          <mat-card-title>
-            Batch {{ r.batchIndex ?? '?' }} — {{ r.imageIds.length }} images
-          </mat-card-title>
-
-          <mat-card-subtitle>
-            Status: {{ r.status }}
-            @if (r.modelId) { <span> · Model: {{ r.modelId }}</span> }
-          </mat-card-subtitle>
-
-          @if (r.status === 'error') {
-            <p class="error">{{ r.error }}</p>
+  @for (r of batchResults.results(); track r.id) {
+    <div class="batch-result-wrapper">
+      <div class="batch-header">
+        <div class="batch-title">
+          <h3>Batch {{ r.batchIndex ?? '?' }}: @if (r.imageIds.length > 1) {images {{ r.imageIds[0]+1 }}–{{ r.imageIds[r.imageIds.length-1]+1 }}} @else {image {{r.imageIds[0]+1}}} ({{ r.imageIds.length }})</h3>
+        </div>
+        <div class="actions">
+          @if (r.status === 'success' || r.status === 'error') {
+            @if (r.teiBody) {
+              <button matIconButton
+                [cdkCopyToClipboard]="r.teiBody"
+                [attr.aria-label]="'Copy to clipboard'"
+                [matTooltip]="'Copy to clipboard'"
+              >
+                <mat-icon>content_copy</mat-icon>
+              </button>
+              <button matIconButton
+                (click)="downloadTei(r)"
+                [attr.aria-label]="'Download .tei.xml'"
+                [matTooltip]="'Download .tei.xml'"
+              >
+                <mat-icon>download</mat-icon>
+              </button>
+            }
+            
+            <button matIconButton
+              (click)="removeOne(r.id)"
+              class="warn-button"
+              [attr.aria-label]="'Remove transcription'"
+              [matTooltip]="'Remove transcription'"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
           }
-
-          @if (r.teiBody) {
-            <div class="actions">
-              <button mat-stroked-button (click)="copyTei(r)">Copy TEI</button>
-              <button mat-stroked-button (click)="downloadTei(r)">Download .tei.xml</button>
-              <button mat-button (click)="removeOne(r.id)">Remove</button>
-            </div>
-
-            <pre class="preview">{{ r.teiBody }}</pre>
-          } @else {
-            <div class="actions">
-              <button mat-button (click)="removeOne(r.id)">Remove</button>
-            </div>
-          }
-        </mat-card>
-      }
+        </div>
+      </div>
+      <div class="batch-result">
+        @if (r.status === 'generating') {
+          <div class="batch-status batch-generating">
+            <mat-spinner [diameter]="32"></mat-spinner>
+            <span class="spinner-label">Generating TEI transcription...</span>
+          </div>
+        } @else if (r.status === 'pending') {
+          <div class="batch-status batch-pending">
+            <mat-icon>pending</mat-icon>
+            <p>Waiting for previous batches to finish...</p>
+          </div>
+        } @else if (r.status === 'error') {
+          <div class="batch-status batch-error">
+            <mat-icon>error</mat-icon>
+            <p>{{ r.error }}</p>
+          </div>
+        } @else {
+          <div class="preview">{{ r.teiBody ?? 'The result body is empty: the AI model returned no content.' }}</div>
+        }
+      </div>
     </div>
-  </div>
+  }
 }

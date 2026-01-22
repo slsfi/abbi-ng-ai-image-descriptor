@@ -7,12 +7,13 @@
   } @else {
     @if (selectedTaskType === 'transcriptionBatchTei') {
 
+      <batch-plan [imageCount]="o.imageList?.length ?? 0"></batch-plan>
       <div class="generate-desc-wrapper">
         <div class="buttons-row">
           <button matButton="filled"
             (click)="generateAll()"
             [disabled]="generating || !o.imageList?.length"
-          >Generate batches ({{ o.imageList?.length ?? 0 }} images)</button>
+          >Generate TEI transcriptions ({{ o.imageList?.length ?? 0 }} images)</button>
 
           <div class="cost right-aligned">
             Cumulative cost: ${{ this.costService.cumulativeCost() | number }}
@@ -20,7 +21,6 @@
         </div>
 
         <div class="buttons-row">
-          <!-- In Phase 2 export() probably won't make sense for batches yet -->
           <button matButton="outlined"
             [disabled]="true"
             matTooltip="Batch export will be enabled in Phase 3."
@@ -32,13 +32,8 @@
             class="right-aligned warn-button"
             [disabled]="generating"
             (click)="removeAllImages()"
-          >Remove all</button>
+          >Remove all images</button>
         </div>
-
-        <p class="hint">
-          This task generates TEI in batches. Results will appear here once batch generation is implemented (Phase 3).
-        </p>
-
         <batch-results></batch-results>
       </div>
 
