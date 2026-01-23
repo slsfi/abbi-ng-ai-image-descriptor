@@ -53,8 +53,7 @@ export class BatchResultsComponent {
       const changedIds = new Set<string>();
 
       for (const r of results) {
-        const isOpen = this.isTeiOpen(r.id) ? 1 : 0;
-        const sig = `${r.updatedAt ?? r.createdAt}:${r.teiBody ? 1 : 0}:${isOpen}`;
+        const sig = `${r.updatedAt ?? r.createdAt}:${r.teiBody ? 1 : 0}`;
 
         const prev = this.lastSigById.get(r.id);
         if (prev !== sig) {
@@ -81,10 +80,6 @@ export class BatchResultsComponent {
         }
       }
     });
-  }
-
-  isTeiOpen(id: string): boolean {
-    return this.teiOpenById()[id] ?? false;
   }
 
   togglePreview(id: string): void {
