@@ -10,7 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarRef, TextOnlySnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -76,7 +76,8 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
   teiEncoding = signal<boolean>(false);
 
-  private progressSnackRef: any | null = null;
+  private progressSnackRef: MatSnackBarRef<TextOnlySnackBar> | null = null;
+  private errorSnackRef: MatSnackBarRef<TextOnlySnackBar> | null = null;
   private progressStopSub?: { unsubscribe(): void };
   private lastProgressMessage: string | null = null;
 
@@ -382,9 +383,8 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
           error: 'Batch request failed.',
         });
 
-        // For stop-on-error behavior: stop the run when batch fails
-        // If you prefer to continue to next batch, remove this block.
-        break;
+        // For stop-on-error behavior uncomment:
+        // this.setGlobalGenerating(false);
       }
 
       for (const img of batch) {
@@ -657,13 +657,20 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   }
 
   private openProgressSnack(message: string) {
+    // Always remember the latest message so we can resume after error.
     this.lastProgressMessage = message;
+
+    // If an error snackbar is currently open, do NOT open/replace progress.
+    if (this.errorSnackRef) {
+      return;
+    }
 
     this.progressStopSub?.unsubscribe();
     this.progressStopSub = undefined;
 
     this.progressSnackRef?.dismiss();
     this.progressSnackRef = this.snackBar.open(message, 'Stop');
+
     this.progressStopSub = this.progressSnackRef.onAction().subscribe(() => {
       this.setGlobalGenerating(false);
     });
@@ -682,21 +689,35 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     // so we should tear down the progress subscription first.
     this.progressStopSub?.unsubscribe();
     this.progressStopSub = undefined;
+    this.progressSnackRef?.dismiss();
     this.progressSnackRef = null;
+
+    // If an error is already visible, just update last message & don't stack errors
+    if (this.errorSnackRef) {
+      // Optional: replace the existing error snackbar text by dismissing & reopening,
+      // or just ignore subsequent errors.
+      this.errorSnackRef.dismiss();
+    }
 
     const ref = this.snackBar.open(message, 'Dismiss', {
       duration: undefined,
       panelClass: 'snackbar-error'
     });
 
-    ref.onAction().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => ref.dismiss());
+    this.errorSnackRef = ref;
 
-    // If we're still generating, re-open the progress snackbar after the error is dismissed.
+    ref.onAction().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
+      () => ref.dismiss()
+    );
+
+    // If we're still generating, re-open the progress snackbar after the error
+    // is dismissed.
     ref.afterDismissed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.errorSnackRef = null;
+
       if (this.generating && this.lastProgressMessage) {
         this.openProgressSnack(this.lastProgressMessage);
       } else {
-        // Not generating anymore → clear stale progress state
         this.closeProgressSnack();
       }
     });
@@ -823,8 +844,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
       const text = result?.text ?? '';
       if (!text && result?.error) {
-        // no imageObj here; still show the provider error
-        this.handleApiFailure(settings, result, true);
+        this.handleApiFailure(settings, result, false);
         return null;
       }
 
@@ -833,7 +853,6 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     } catch (e) {
       console.error(e);
       this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model?.provider} API: ${e}`);
-      this.setGlobalGenerating(false);
       return null;
     }
   }
