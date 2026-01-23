@@ -1,10 +1,12 @@
 import { Component, ElementRef, HostListener, OnInit,
-         ViewChild, afterNextRender, inject
+         ViewChild, afterNextRender, computed, inject, signal
         } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkTextareaAutosize, TextFieldModule } from '@angular/cdk/text-field';
-import { MAT_DIALOG_DATA, MatDialogClose, MatDialogContent } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogClose,
+         MatDialogContent, MatDialogRef
+        } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,9 +14,16 @@ import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { UpperFirstLetterPipe } from '../../pipes/upper-first-letter.pipe';
+import { ImageListService } from '../../services/image-list.service';
 import { SettingsService } from '../../services/settings.service';
+import { BatchResult } from '../../types/batch-result.types';
 import { DescriptionData } from '../../types/description-data.types';
 import { ImageData } from '../../types/image-data.types';
+
+export interface EditDescriptionDialogData {
+  imageObj?: ImageData,
+  batchObj?: BatchResult
+}
 
 @Component({
   selector: 'edit-description-dialog',
@@ -35,12 +44,35 @@ import { ImageData } from '../../types/image-data.types';
   styleUrl: './edit-description-dialog.component.scss'
 })
 export class EditDescriptionDialogComponent implements OnInit {
-  imageObj = inject<ImageData>(MAT_DIALOG_DATA);
+  data = inject<EditDescriptionDialogData>(MAT_DIALOG_DATA);
+  dialogRef = inject(MatDialogRef<EditDescriptionDialogComponent>);
+  imageListService = inject(ImageListService);
   settings = inject(SettingsService);
 
-  aspectRatio: number = 1.333;
-  activeDescriptionData?: DescriptionData;
-  editedDescription?: string;
+  imageObj?: ImageData = this.data.imageObj;
+  batchObj?: BatchResult = this.data.batchObj;
+
+  activeDescriptionData?: DescriptionData = this.imageObj?.descriptions[this.imageObj.activeDescriptionIndex];
+  editedDescription: string = this.activeDescriptionData?.description ?? this.batchObj?.teiBody ?? '';
+  teiEncoding: boolean = (this.activeDescriptionData?.teiEncoded || this.batchObj !== undefined);
+
+  dialogImages: ImageData[] = (this.imageObj !== undefined)
+    ? [this.imageObj]
+    : this.imageListService.imageList.filter(
+        (img: ImageData) => this.batchObj?.imageIds.includes(img.id)
+      );
+  
+  activeImage = signal<number>(0);
+
+  aspectRatio = computed<number>(() => {
+    const imageIndex = this.activeImage();
+    if (this.dialogImages.length > 0) {
+      const image = this.dialogImages[imageIndex];
+      return (image.width / image.height);
+    } else {
+      return 1.333;
+    }
+  });
 
   // Zoom / pan
   zoom = 1;
@@ -76,9 +108,24 @@ export class EditDescriptionDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.activeDescriptionData = this.imageObj.descriptions[this.imageObj.activeDescriptionIndex];
-    this.editedDescription = this.imageObj.descriptions[this.imageObj.activeDescriptionIndex].description;
-    this.aspectRatio = this.imageObj.width / this.imageObj.height;
+    if (!this.imageObj && !this.batchObj) {
+      console.error('Either an ImageData or BatchResult object needs to be passed to EditDescriptionDialogComponent as dialog data.');
+      this.dialogRef.close(null);
+    }
+  }
+
+  nextImage(): void {
+    const currentIndex = this.activeImage();
+    this.activeImage.set(
+      (currentIndex < (this.dialogImages.length - 1)) ? currentIndex + 1 : 0
+    );
+  }
+
+  previousImage(): void {
+    const currentIndex = this.activeImage();
+    this.activeImage.set(
+      (currentIndex > 0) ? currentIndex - 1 : this.dialogImages.length - 1
+    );
   }
 
   zoomIn(): void {

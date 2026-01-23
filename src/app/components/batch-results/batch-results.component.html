@@ -9,6 +9,13 @@
           @if (r.status === 'success' || r.status === 'error') {
             @if (r.teiBody) {
               <button matIconButton
+                (click)="editOne(r)"
+                [attr.aria-label]="'Edit transcription'"
+                [matTooltip]="'Edit transcription'"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button matIconButton
                 [cdkCopyToClipboard]="r.teiBody"
                 [attr.aria-label]="'Copy to clipboard'"
                 [matTooltip]="'Copy to clipboard'"
@@ -45,8 +52,8 @@
       <div class="batch-result">
         @if (r.status === 'generating') {
           <div class="batch-status batch-generating">
-            <mat-spinner [diameter]="32"></mat-spinner>
-            <span class="spinner-label">Generating TEI transcription...</span>
+            <mat-icon>progress_activity</mat-icon>
+            <p>Generating TEI transcription...</p>
           </div>
         } @else if (r.status === 'pending') {
           <div class="batch-status batch-pending">
@@ -60,7 +67,7 @@
           </div>
         } @else {
           @if (r.teiBody) {
-            <div class="preview">{{ r.teiBody || 'The result body is empty: the AI model returned no content.' }}</div>
+            <pre class="preview language-markup"><code class="language-markup" #codeEl>{{ r.teiBody }}</code></pre>
           } @else {
             <div class="batch-status">
               <mat-icon>warning</mat-icon>

@@ -21,6 +21,7 @@
 .batch-title {
   display: flex;
   align-items: center;
+  min-height: 40px;
 
   h3 {
     margin: 0;
@@ -48,18 +49,35 @@
 }
 
 .preview {
-  background-color: #f5f5f5;
+  background-color: #f7f7f9;
   border: 1px solid #dbdbdb;
   border-radius: 2px;
-  font-family: "Fira Code", monospace;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-size: 0.875em;
-  font-style: normal;
-  padding: 0.5em 0.75em;
   overflow-x: auto;
-  white-space: pre;
-  width: calc(100% - 1.5em);
+  padding: 0.5em 0.75em;
+
+  code {
+    font-family: "Fira Code", monospace !important;
+    font-weight: 400;
+    font-size: 0.9375em;
+    font-style: normal;
+  }
+}
+
+.batch-generating {
+  mat-icon {
+    display: inline-block;
+    animation: mat-rotate 1s linear infinite;
+    transform-origin: center;
+
+    @keyframes mat-rotate {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    mat-icon { animation: none; }
+  }
 }
 
 .warn-button,
@@ -69,8 +87,11 @@
   ));
 }
 
-.batch-pending mat-icon {
-  @include mat.icon-overrides((
-    color: #0622c2,
-  ));
+.batch-pending,
+.batch-generating {
+  mat-icon {
+    @include mat.icon-overrides((
+      color: #0622c2,
+    ));
+  }
 }

@@ -347,7 +347,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
       const batch = batches[batchIndex];
 
-      this.openProgressSnack(`Generating TEI batch ${batchIndex + 1}/${batches.length} (${batch.length} images)`);
+      this.openProgressSnack(`Generating TEI batch ${batchIndex + 1}/${batches.length} (${batch.length} ${batch.length === 1 ? 'image' : 'images'})`);
 
       // mark images generating (even if table hidden, keeps state consistent)
       for (const img of batch) {
@@ -506,7 +506,10 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     dialogRef.afterClosed().subscribe((remove: boolean) => {
       if (remove) {
         Promise.allSettled(this.imageListService.imageList.map(img => this.aiService.deleteUploadedFile(img)))
-          .finally(() => this.imageListService.updateImageList([]));
+          .finally(() => {
+            this.imageListService.updateImageList([]);
+            this.batchResults.clear();
+          });
       }
     });
   }
@@ -542,7 +545,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
   editDescription(imageObj: ImageData): void {
     const dialogRef = this.dialog.open(EditDescriptionDialogComponent, {
-      data: imageObj,
+      data: { imageObj },
       panelClass: 'editDescriptionDialog'
     });
 

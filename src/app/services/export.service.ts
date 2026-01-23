@@ -551,6 +551,8 @@ export class ExportService {
     // Replace apostrophe-like characters
     text = text.replaceAll("'", '’');
     text = text.replaceAll('´', '’');
+    // Entity encoding
+    text = text.replaceAll('& ', '&amp; ');
 
     // Replace fractions (avoid when followed by a 2-, 3-, or 4-digit "year")
     text = text.replace(/ 1\/2 (?!\d{2,4})/g, ' ½ ');
@@ -571,6 +573,10 @@ export class ExportService {
     text = text.replace(/ 7\/8 (?!\d{2,4})/g, ' ⅞ ');
     text = text.replace(/ 1\/9 (?!\d{2,4})/g, ' ⅑ ');
     text = text.replace(/ 1\/10 (?!\d{2,4})/g, ' ⅒ ');
+
+    // Insert no-break spaces as customary
+    text = text.replaceAll('. . .', '. . .');
+    text = text.replaceAll('o. s. v.', 'o. s. v.');
 
     text = text.trim();
 
