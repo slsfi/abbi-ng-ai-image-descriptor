@@ -72,12 +72,12 @@ export class GoogleService {
 
     // console.log('Prompt:', prompt);
     if (!prompt) {
-      return { text: '', error: { code: 400, message: 'Missing prompt' } };
+      return { text: '', error: { code: 400, message: 'Missing prompt.' } };
     }
 
     const parsed = parseDataUrl(base64Image);
     if (!parsed) {
-      return { text: '', error: { code: 400, message: 'Invalid image data URL' } };
+      return { text: '', error: { code: 400, message: 'Invalid image data URL.' } };
     }
 
     let maxOutputTokens = null;
@@ -115,22 +115,7 @@ export class GoogleService {
       };
       // console.log(payload);
 
-      const raw = await this.client.models
-        .generateContent(payload)
-        .catch(async (e: any) => {
-          if (e instanceof ApiError) {
-            console.error('API Error:', e);
-            return { error: { code: e.status ?? 400, message: e.message ?? 'Google API error' } };
-          } else {
-            console.error('Unexpected Error:', e);
-            return { error: { code: 500, message: 'Internal Server Error.' } };
-          }
-        });
-
-      if (raw?.error) {
-        return { text: '', error: raw.error, raw };
-      }
-
+      const raw = await this.client.models.generateContent(payload);
       return {
         text: raw?.text ?? '',
         usage: {
@@ -139,8 +124,8 @@ export class GoogleService {
         },
         raw
       };
-    } catch (err: any) {
-      return { text: '', error: { code: 500, message: err?.message ?? 'Error generating content using Google API' }, raw: err };
+    } catch (e) {
+      return this.toAiResultError(e);
     }
   }
 
@@ -150,11 +135,11 @@ export class GoogleService {
     }
 
     if (!prompt) {
-      return { text: '', error: { code: 400, message: 'Missing prompt' } };
+      return { text: '', error: { code: 400, message: 'Missing prompt.' } };
     }
 
     if (!base64Images?.length) {
-      return { text: '', error: { code: 400, message: 'No images provided' } };
+      return { text: '', error: { code: 400, message: 'No images provided.' } };
     }
 
     // Parse all images first so we can fail fast with a good error
@@ -162,7 +147,7 @@ export class GoogleService {
     for (let i = 0; i < base64Images.length; i++) {
       const parsed = parseDataUrl(base64Images[i]);
       if (!parsed) {
-        return { text: '', error: { code: 400, message: `Invalid image data URL at index ${i}` } };
+        return { text: '', error: { code: 400, message: `Invalid image data URL at index ${i}.` } };
       }
       parsedImages.push(parsed);
     }
@@ -202,22 +187,7 @@ export class GoogleService {
         }
       };
 
-      const raw = await this.client.models
-        .generateContent(payload)
-        .catch(async (e: any) => {
-          if (e instanceof ApiError) {
-            console.error('API Error:', e);
-            return { error: { code: e.status ?? 400, message: e.message ?? 'Google API error' } };
-          } else {
-            console.error('Unexpected Error:', e);
-            return { error: { code: 500, message: 'Internal Server Error.' } };
-          }
-        });
-
-      if (raw?.error) {
-        return { text: '', error: raw.error, raw };
-      }
-
+      const raw = await this.client.models.generateContent(payload);
       return {
         text: raw?.text ?? '',
         usage: {
@@ -226,12 +196,8 @@ export class GoogleService {
         },
         raw
       };
-    } catch (err: any) {
-      return {
-        text: '',
-        error: { code: 500, message: err?.message ?? 'Error generating content using Google API' },
-        raw: err
-      };
+    } catch (e) {
+      return this.toAiResultError(e);
     }
   }
 
@@ -262,7 +228,7 @@ export class GoogleService {
       for (let i = 0; i < images.length; i++) {
         const up = await this.ensureUploadedViaFilesApi(images[i]);
         if (!up) {
-          return { text: '', error: { code: 400, message: `Failed to upload image at index ${i}` } };
+          return { text: '', error: { code: 400, message: `Failed to upload image at index ${i}.` } };
         }
         parts.push(createPartFromUri(up.uri, up.mimeType));
       }
@@ -281,22 +247,7 @@ export class GoogleService {
         }
       };
 
-      const raw = await this.client.models
-        .generateContent(payload)
-        .catch(async (e: any) => {
-          if (e instanceof ApiError) {
-            console.error('API Error:', e);
-            return { error: { code: e.status ?? 400, message: e.message ?? 'Google API error' } };
-          } else {
-            console.error('Unexpected Error:', e);
-            return { error: { code: 500, message: 'Internal Server Error.' } };
-          }
-        });
-
-      if (raw?.error) {
-        return { text: '', error: raw.error, raw };
-      }
-
+      const raw = await this.client.models.generateContent(payload);
       return {
         text: raw?.text ?? '',
         usage: {
@@ -305,12 +256,8 @@ export class GoogleService {
         },
         raw
       };
-    } catch (err: any) {
-      return {
-        text: '',
-        error: { code: 500, message: err?.message ?? 'Error generating content using Google API' },
-        raw: err
-      };
+    } catch (e) {
+      return this.toAiResultError(e);
     }
   }
 
@@ -335,22 +282,7 @@ export class GoogleService {
       };
       // console.log(payload);
 
-      const raw = await this.client.models
-        .generateContent(payload)
-        .catch(async (e: any) => {
-          if (e instanceof ApiError) {
-            console.error('API Error:', e);
-            return { error: { code: e.status ?? 400, message: e.message ?? 'Google API error' } };
-          } else {
-            console.error('Unexpected Error:', e);
-            return { error: { code: 500, message: 'Internal Server Error.' } };
-          }
-        });
-
-      if (raw?.error) {
-        return { text: '', error: raw.error, raw };
-      }
-
+      const raw = await this.client.models.generateContent(payload);
       return {
         text: raw?.text ?? '',
         usage: {
@@ -359,8 +291,8 @@ export class GoogleService {
         },
         raw
       };
-    } catch (err: any) {
-      return { text: '', error: { code: 500, message: err?.message ?? 'Error generating content using Google API' }, raw: err };
+    } catch (e) {
+      return this.toAiResultError(e);
     }
   }
 
@@ -402,7 +334,7 @@ export class GoogleService {
         const mimeType = fetched?.mimeType ?? image.mimeType;
 
         if (!name || !uri || !mimeType) {
-          throw new Error('Incomplete Files API metadata');
+          throw new Error('Incomplete Files API metadata.');
         }
 
         // Refresh cached metadata
@@ -477,4 +409,65 @@ export class GoogleService {
       : null
     return thinkingLevel;
   }
+
+  /**
+   * Extracts a clean, human-readable error message from a Google GenAI ApiError.
+   *
+   * The Google GenAI SDK frequently embeds the entire backend JSON error payload
+   * (sometimes prefixed with the HTTP status code) into `ApiError.message`, e.g.:
+   *
+   *   "400 {\"error\":{\"code\":400,\"message\":\"...\",\"status\":\"INVALID_ARGUMENT\"}}"
+   *
+   * This helper attempts to:
+   *  1) Detect and parse such embedded JSON payloads
+   *  2) Prefer the backend-provided `error.message` field
+   *  3) Fall back to the raw message if parsing fails
+   *
+   * This ensures that UI-facing error messages remain concise and readable,
+   * and prevents leaking raw JSON blobs into snackbars or logs.
+   */
+  private extractGoogleApiMessage(e: ApiError): string {
+    const raw = String(e.message ?? '').trim();
+    const jsonStart = raw.indexOf('{');
+    if (jsonStart >= 0) {
+      try {
+        const obj = JSON.parse(raw.slice(jsonStart));
+        const msg = obj?.error?.message;
+        if (typeof msg === 'string' && msg.trim()) return msg.trim();
+      } catch {}
+    }
+    return raw || 'Google API error.';
+  }
+
+  /**
+   * Normalizes any thrown error into a valid `AiResult` error response.
+   *
+   * This method guarantees that:
+   *  - The returned object always conforms to `AiResult`
+   *  - `text` is present (empty string) so downstream code can rely on it
+   *  - Google `ApiError` instances are mapped to a clean `{ code, message }` shape
+   *  - Unexpected errors are safely converted to a generic 500 error
+   *
+   * Centralizing this logic avoids inconsistent error handling and ensures
+   * that components and services never need to inspect provider-specific
+   * error types or SDK quirks.
+   */
+  private toAiResultError(e: any): AiResult {
+    if (e instanceof ApiError) {
+      console.error('API Error:', e);
+      return {
+        text: '',
+        error: { code: e.status ?? 400, message: this.extractGoogleApiMessage(e) },
+        raw: e
+      };
+    }
+
+    console.error('Unexpected Error:', e);
+    return {
+      text: '',
+      error: { code: 500, message: 'Internal Server Error.' },
+      raw: e
+    };
+  }
+
 }
