@@ -767,7 +767,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   private handleApiFailure(settings: RequestSettings, result: any, stopGeneration: boolean, imageObj?: ImageData) {
     const e = result?.error;
     if (e) {
-      const msg = `Error communicating with the ${settings.model?.provider} API: ${e.code ? e.code + ' ' : ''}${e.message ?? ''}`.trim();
+      const msg = `Error from the ${settings.model?.provider} API: ${e.message ?? 'unknown error'}`.trim();
       this.showAPIErrorMessage(msg);
       if (stopGeneration) {
         this.setGlobalGenerating(false);

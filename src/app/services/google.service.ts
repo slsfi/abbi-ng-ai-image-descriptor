@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { from, Observable } from 'rxjs';
-import { ApiError, GoogleGenAI, MediaResolution, ThinkingLevel,
-         createPartFromUri, createUserContent
+import { ApiError, GenerateContentResponse, GoogleGenAI, MediaResolution,
+         ThinkingLevel, createPartFromUri, createUserContent
         } from '@google/genai';
 
 import { AiResult } from '../types/ai.types';
@@ -117,15 +117,8 @@ export class GoogleService {
       };
       // console.log(payload);
 
-      const raw = await this.client.models.generateContent(payload);
-      return {
-        text: raw?.text ?? '',
-        usage: {
-          inputTokens: raw?.usageMetadata?.promptTokenCount ?? 0,
-          outputTokens: raw?.usageMetadata?.candidatesTokenCount ?? 0
-        },
-        raw
-      };
+      const resp = await this.client.models.generateContent(payload);
+      return this.responseToAiResult(resp);
     } catch (e) {
       return this.toAiResultErrorGoogle(e);
     }
@@ -189,15 +182,8 @@ export class GoogleService {
         }
       };
 
-      const raw = await this.client.models.generateContent(payload);
-      return {
-        text: raw?.text ?? '',
-        usage: {
-          inputTokens: raw?.usageMetadata?.promptTokenCount ?? 0,
-          outputTokens: raw?.usageMetadata?.candidatesTokenCount ?? 0
-        },
-        raw
-      };
+      const resp = await this.client.models.generateContent(payload);
+      return this.responseToAiResult(resp);
     } catch (e) {
       return this.toAiResultErrorGoogle(e);
     }
@@ -249,15 +235,8 @@ export class GoogleService {
         }
       };
 
-      const raw = await this.client.models.generateContent(payload);
-      return {
-        text: raw?.text ?? '',
-        usage: {
-          inputTokens: raw?.usageMetadata?.promptTokenCount ?? 0,
-          outputTokens: raw?.usageMetadata?.candidatesTokenCount ?? 0
-        },
-        raw
-      };
+      const resp = await this.client.models.generateContent(payload);
+      return this.responseToAiResult(resp);
     } catch (e) {
       return this.toAiResultErrorGoogle(e);
     }
@@ -284,15 +263,8 @@ export class GoogleService {
       };
       // console.log(payload);
 
-      const raw = await this.client.models.generateContent(payload);
-      return {
-        text: raw?.text ?? '',
-        usage: {
-          inputTokens: raw?.usageMetadata?.promptTokenCount ?? 0,
-          outputTokens: raw?.usageMetadata?.candidatesTokenCount ?? 0
-        },
-        raw
-      };
+      const resp = await this.client.models.generateContent(payload);
+      return this.responseToAiResult(resp);
     } catch (e) {
       return this.toAiResultErrorGoogle(e);
     }
@@ -410,6 +382,32 @@ export class GoogleService {
       ? ThinkingLevel.HIGH
       : null
     return thinkingLevel;
+  }
+
+  private responseToAiResult(response?: GenerateContentResponse): AiResult {
+    return {
+      text: this.resolveResponseText(response),
+      usage: {
+        inputTokens: this.resolveinputTokenCount(response),
+        outputTokens: this.resolveOutputTokenCount(response)
+      },
+      raw: response
+    };
+  }
+
+  private resolveResponseText(response?: GenerateContentResponse): string {
+    // return response?.text ?? response?.candidates?.[0].content?.parts?.[0].text ?? '';
+    return response?.text ?? '';
+  } 
+
+  private resolveinputTokenCount(response?: GenerateContentResponse): number {
+    return response?.usageMetadata?.promptTokenCount ?? 0;
+  }
+
+  private resolveOutputTokenCount(response?: GenerateContentResponse): number {
+    const candidatesTokens = response?.usageMetadata?.candidatesTokenCount ?? 0;
+    const thoughtsTokens = response?.usageMetadata?.thoughtsTokenCount ?? 0;
+    return candidatesTokens + thoughtsTokens;
   }
 
   /**

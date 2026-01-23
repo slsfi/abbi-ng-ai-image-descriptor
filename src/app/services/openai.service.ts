@@ -83,15 +83,8 @@ export class OpenAiService {
     // console.log(payload);
 
     try {
-      const raw = await this.client.responses.create(payload);
-      return {
-        text: raw?.output_text ?? '',
-        usage: {
-          inputTokens: raw?.usage?.input_tokens ?? 0,
-          outputTokens: raw?.usage?.output_tokens ?? 0
-        },
-        raw
-      };
+      const resp = await this.client.responses.create(payload);
+      return this.responseToAiResult(resp);
     } catch (e) {
       return this.toAiResultErrorOpenAi(e);
     }
@@ -116,18 +109,34 @@ export class OpenAiService {
     // console.log(payload);
 
     try {
-      const raw = await this.client.responses.create(payload);
-      return {
-        text: raw?.output_text ?? '',
-        usage: {
-          inputTokens: raw?.usage?.input_tokens ?? 0,
-          outputTokens: raw?.usage?.output_tokens ?? 0
-        },
-        raw
-      };
+      const resp = await this.client.responses.create(payload);
+      return this.responseToAiResult(resp);
     } catch (e) {
       return this.toAiResultErrorOpenAi(e);
     }
+  }
+
+  private responseToAiResult(response?: any): AiResult {
+    return {
+      text: this.resolveResponseText(response),
+      usage: {
+        inputTokens: this.resolveinputTokenCount(response),
+        outputTokens: this.resolveOutputTokenCount(response)
+      },
+      raw: response
+    };
+  }
+
+  private resolveResponseText(response?: any): string {
+    return response?.output_text ?? '';
+  } 
+
+  private resolveinputTokenCount(response?: any): number {
+    return response?.usage?.input_tokens ?? 0;
+  }
+
+  private resolveOutputTokenCount(response?: any): number {
+    return response?.usage?.output_tokens ?? 0;
   }
 
   /**

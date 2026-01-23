@@ -1,5 +1,9 @@
+@let transcriptionVisibility = teiOpenById();
+
 @if (batchResults.hasResults()) {
   @for (r of batchResults.results(); track r.id) {
+    @let previewShown = transcriptionVisibility[r.id];
+
     <div class="batch-result-wrapper">
       <div class="batch-header">
         <div class="batch-title">
@@ -8,6 +12,15 @@
         <div class="actions">
           @if (r.status === 'success' || r.status === 'error') {
             @if (r.teiBody) {
+              <button matIconButton
+                (click)="togglePreview(r.id)"
+                [attr.aria-label]="previewShown ? 'Hide transcription' : 'Show transcription'"
+                [matTooltip]="previewShown ? 'Hide transcription' : 'Show transcription'"
+              >
+                <mat-icon>
+                  {{ previewShown ? 'visibility_off' : 'visibility' }}
+                </mat-icon>
+              </button>
               <button matIconButton
                 [cdkCopyToClipboard]="r.teiBody"
                 [attr.aria-label]="'Copy to clipboard'"
@@ -67,9 +80,13 @@
           </div>
         } @else {
           @if (r.teiBody) {
-            <pre class="preview language-markup"><code class="language-markup" #codeEl [attr.data-result-id]="r.id" [textContent]="r.teiBody"></code></pre>
+            <div class="batch-status batch-success">
+              <mat-icon>check_circle</mat-icon>
+              <p>TEI transcription successfully generated.</p>
+            </div>
+            <pre class="preview language-markup" [hidden]="!previewShown"><code class="language-markup" #codeEl [attr.data-result-id]="r.id" [textContent]="r.teiBody"></code></pre>
           } @else {
-            <div class="batch-status">
+            <div class="batch-status batch-warn">
               <mat-icon>warning</mat-icon>
               <p>The result body is empty: the AI model did not error, but returned no content.</p>
             </div>

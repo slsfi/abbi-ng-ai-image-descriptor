@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, ElementRef, afterRenderEffect, inject, output,
-         viewChildren
+import { ChangeDetectionStrategy, Component, ElementRef, afterRenderEffect,
+         inject, output, signal, viewChildren
         } from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,6 +40,8 @@ export class BatchResultsComponent {
   // Cache signature per result id
   private readonly lastSigById = new Map<string, string>();
 
+  readonly teiOpenById = signal<Record<string, boolean>>({});
+
   constructor() {
     afterRenderEffect(() => {
       // Run Prism to update code blocks after batch results have
@@ -51,8 +53,8 @@ export class BatchResultsComponent {
       const changedIds = new Set<string>();
 
       for (const r of results) {
-        // Cheap but robust: status + edit timestamp + whether body exists
-        const sig = `${r.updatedAt ?? r.createdAt}:${r.teiBody ? 1 : 0}`;
+        const isOpen = this.isTeiOpen(r.id) ? 1 : 0;
+        const sig = `${r.updatedAt ?? r.createdAt}:${r.teiBody ? 1 : 0}:${isOpen}`;
 
         const prev = this.lastSigById.get(r.id);
         if (prev !== sig) {
@@ -81,6 +83,17 @@ export class BatchResultsComponent {
     });
   }
 
+  isTeiOpen(id: string): boolean {
+    return this.teiOpenById()[id] ?? false;
+  }
+
+  togglePreview(id: string): void {
+    this.teiOpenById.update(curr => ({
+      ...curr,
+      [id]: !(curr[id] ?? false),
+    }));
+  }
+
   downloadTei(result: BatchResult): void {
     this.exportService.generateXMLFromBatch(result);
   }
@@ -106,6 +119,10 @@ export class BatchResultsComponent {
   }
 
   removeOne(id: string): void {
+    this.teiOpenById.update(curr => {
+      const { [id]: _, ...rest } = curr;
+      return rest;
+    });
     this.batchResults.remove(id);
   }
 }

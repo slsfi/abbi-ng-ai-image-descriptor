@@ -8,7 +8,7 @@ import { Model } from '../types/model.types';
 import { PromptVariant } from '../types/prompt.types';
 import { RequestSettings } from '../types/settings.types';
 
-const BATCH_SIZE_MIN = 2;
+const BATCH_SIZE_MIN = 1;
 const BATCH_SIZE_MAX = 30;
 
 @Injectable({
