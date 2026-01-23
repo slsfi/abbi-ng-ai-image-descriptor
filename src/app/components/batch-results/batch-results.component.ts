@@ -1,4 +1,4 @@
-import { AfterViewChecked, Component, ElementRef, QueryList, inject, output, viewChildren } from '@angular/core';
+import { Component, ElementRef, afterRenderEffect, inject, output, viewChildren } from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -25,7 +25,7 @@ import { BatchResult } from '../../types/batch-result.types';
   templateUrl: './batch-results.component.html',
   styleUrls: ['./batch-results.component.scss'],
 })
-export class BatchResultsComponent implements AfterViewChecked {
+export class BatchResultsComponent {
   private readonly dialog = inject(MatDialog);
   readonly batchResults = inject(BatchResultsService);
   readonly exportService = inject(ExportService);
@@ -34,22 +34,48 @@ export class BatchResultsComponent implements AfterViewChecked {
   generateBatch = output<BatchResult>();
   readonly codeEls = viewChildren<ElementRef<HTMLElement>>('codeEl');
 
-  private lastHighlightedKey = '';
+  // Cache signature per result id
+  private readonly lastSigById = new Map<string, string>();
 
-  ngAfterViewChecked(): void {
-    // Build a cheap “signature” that changes when results/bodies change.
-    const results = this.batchResults.results();
-    const key = results
-      .map(r => `${r.id}:${r.status}:${r.teiBody?.length ?? 0}`)
-      .join('|');
+  constructor() {
+    afterRenderEffect(() => {
+      // Run Prism to update code blocks after batch results have
+      // changed AND Angular has finished updating the DOM.
+      // Only code blocks whose teiBody has changed are updated.
+      const results = this.batchResults.results();
 
-    if (key === this.lastHighlightedKey) return;
-    this.lastHighlightedKey = key;
+      // 1) Build a set of ids that changed (cheap signature)
+      const changedIds = new Set<string>();
 
-    // Highlight all visible code blocks
-    for (const el of this.codeEls()) {
-      Prism.highlightElement(el.nativeElement);
-    }
+      for (const r of results) {
+        // Cheap but robust: status + edit timestamp + whether body exists
+        const sig = `${r.updatedAt ?? r.createdAt}:${r.teiBody ? 1 : 0}`;
+
+        const prev = this.lastSigById.get(r.id);
+        if (prev !== sig) {
+          this.lastSigById.set(r.id, sig);
+          changedIds.add(r.id);
+        }
+      }
+
+      // 2) Clean up signatures for removed results
+      // (prevents memory growth if you remove items)
+      const liveIds = new Set(results.map(r => r.id));
+      for (const id of this.lastSigById.keys()) {
+        if (!liveIds.has(id)) this.lastSigById.delete(id);
+      }
+
+      // 3) Highlight only code blocks whose result changed
+      if (changedIds.size === 0) return;
+
+      for (const elRef of this.codeEls()) {
+        const el = elRef.nativeElement;
+        const id = el.getAttribute('data-result-id');
+        if (id && changedIds.has(id)) {
+          Prism.highlightElement(el);
+        }
+      }
+    });
   }
 
   downloadTei(result: BatchResult): void {
@@ -63,8 +89,11 @@ export class BatchResultsComponent implements AfterViewChecked {
     });
 
     dialogRef.afterClosed().subscribe((editedTranscription: string | null | undefined) => {
-      if (editedTranscription !== null && editedTranscription !== undefined) {
-        result.teiBody = editedTranscription;
+      if (editedTranscription != null) {
+        this.batchResults.update(result.id, {
+          teiBody: editedTranscription,
+          updatedAt: new Date().toISOString(),
+        });
       }
     });
   }

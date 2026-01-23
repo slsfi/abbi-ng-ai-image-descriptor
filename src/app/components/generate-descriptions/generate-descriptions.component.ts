@@ -369,6 +369,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
         this.batchResults.update(batchId, {
           status: 'success',
+          updatedAt: new Date().toISOString(),
           teiBody,
           inputTokens: res.usage?.inputTokens ?? 0,
           outputTokens: res.usage?.outputTokens ?? 0,
@@ -437,6 +438,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
       this.batchResults.update(batchId, {
         status: 'success',
+        updatedAt: new Date().toISOString(),
         teiBody,
         inputTokens: (batch.inputTokens ?? 0) + (res.usage?.inputTokens ?? 0),
         outputTokens: (batch.outputTokens ?? 0) + (res.usage?.outputTokens ?? 0),

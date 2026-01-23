@@ -3,6 +3,7 @@ export type BatchResultStatus = 'pending' | 'success' | 'error' | 'generating';
 export interface BatchResult {
   id: string;                 // unique id for this batch run
   createdAt: string;          // ISO
+  updatedAt?: string;         // ISO
   taskType: 'transcriptionBatchTei';
 
   // Which images were included (ordered)

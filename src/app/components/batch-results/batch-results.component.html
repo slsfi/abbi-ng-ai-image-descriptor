@@ -9,13 +9,6 @@
           @if (r.status === 'success' || r.status === 'error') {
             @if (r.teiBody) {
               <button matIconButton
-                (click)="editOne(r)"
-                [attr.aria-label]="'Edit transcription'"
-                [matTooltip]="'Edit transcription'"
-              >
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button matIconButton
                 [cdkCopyToClipboard]="r.teiBody"
                 [attr.aria-label]="'Copy to clipboard'"
                 [matTooltip]="'Copy to clipboard'"
@@ -28,6 +21,13 @@
                 [matTooltip]="'Download XML'"
               >
                 <mat-icon>download</mat-icon>
+              </button>
+              <button matIconButton
+                (click)="editOne(r)"
+                [attr.aria-label]="'Edit transcription'"
+                [matTooltip]="'Edit transcription'"
+              >
+                <mat-icon>edit</mat-icon>
               </button>
             }
             
@@ -67,7 +67,7 @@
           </div>
         } @else {
           @if (r.teiBody) {
-            <pre class="preview language-markup"><code class="language-markup" #codeEl>{{ r.teiBody }}</code></pre>
+            <pre class="preview language-markup"><code class="language-markup" #codeEl [attr.data-result-id]="r.id" [textContent]="r.teiBody"></code></pre>
           } @else {
             <div class="batch-status">
               <mat-icon>warning</mat-icon>
