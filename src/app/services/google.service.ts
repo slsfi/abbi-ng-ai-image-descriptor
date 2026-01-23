@@ -30,7 +30,9 @@ function parseDataUrl(dataUrl: string): ParsedDataUrl | null {
   return { mimeType: match[1], dataBase64: match[2] };
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class GoogleService {
   private apiKey = '';
   private client: any = null;
@@ -125,7 +127,7 @@ export class GoogleService {
         raw
       };
     } catch (e) {
-      return this.toAiResultError(e);
+      return this.toAiResultErrorGoogle(e);
     }
   }
 
@@ -197,7 +199,7 @@ export class GoogleService {
         raw
       };
     } catch (e) {
-      return this.toAiResultError(e);
+      return this.toAiResultErrorGoogle(e);
     }
   }
 
@@ -257,7 +259,7 @@ export class GoogleService {
         raw
       };
     } catch (e) {
-      return this.toAiResultError(e);
+      return this.toAiResultErrorGoogle(e);
     }
   }
 
@@ -292,7 +294,7 @@ export class GoogleService {
         raw
       };
     } catch (e) {
-      return this.toAiResultError(e);
+      return this.toAiResultErrorGoogle(e);
     }
   }
 
@@ -411,6 +413,36 @@ export class GoogleService {
   }
 
   /**
+   * Normalizes any thrown error into a valid `AiResult` error response.
+   *
+   * This method guarantees that:
+   *  - The returned object always conforms to `AiResult`
+   *  - `text` is present (empty string) so downstream code can rely on it
+   *  - Google `ApiError` instances are mapped to a clean `{ code, message }` shape
+   *  - Unexpected errors are safely converted to a generic 500 error
+   */
+  private toAiResultErrorGoogle(e: any): AiResult {
+    if (e instanceof ApiError) {
+      console.error('Google API Error:', e);
+      return {
+        text: '',
+        error: {
+          code: e.status ?? 400,
+          message: this.extractGoogleApiMessage(e)
+        },
+        raw: e
+      };
+    }
+
+    console.error('Unexpected Error:', e);
+    return {
+      text: '',
+      error: { code: 500, message: 'Internal Server Error.' },
+      raw: e
+    };
+  }
+
+  /**
    * Extracts a clean, human-readable error message from a Google GenAI ApiError.
    *
    * The Google GenAI SDK frequently embeds the entire backend JSON error payload
@@ -437,37 +469,6 @@ export class GoogleService {
       } catch {}
     }
     return raw || 'Google API error.';
-  }
-
-  /**
-   * Normalizes any thrown error into a valid `AiResult` error response.
-   *
-   * This method guarantees that:
-   *  - The returned object always conforms to `AiResult`
-   *  - `text` is present (empty string) so downstream code can rely on it
-   *  - Google `ApiError` instances are mapped to a clean `{ code, message }` shape
-   *  - Unexpected errors are safely converted to a generic 500 error
-   *
-   * Centralizing this logic avoids inconsistent error handling and ensures
-   * that components and services never need to inspect provider-specific
-   * error types or SDK quirks.
-   */
-  private toAiResultError(e: any): AiResult {
-    if (e instanceof ApiError) {
-      console.error('API Error:', e);
-      return {
-        text: '',
-        error: { code: e.status ?? 400, message: this.extractGoogleApiMessage(e) },
-        raw: e
-      };
-    }
-
-    console.error('Unexpected Error:', e);
-    return {
-      text: '',
-      error: { code: 500, message: 'Internal Server Error.' },
-      raw: e
-    };
   }
 
 }
