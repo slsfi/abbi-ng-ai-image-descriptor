@@ -1,4 +1,6 @@
-import { Component, ElementRef, afterRenderEffect, inject, output, viewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, afterRenderEffect, inject, output,
+         viewChildren
+        } from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -24,6 +26,7 @@ import { BatchResult } from '../../types/batch-result.types';
   ],
   templateUrl: './batch-results.component.html',
   styleUrls: ['./batch-results.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BatchResultsComponent {
   private readonly dialog = inject(MatDialog);
