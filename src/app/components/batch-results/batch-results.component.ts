@@ -37,9 +37,7 @@ export class BatchResultsComponent {
   generateBatch = output<BatchResult>();
   readonly codeEls = viewChildren<ElementRef<HTMLElement>>('codeEl');
 
-  // Cache signature per result id
   private readonly lastSigById = new Map<string, string>();
-
   readonly teiOpenById = signal<Record<string, boolean>>({});
 
   constructor() {
@@ -49,7 +47,7 @@ export class BatchResultsComponent {
       // Only code blocks whose teiBody has changed are updated.
       const results = this.batchResults.results();
 
-      // 1) Build a set of ids that changed (cheap signature)
+      // 1) Build a set of ids that changed
       const changedIds = new Set<string>();
 
       for (const r of results) {

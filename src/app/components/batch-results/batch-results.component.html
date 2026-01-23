@@ -90,7 +90,12 @@
           </div>
         </div>
         @if (r.status === 'success' && r.teiBody) {
-          <pre class="preview language-markup" [hidden]="!previewShown"><code class="language-markup" #codeEl [attr.data-result-id]="r.id" [textContent]="r.teiBody"></code></pre>
+          <pre class="preview language-markup" [hidden]="!previewShown"><code
+                class="language-markup"
+                #codeEl
+                [attr.data-result-id]="r.id"
+                [textContent]="r.teiBody"
+          ></code></pre>
         }
       </div>
     </div>

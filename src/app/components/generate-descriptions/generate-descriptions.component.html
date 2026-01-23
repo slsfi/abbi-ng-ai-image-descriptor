@@ -76,14 +76,26 @@
                 <div class="desc-data">
                   @if (file.generating) {
                     <span class="loading-wrapper">
-                      <mat-spinner [diameter]="32"></mat-spinner><span class="spinner-label">Generating {{ teiEncoding() ? 'TEI encoding' : taskNoun.singular }}...</span>
+                      <mat-spinner [diameter]="32"></mat-spinner><span class="spinner-label">Generating {{ (teiEncoding() && selectedTaskType === 'transcription') ? 'TEI encoding' : taskNoun.singular }}...</span>
                     </span>
                   } @else if (file.descriptions.length < 1) {
                     <span class="no-desc">No {{ taskNoun.singular }} generated.</span>
                   } @else {
-                    <span class="desc-text" [class.tei-encoding]="file.descriptions[file.activeDescriptionIndex].teiEncoded">
-                      {{ file.descriptions[file.activeDescriptionIndex].description }}
-                    </span>
+                    @let active = file.descriptions[file.activeDescriptionIndex];
+
+                    @if (active?.teiEncoded) {
+                      <pre class="tei-preview language-markup"><code
+                            class="language-markup"
+                            #teiCodeEl
+                            [attr.data-image-id]="file.id"
+                            [attr.data-desc-idx]="file.activeDescriptionIndex"
+                            [textContent]="active.description"
+                      ></code></pre>
+                    } @else {
+                      <span class="desc-text">
+                        {{ active?.description }}
+                      </span>
+                    }
                   }
                 </div>
                 @if (file.descriptions.length > 0 && !file.generating) {

@@ -1,4 +1,6 @@
-import { AfterViewInit, Component, DestroyRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, OnInit, ViewChild,
+         afterRenderEffect, inject, signal, viewChildren
+        } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,13 +9,18 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule,
+         PageEvent
+        } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar, MatSnackBarRef, TextOnlySnackBar } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarRef,
+         TextOnlySnackBar
+        } from '@angular/material/snack-bar';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+import Prism from '../../utils/prism';
 import { BatchPlanComponent } from '../batch-plan/batch-plan.component';
 import { BatchResultsComponent } from '../batch-results/batch-results.component';
 import { ConfirmActionDialogComponent } from '../confirm-action-dialog/confirm-action-dialog.component';
@@ -68,6 +75,9 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   readonly settings = inject(SettingsService);
   private readonly snackBar = inject(MatSnackBar);
 
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  readonly teiCodeEls = viewChildren<ElementRef<HTMLElement>>('teiCodeEl');
+
   currentPaginatorSize: number = 10;
   matTableDataSource = new MatTableDataSource<ImageData>([]);
   displayedColumns: string[] = ['imagePreview', 'description', 'actions'];
@@ -81,7 +91,28 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   private progressStopSub?: { unsubscribe(): void };
   private lastProgressMessage: string | null = null;
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  private readonly needsHighlight = signal<Set<string>>(new Set());
+
+  constructor() {
+    afterRenderEffect(() => {
+      // Run Prism and highlighting code blocks only when there
+      // are code nodes in DOM and some of them have been marked
+      // as needing highlighting
+      const need = this.needsHighlight();
+      if (need.size === 0) return;
+
+      for (const elRef of this.teiCodeEls()) {
+        const el = elRef.nativeElement;
+        const key = `${el.getAttribute('data-image-id')}:${el.getAttribute('data-desc-idx')}`;
+        if (need.has(key)) {
+          Prism.highlightElement(el);
+        }
+      }
+
+      // clear after we ran
+      this.needsHighlight.set(new Set());
+    });
+  }
 
   ngOnInit(): void {
     // Subscribe to the image list in the service to update the data source
@@ -190,6 +221,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
     this.setGlobalGenerating(false);
     this.setImageGenerating(imageObj, false);
+    this.teiEncoding.set(false);
   }
 
   private async generateImageDescriptionsAll() {
@@ -290,10 +322,12 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
         this.setImageGenerating(imageObj, false);
       }
+      this.teiEncoding.set(false);
     }
 
     this.closeProgressSnack();
     this.setGlobalGenerating(false);
+    this.teiEncoding.set(false);
   }
 
   private async transcribeAndTeiEncodeBatchedAll() {
@@ -518,13 +552,23 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
   previousDescription(imageObj: ImageData): void {
     if (imageObj.activeDescriptionIndex > 0) {
-      imageObj.activeDescriptionIndex--;
+      const idx = imageObj.activeDescriptionIndex - 1;
+      imageObj.activeDescriptionIndex = idx;
+
+      if (imageObj.descriptions[idx]?.teiEncoded) {
+        this.markNeedsHighlight(imageObj.id, idx);
+      }
     }
   }
 
   nextDescription(imageObj: ImageData): void {
     if (imageObj.activeDescriptionIndex < imageObj.descriptions.length - 1) {
-      imageObj.activeDescriptionIndex++;
+      const idx = imageObj.activeDescriptionIndex + 1;
+      imageObj.activeDescriptionIndex = idx;
+
+      if (imageObj.descriptions[idx]?.teiEncoded) {
+        this.markNeedsHighlight(imageObj.id, idx);
+      }
     }
   }
 
@@ -551,9 +595,15 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       panelClass: 'editDescriptionDialog'
     });
 
-    dialogRef.afterClosed().subscribe((editedDescription: string | null | undefined) => {
-      if (editedDescription !== null && editedDescription !== undefined) {
-        imageObj.descriptions[imageObj.activeDescriptionIndex].description = editedDescription;
+    dialogRef.afterClosed().subscribe((edited: string | null | undefined) => {
+      if (edited != null) {
+        const idx = imageObj.activeDescriptionIndex;
+        const activeDesc = imageObj.descriptions[idx];
+        activeDesc.description = edited;
+
+        if (activeDesc.teiEncoded) {
+          this.markNeedsHighlight(imageObj.id, idx);
+        }
       }
     });
   }
@@ -878,7 +928,12 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
   private commitDescription(imageObj: ImageData, desc: DescriptionData) {
     imageObj.descriptions.push(desc);
-    imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
+    const idx = imageObj.descriptions.length - 1;
+    imageObj.activeDescriptionIndex = idx;
+
+    if (desc.teiEncoded) {
+      this.markNeedsHighlight(imageObj.id, idx);
+    }
   }
 
   private chunkArray<T>(arr: T[], chunkSize: number): T[][] {
@@ -887,6 +942,14 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       out.push(arr.slice(i, i + chunkSize));
     }
     return out;
+  }
+
+  private markNeedsHighlight(imageId: number, descIdx: number): void {
+    this.needsHighlight.update(prev => {
+      const next = new Set(prev);
+      next.add(`${imageId}:${descIdx}`);
+      return next;
+    });
   }
 
 }
