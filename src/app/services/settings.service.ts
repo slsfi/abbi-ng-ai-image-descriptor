@@ -32,9 +32,13 @@ export class SettingsService {
   // --- Derived config ---
   readonly taskConfigs = signal(TASK_CONFIGS);
 
-  readonly availableModels = computed<Model[]>(() => getModelsForTaskType(this.selectedTaskType()));
+  readonly availableModels = computed<Model[]>(
+    () => getModelsForTaskType(this.selectedTaskType())
+  );
 
-  readonly selectedTaskConfig = computed(() => TASK_TYPES_BY_ID[this.selectedTaskType()]);
+  readonly selectedTaskConfig = computed(
+    () => TASK_TYPES_BY_ID[this.selectedTaskType()]
+  );
 
   readonly selectedModel = computed<Model>(() =>
     MODELS.find(m => m.id === this.selectedModelId()) ?? MODELS[0]
