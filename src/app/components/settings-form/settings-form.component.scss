@@ -73,8 +73,23 @@ mat-slide-toggle.mat-mdc-slide-toggle {
   }
 }
 
+.model-description {
+  border-left: 1px solid #7c7c7c;
+  margin: 0.75em 0 0 0.75em;
+  padding: 0.25em 0 0.25em 0.75em;
+}
+
+.include-filename {
+  margin-top: 2.25em;
+}
+
+.model-description,
 .model-details-wrapper {
   font-size: 0.875em;
+  line-height: 1.65;
+}
+
+.model-details-wrapper {
 
   h4 {
     font-weight: 500;
