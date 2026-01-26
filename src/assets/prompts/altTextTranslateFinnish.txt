@@ -1,0 +1,1 @@
+Käännä alla oleva teksti suomeksi (alkuperäiskielen ISO-639-1 koodi on `{{ORIG_LANG_CODE}}`). Vastaa ainoastaan käännetyllä tekstillä.

@@ -1,0 +1,8 @@
+Generera en kort (ca {{DESC_LENGTH}} tecken lång) beskrivning av vad bilden föreställer. Beskrivningen ska vara så koncis som möjlig, men samtidigt så detaljerad som bilden kräver. Beskrivningen kommer att användas som alternativ text (”alt-text”): text som är associerad med en bild och som tjänar samma syfte och förmedlar samma väsentliga information som bilden.
+
+Instruktioner:
+
+1) Svara endast med själva beskrivningen av bilden, utan förklaringar eller konversation.
+2) Börja inte med "Bilden föreställer" eller någon dylik fras, utan med vilken typ av bild det är, t.ex. ett foto, ett svartvitt foto, en målning, en ritning, en gravyr o.s.v.
+3) De viktiga detaljerna borde framgå i början av beskrivningen.
+4) Ignorera tavlors ramar.

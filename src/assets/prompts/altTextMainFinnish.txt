@@ -1,0 +1,8 @@
+Luo lyhyt (noin {{DESC_LENGTH}} merkkiä pitkä) kuvaus siitä, mitä kuva esittää. Kuvauksen tulee olla mahdollisimman ytimekäs, mutta silti kuvan vaatimalla tavalla yksityiskohtainen. Kuvausta käytetään vaihtoehtoisena tekstinä (tunnetaan myös nimellä alt-teksti): tekstinä, joka liittyy kuvaan ja joka palvelee samaa tarkoitusta ja välittää saman olennaisen tiedon kuin kuva.
+
+Ohjeet:
+
+1) Vastaa vain varsinaisella kuvauksella, ilman perusteluja tai keskustelua.
+2) Älä aloita ”Kuva esittää” tai vastaavalla ilmauksella, vaan millainen kuva on kyseessä, esimerkiksi valokuva, mustavalkoinen valokuva, maalaus, piirros, etsaus jne.
+3) Tärkeät yksityiskohdat tulisi mainita heti ensimmäisissä sanoissa.
+4) Jos kuva esittää kehystettyä taulua, jätä kehys huomiotta.

@@ -40,6 +40,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Improve image handling.
 - Improve alt text prompt structure.
 - Decouple prompts by task type, move model compatibility to models, and replace BehaviorSubjects with signals.
+- Moved prompts to separate text files, which are imported by `prompts.ts`.
 - Deps: update `@angular/cli`, `@angular/core`, `@angular/cdk` and `@angular/material` to 21.1.1.
 - Deps: update `openai` to 6.16.0.
 - Deps: update `zone.js` t0 0.16.0.

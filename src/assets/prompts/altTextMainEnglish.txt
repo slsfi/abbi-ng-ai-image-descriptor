@@ -1,0 +1,8 @@
+Generate a short (about {{DESC_LENGTH}} characters long) description of what the image depicts. The description should be as concise as possible, yet as detailed as the image requires. The description will be used as alternative text (known as alt text): text associated with an image that serves the same purpose and conveys the same essential information as the image.
+
+Instructions:
+
+1) Answer with just the actual description, without reasoning or conversation.
+2) Don’t start with ”The image depicts” or a similar phrase, but with what kind of image it is, for example, a photo, a black-and-white photo, a painting, a drawing, an etching etc.
+3) The important details should appear in the first few words.
+4) If the picture in the image has a frame, ignore it.
