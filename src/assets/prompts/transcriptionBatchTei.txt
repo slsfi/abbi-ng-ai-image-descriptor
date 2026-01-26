@@ -226,9 +226,9 @@ If heading hierarchy is unclear, infer cautiously and be consistent.
 ```
 <p>[...] Jag uppslog texten och läste:</p>
 <quote type="block">
-<p rend="noIndent"><hi rend="italics">Och der utgick en annan häst, som var röd,
+<p rend="noIndent">Och der utgick en annan häst, som var röd,
 <lb/>och åt honom, som satt derpå, vardt gifvet att borttaga friden på jorden,
-<lb/>så att de skulle slagta hvarandra, och honom vardt gifvet ett stort svärd.</hi></p>
+<lb/>så att de skulle slagta hvarandra, och honom vardt gifvet ett stort svärd.</p>
 </quote>
 <p>Den trettonårige gossen stirrade på orden [...]</p>
 ```
@@ -280,7 +280,8 @@ STRICT:
 ### Example of a footnote
 
 ```
-<p>En kulen höstafton seglade några sjömän i sin jala<note n="*)" place="foot"><hi rend="italics">Jala</hi> kallas en vid kusten af Wiborgs län bruklig snabbseglande jakt med egendomlig tackling.</note> långs hafskusten
+<p>En kulen höstafton seglade några sjömän i sin jala<note n="*)" place="foot">Jala kallas en vid kusten af Wiborgs län bruklig snabbseglande jakt med
+<lb/>egendomlig tackling.</note> långs hafskusten
 <lb/>nära Wiborg och sågo en stor eld upptänd på stranden. De voro frusne, [...]</p>
 ```
 
@@ -315,14 +316,11 @@ STRICT:
 ## TEXTUAL HIGHLIGHTS (`<hi>`)
 
 - Use `<hi>` with `@rend` to encode unambiguous inline highlighting of text in the source. If unsure, do NOT use `<hi>`.
-- Do NOT encode italics. Transcribe the text, but leave it unmarked. Italics will be handled by human editors.
+- Do NOT encode italics, bold or expanded. Transcribe the text, but leave it unmarked. Italics, bold and expanded will be handled by human editors.
 - Accepted `@rend` values are:
-  - `bold`
-  - `expanded`
   - `superscript`
   - `subscript`
   - `underline`
-- The `@rend` values can be combined by separating them with a space character, for example `<hi rend="bold expanded">`.
 
 --------------------------------------------------
 

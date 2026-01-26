@@ -644,8 +644,9 @@ export class ExportService {
       text = text.trim();
       text = this.extractBody(text).trim();
       text = this.removeBlankLinesAroundPb(text);
-      text = this.tightenPbLb(text);
       text = this.normaliseTeiStructureBeforeLb(text);
+      text = this.tightenPbLb(text);
+      text = this.tightenFootnoteSpacing(text);
       text = this.replaceStraightDoubleQuotesOutsideTags(text, '”');
 
       text = text.replaceAll('<lb/>', '<lb break="line"/>');
@@ -749,6 +750,17 @@ export class ExportService {
     return input.replace(
       /(<pb\b[^>]*\/>)\s+(<lb\b[^>]*\/>)/g,
       '$1$2'
+    );
+  }
+
+  /**
+   * Removes a single space immediately before a footnote <note>.
+   * Applies only to notes with place="foot".
+   */
+  private tightenFootnoteSpacing(input: string): string {
+    return input.replace(
+      / (\<note\b[^>]*\bplace="foot"[^>]*>)/g,
+      '$1'
     );
   }
 
