@@ -1,0 +1,1 @@
+Översätt nedanstående text till svenska (originalspråkets ISO-639-1 kod är `{{ORIG_LANG_CODE}}`). Svara endast med den översatta texten.

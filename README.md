@@ -1,6 +1,6 @@
 # aBBi – AI-generated image descriptions
 
-aBBi (“AI-bildbeskrivningar”) is a web app for generating image descriptions (e.g. alt texts) using AI. It currently supports OpenAI and Google models with vision capabilities. You need an OpenAI or Google API key to use the tool. It is a frontend app without the need of a backend.
+aBBi (“AI-bildbeskrivningar”) is a web app for generating alt texts for images and transcribing text in images using AI. It can also TEI ([Text Encoding Initiative](https://tei-c.org/)) XML encode the transcriptions. It currently supports OpenAI and Google models with vision capabilities. You need an OpenAI or Google API key to use the tool. It is a frontend app without the need of a backend.
 
 The app is built on [Angular][angular] and uses [Angular Material][material] web components.
 
@@ -28,7 +28,7 @@ Images in the screenshot: Library of Congress public domain.
 
 ### Prerequisites
 
-1. Install [Node.js][node.js] which includes [npm][npm]. The app is compatible with Node `^20.19.0`, `^22.12.0` and `^24.0.0` (based on [Angular 20 compatibility][angular_version_compatibility]). Check your Node version with:
+1. Install [Node.js][node.js] which includes [npm][npm]. The app is compatible with Node `^20.19.0`, `^22.12.0` and `^24.0.0` (based on [Angular 21 compatibility][angular_version_compatibility]). Check your Node version with:
 
 ```
 Node --version
@@ -96,7 +96,7 @@ npm install
 
 The available AI-models are defined in [`src/assets/config/models.ts`][models.ts]. Currently, OpenAI and Google (Gemini) models are supported.
 
-The available description languages and prompt types are defined in [`src/assets/config/prompts.ts`][prompts.ts]. In the prompt templates, the strings `{{FILENAME}}` and `{{DESC_LENGTH}}` are replaced with the image filename and desired approximate description length, respectively.
+The prompts for the various tasks supported by the app are defined in separate plain text files in [`src/assets/prompts/`][prompts-folder]. The prompts are imported by [`src/assets/config/prompts.ts`][prompts.ts] In the prompts, there are some hard-coded strings like `{{FILENAME}}` and `{{DESC_LENGTH}}` which are replaced by UI settings on runtime.
 
 
 
@@ -118,5 +118,6 @@ The available description languages and prompt types are defined in [`src/assets
 [node.js]: https://nodejs.org/
 [npm]: https://www.npmjs.com/get-npm
 [package.json]: package.json
+[prompts-folder]: src/assets/prompts/
 [prompts.ts]: src/assets/config/prompts.ts
 [SLS]: https://www.sls.fi/en
