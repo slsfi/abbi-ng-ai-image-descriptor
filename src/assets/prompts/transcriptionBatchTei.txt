@@ -28,10 +28,11 @@ Close all open XML elements at the end to ensure well-formed XML.
 The textual content of the transcription:
 
 - To maintain the authenticity of the historical text, retain spelling errors, grammar, syntax, capitalization, and punctuation, including line breaks.
-- Do not silently correct obvious typos; transcribe exactly as printed/written (character-level accuracy matters most).
+- Do NOT silently correct obvious typos; transcribe exactly as printed/written (character-level accuracy matters most).
 - Preserve end-of-line hyphenation exactly as it appears in the source.
-- Do not modernize language.
-- Do not expand abbreviations.
+- Do NOT modernize language.
+- Do NOT expand abbreviations.
+- Do NOT include running headers or footers.
 
 The TEI encoding of the transcription:
 
@@ -97,7 +98,7 @@ Do NOT invent other TEI attributes.
 - ALWAYS insert a `<pb/>` (or `<pb n="..."/>` if the first page has a visible page number) for the first image/page in the sequence. 
 - If the sequence has N images/pages, the output must contain exactly N `<pb>` elements, one for each page, in the same order.
 
-`<pb/>` is a MILESTONE and MUST NOT create structural breaks.
+`<pb/>` is a MILESTONE and MUST NOT create structural breaks. Do not close/open `<div>` solely because of `<pb/>`.
 
 If a page break occurs inside running text:
 
@@ -114,7 +115,7 @@ If a page break occurs inside running text:
 <head>Språkfrågan vid Universitetet.</head>
 <head type="subtitle">I.</head>
 <p rend="noIndent">Bland de finskatalande studenterna [...]</p>
-<pb n="59">
+<pb n="59"/>
 <p>Här börjar ett nytt stycke på en ny sida [...]</p>
 [...]
 </div>
@@ -147,6 +148,7 @@ If a page break occurs inside running text:
 ## TEXTUAL DIVISIONS AND HEADINGS (`<div>`, `<head>`)
 
 - Use `<div>` ONLY when a NEW textual division BEGINS in the visible text.
+- A `<div>` continues across page breaks. Do NOT close a `<div>` at a page break unless the source clearly ends the division there (e.g. a new heading begins, or the text visibly ends).
 - A division begins with a heading encoded as `<head>`.
 
 DO NOT start a `<div>` if the first page begins mid-paragraph or mid-division.
@@ -173,6 +175,16 @@ If heading hierarchy is unclear, infer cautiously and be consistent.
 <p>Lorem ipsum dolores [...]</p>
 </div>
 </div>
+</div>
+```
+
+```
+<pb n="VII"/>
+<div>
+<head>INLEDNING.</head>
+<p>…text continues…</p>
+<pb n="VIII"/>
+<p>…same division continues, no new <head>…</p>
 </div>
 ```
 
@@ -257,17 +269,29 @@ STRICT:
 - Use `<note>` for footnotes, endnotes, and marginal notes.
 - For footnotes and endnotes, place the `<note>` at the point where the reference occurs in reading order.
 - For marginalia, place the `<note>` at the point in the main text where it most clearly applies.
-- Put the note marker in `@n`.
+- Put the note marker, if there is one, in `@n`.
+- When a note marker appears in the main text (e.g. `1)`, `*`), encode it ONLY as `@n` on the `<note>`. Do NOT also transcribe the marker as plain text in the running prose.
+- If the marker is encoded in `@n`, remove any leftover partial marker characters from the prose (e.g. do not leave `)` behind).
+- If the marker is printed as superscript/raised, still encode it in `@n` as plain text (do not keep a separate superscript in prose).
 - For footnotes, use `place="foot"`.
 - For endnotes, use `place="end"`.
 - For marginal notes, use `place="margin"`.
-- Do NOT encode line beginnings in notes with `<lb/>`.
 
 ### Example of a footnote
 
 ```
 <p>En kulen höstafton seglade några sjömän i sin jala<note n="*)" place="foot"><hi rend="italics">Jala</hi> kallas en vid kusten af Wiborgs län bruklig snabbseglande jakt med egendomlig tackling.</note> långs hafskusten
 <lb/>nära Wiborg och sågo en stor eld upptänd på stranden. De voro frusne, [...]</p>
+```
+
+### Example of a marginal note
+
+```
+<div>
+<note place="margin">3.</note>
+<head>Den kloka bondflickan, gumman, som riktigt löser kungens villkor.</head>
+<p>a 1. I hednatiden brukade man [...]</p>
+</div>
 ```
 
 --------------------------------------------------
@@ -290,10 +314,9 @@ STRICT:
 
 ## TEXTUAL HIGHLIGHTS (`<hi>`)
 
-- Use `<hi>` with `@rend` to encode inline highlighting of text.
+- Use `<hi>` with `@rend` to encode unambiguous inline highlighting of text (clear italics/bold/underline etc. in the source).
 - Use `<hi>` ONLY when highlighting is visually unambiguous (clear italics/bold/underline in the source). If unsure, do NOT use `<hi>`.
-- Do not infer italics from genre conventions (e.g. book titles, foreign words, emphasis). Only mark italics if the text is visibly italic.
-- Use `rend="italics"` only when the slant is clearly different from surrounding text AND consistent across the whole word/phrase. If only a single letter looks slanted, do not mark italics.
+- Do not infer italics from genre conventions (e.g. book titles, foreign words, emphasis). Only mark italics FOR WHOLE WORDS if the text is visibly italic.
 - Accepted `@rend` values are:
   - `bold`
   - `expanded`
@@ -455,7 +478,7 @@ Include:
 
 Exclude:
 
-- Running headers and footers that repeat on most pages
+- Running headers and footers
 - Standalone page numbers in header/footer areas
 
 When unsure, exclude ONLY if clearly repetitive and navigational.
@@ -464,10 +487,12 @@ When unsure, exclude ONLY if clearly repetitive and navigational.
 
 ## FINAL CHECK (MANDATORY)
 
-- Exact character-level transcription, retaining spelling errors, grammar, syntax, capitalization, and punctuation as well as line breaks.
+- Exact character-level transcription, retaining spelling errors, grammar, syntax, capitalization, and punctuation, as well as line breaks.
+- NO running headers and footers.
 - Exactly ONE `<body>` root element.
 - Well-formed XML.
 - Count check: the number of `<pb>` elements MUST equal the number of input images/pages.
 - `<pb/>` does NOT force paragraph breaks.
+- Never start a new `<div>` unless a new `<head>` begins on that page.
 - `<lb/>` appears ONLY at the start of lines.
 - All opened elements are properly closed.
