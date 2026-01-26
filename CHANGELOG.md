@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Enforcement of model rate-per-minute limit when generating descriptions for all images.
 - Selected model details to the settings form view.
 - Option to TEI XML encode transcriptions.
+- Support transcription and TEI XML encoding of sequences of images.
 - Support for tiered model pricing. `inputPrice` and `outputPrice` of models can be expressed as either flat prices per 1 million tokens (old behaviour), or as ordered tiers. Each tier defines a price per one million tokens up to a given token limit; the final tier (upToTokens: null) applies to all higher token counts. There must be at least one tier – the `upToTokens: null` – tier, and the tiers must be ordered according to the `upToTokens` value. The "null-tier" must be the last tier. Example:
 
 ```typescript
