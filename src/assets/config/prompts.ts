@@ -16,6 +16,7 @@ export const TASK_CONFIGS: TaskTypeConfig[] = [
   {
     taskType: 'altText',
     label: 'Generate alt texts',
+    taskDescription: 'Generate concise, accessible alt text descriptions for images, processing each image individually.',
     nouns: {
       singular: 'alt text',
       plural: 'alt texts'
@@ -57,6 +58,7 @@ export const TASK_CONFIGS: TaskTypeConfig[] = [
   {
     taskType: 'transcription',
     label: 'Transcribe',
+    taskDescription: 'Transcribe text from images one by one and optionally encode each transcription as TEI XML in a separate step.',
     nouns: {
       singular: 'transcription',
       plural: 'transcriptions'
@@ -80,6 +82,7 @@ export const TASK_CONFIGS: TaskTypeConfig[] = [
   {
     taskType: 'transcriptionBatchTei',
     label: 'Transcribe + TEI encode (batched)',
+    taskDescription: 'Transcribe text from multiple images in batches and encode the results as TEI XML in a single combined step.',
     nouns: {
       singular: 'TEI transcription (batched)',
       plural: 'TEI transcriptions (batched)'

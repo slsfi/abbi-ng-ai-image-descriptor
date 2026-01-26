@@ -16,6 +16,7 @@ export type TaskNouns = {
 export type TaskTypeConfig = {
   taskType: TaskTypeId;
   label: string;
+  taskDescription?: string;
   nouns: TaskNouns;
   defaultModel: ModelId;
   variants: PromptVariant[];
