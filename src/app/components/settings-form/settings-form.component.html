@@ -76,8 +76,8 @@
             <label class="slider-value-label">{{descLengthSlider.value}} characters</label>
           </div>
           <mat-slider
-              [max]="descLengthMax"
               [min]="descLengthMin"
+              [max]="descLengthMax"
               [step]="25"
               [discrete]="true"
               [showTickMarks]="true"
@@ -105,8 +105,31 @@
         <mat-slide-toggle
               [checked]="teiEncode()"
               (change)="setTeiEncode($event)"
-              matTooltip="Enable this to TEI XML encode the transcription output."
-        >TEI encode transcriptions</mat-slide-toggle>
+              matTooltip="Enable this to TEI XML encode the transcribed text of each image separately."
+        >TEI encode each image transcription separately</mat-slide-toggle>
+      </div>
+    }
+
+    @if (selectedTaskTypeValue === 'transcriptionBatchTei') {
+      <div class="form-field-wrapper">
+        <div class="slider-wrapper">
+          <div class="slider-label-wrapper">
+            <label id="batch-slider-label" class="slider-label">Batch size:</label>
+            <label class="slider-value-label">{{batchSizeSlider.value}} images</label>
+          </div>
+          <mat-slider
+              [min]="settings.batchSizeMin()"
+              [max]="settings.batchSizeMax()"
+              [step]="1"
+              [discrete]="true"
+              [showTickMarks]="true"
+          >
+            <input matSliderThumb
+                  [value]="settings.batchSize()"
+                  (valueChange)="setBatchSize($event)"
+                  #batchSizeSlider>
+          </mat-slider>
+        </div>
       </div>
     }
   </div>

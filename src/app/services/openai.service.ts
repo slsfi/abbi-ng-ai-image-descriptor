@@ -42,14 +42,18 @@ export class OpenAiService {
   }
 
   async describeImage(settings: RequestSettings, prompt: string, base64Image: string): Promise<AiResult> {
+    if (!this.client) {
+      return { text: '', error: { code: 401, message: 'OpenAI API key not set.' } };
+    }
+
     // console.log('Prompt:', prompt);
     if (!prompt) {
       return { text: '', error: { code: 400, message: 'Missing prompt' } };
     }
 
-    let max_tokens = null;
+    let maxOutputTokens = null;
     if (settings.taskType === 'altText') {
-      max_tokens = settings.descriptionLength ? settings.descriptionLength + 1000 : null;
+      maxOutputTokens = settings.descriptionLength ? settings.descriptionLength + 1000 : null;
     }
 
     const reasoningEffort: string | null = settings.model.parameters?.reasoningEffort ?? null;
@@ -74,37 +78,23 @@ export class OpenAiService {
       ],
       ...(reasoningEffort ? { reasoning: { effort: reasoningEffort } } : {}),
       ...((!reasoningEffort || reasoningEffort === 'none') ? { temperature: settings.temperature ?? null } : {}),
-      ...((!reasoningEffort || reasoningEffort === 'none') ? { max_output_tokens: max_tokens } : {})
+      ...((!reasoningEffort || reasoningEffort === 'none') ? { max_output_tokens: maxOutputTokens } : {})
     };
     // console.log(payload);
 
-    const raw = await this.client.responses
-      .create(payload)
-      .catch(async (err: any) => {
-        if (err instanceof OpenAI.APIError) {
-          console.error('API Error:', err);
-          return { error: { code: err.code ?? 400, message: err.message ?? 'OpenAI API error' } };
-        } else {
-          console.error('Unexpected Error:', err);
-          return { error: { code: 500, message: 'Internal Server Error.' } };
-        }
-      });
-
-    if (raw?.error) {
-      return { text: '', error: raw.error, raw };
+    try {
+      const resp = await this.client.responses.create(payload);
+      return this.responseToAiResult(resp);
+    } catch (e) {
+      return this.toAiResultErrorOpenAi(e);
     }
-
-    return {
-      text: raw?.output_text ?? '',
-      usage: {
-        inputTokens: raw?.usage?.input_tokens ?? 0,
-        outputTokens: raw?.usage?.output_tokens ?? 0
-      },
-      raw
-    };
   }
 
   async responsesTextTask(settings: RequestSettings, prompt: string): Promise<AiResult> {
+    if (!this.client) {
+      return { text: '', error: { code: 401, message: 'OpenAI API key not set.' } };
+    }
+    
     if (!prompt) {
       return { text: '', error: { code: 400, message: 'Missing prompt.' } };
     }
@@ -118,29 +108,65 @@ export class OpenAiService {
     };
     // console.log(payload);
 
-    const raw = await this.client.responses
-      .create(payload)
-      .catch(async (err: any) => {
-        if (err instanceof OpenAI.APIError) {
-          console.error('API Error:', err);
-          return { error: { code: err.code ?? 400, message: err.message } };
-        } else {
-          console.error('Unexpected Error:', err);
-          return { error: { code: 500, message: 'Internal Server Error.' }};
-        }
-      });
-    
-    if (raw?.error) {
-      return { text: '', error: raw.error, raw };
+    try {
+      const resp = await this.client.responses.create(payload);
+      return this.responseToAiResult(resp);
+    } catch (e) {
+      return this.toAiResultErrorOpenAi(e);
     }
+  }
 
+  private responseToAiResult(response?: any): AiResult {
     return {
-      text: raw?.output_text ?? '',
+      text: this.resolveResponseText(response),
       usage: {
-        inputTokens: raw?.usage?.input_tokens ?? 0,
-        outputTokens: raw?.usage?.output_tokens ?? 0
+        inputTokens: this.resolveinputTokenCount(response),
+        outputTokens: this.resolveOutputTokenCount(response)
       },
-      raw
+      raw: response
     };
   }
+
+  private resolveResponseText(response?: any): string {
+    return response?.output_text ?? '';
+  } 
+
+  private resolveinputTokenCount(response?: any): number {
+    return response?.usage?.input_tokens ?? 0;
+  }
+
+  private resolveOutputTokenCount(response?: any): number {
+    return response?.usage?.output_tokens ?? 0;
+  }
+
+  /**
+   * Normalizes any thrown error into a valid `AiResult` error response.
+   *
+   * This method guarantees that:
+   *  - The returned object always conforms to `AiResult`
+   *  - `text` is present (empty string) so downstream code can rely on it
+   *  - `OpenAI.APIError` instances are mapped to a clean `{ code, message }` shape
+   *  - Unexpected errors are safely converted to a generic 500 error
+   */
+  private toAiResultErrorOpenAi(e: any): AiResult {
+    if (e instanceof OpenAI.APIError) {
+      console.error('OpenAI API Error:', e);
+      return {
+        text: '',
+        error: {
+          code: e.code ?? e.status ?? 400,
+          message: String(e.message ?? 'OpenAI API error.')
+        },
+        raw: e
+      };
+    }
+
+    console.error('Unexpected Error:', e);
+    return {
+      text: '',
+      error: { code: 500, message: 'Internal Server Error.' },
+      raw: e
+    };
+  }
+
 }

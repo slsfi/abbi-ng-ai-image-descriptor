@@ -1,6 +1,15 @@
 import { TaskTypeConfig } from "../../app/types/prompt.types"
 
-export type TaskTypeId = 'altText' | 'transcription';
+import transcriptionBatchTeiPrompt from '../prompts/transcriptionBatchTei.txt?raw';
+
+/*
+console.log(
+  '[DEBUG] transcriptionBatchTeiPrompt loaded:',
+  transcriptionBatchTeiPrompt.slice(0, 2000)
+);
+*/
+
+export type TaskTypeId = 'altText' | 'transcription' | 'transcriptionBatchTei';
 export type LanguageCode = 'sv' | 'fi' | 'en';
 
 export const TASK_CONFIGS: TaskTypeConfig[] = [
@@ -47,7 +56,7 @@ export const TASK_CONFIGS: TaskTypeConfig[] = [
   },
   {
     taskType: 'transcription',
-    label: 'Transcribe text (OCR/HTR)',
+    label: 'Transcribe',
     nouns: {
       singular: 'transcription',
       plural: 'transcriptions'
@@ -68,6 +77,22 @@ export const TASK_CONFIGS: TaskTypeConfig[] = [
       teiEncodePrompt: '# Task\n\nBelow is an accurate transcription of a handwritten, typewritten or printed historical document. Your task is to enrich the transcription with basic TEI XML markup. Omit the `<teiHeader>` and just answer with the text `<body>`. A facsimile image of the original document is attached for reference.\n\n## Transcription:\n\n```\n{{AI_TRANSCRIPTION}}\n```\n\n## Don’t encode:\n\n- text divisions (`<div>`)\n\n## Encode:\n\n- headings (`<head>`)\n- paragraphs (`<p>`; add `rend="noIndent"` to paragraphs that do not have first line indentation)\n- page beginnings (`<pb/>`; if no page number is visible in the facsimile, omit @n)\n- line beginnings (`<lb/>`)\n- footnotes (`<note>`)\n- line groups (`<lg>`)\n- tables (`<table>`)\n- lists (`<list>`)\n- highlights (`<hi>`; bold, italics, etc.)\n\n## Important:\n\n- Note that the `<lb/>` element marks the beginning of lines and should appear at the start of lines, not at the end.\n- Do not alter the transcribed text.\n- Maintain the line breaks.\n- Do not add text that is not in the transcription (headers, footers, and marginalia might have been omitted on purpose).\n\n## Example of TEI encoded text (the text itself has nothing to do with the attached transcription):\n\n```\n<body>\n<pb n="22"/>\n<p><lb/>I detta ögonblick hördes helt nära uppå det af eldarna\n<lb/>svagt belysta fältet en jemrande stämma ömkligen bönfalla om\n<lb/>hjelp. Soldaterna, vana vid sådant, hörde på den främmande\n<lb/>brytningen att mannen icke var deras och gjorde sig intet omak.\n<lb/>Men jemrandet fortfor, klagande och skärande, utan uppehåll.</p>\n<head><lb/><hi rend="italics">Slaget</hi></head>\n<p rend="noIndent"><lb/>Pekka, en af Bertilas fyra dragoner, kortvext, men stark som en\n<lb/>björn, gick motvilligt att tysta den jemrandes mun.</p>\n</body>\n```\n'
     }
   },
+  {
+    taskType: 'transcriptionBatchTei',
+    label: 'Transcribe + TEI encode (batched)',
+    nouns: {
+      singular: 'TEI transcription (batched)',
+      plural: 'TEI transcriptions (batched)'
+    },
+    defaultModel: 'gemini-3-pro-preview',
+    variants: [
+      {
+        id: 'default',
+        label: 'TEI body (batched, no running headers)',
+        prompt: transcriptionBatchTeiPrompt
+      }
+    ]
+  }
 ] as const;
 
 // Map of task types for lookups

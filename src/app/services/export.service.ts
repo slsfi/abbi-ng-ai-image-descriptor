@@ -4,7 +4,9 @@ import { Document, IParagraphStyleOptions, Packer, Paragraph, Table,
         } from 'docx';
 import { zipSync, strToU8 } from 'fflate';
 
+import { BatchResultsService } from './batch-results.service';
 import { ImageListService } from './image-list.service';
+import { BatchResult } from '../types/batch-result.types';
 import { DescriptionData } from '../types/description-data.types';
 import { ImageData } from '../types/image-data.types';
 import { ExportFormatOption } from '../types/export.types';
@@ -22,10 +24,16 @@ export const EXPORT_FORMAT_OPTIONS: ExportFormatOption[] = [
   { fileFormat: 'tab', label: 'Tab-separated values (*.tab)', fileExt: 'tab' },
 ];
 
+export const TEI_TRANSC_FORMAT_OPTIONS: ExportFormatOption[] = [
+  { fileFormat: 'tei-xml-batch', label: 'TEI XML-document (*.xml)', fileExt: 'xml' },
+  { fileFormat: 'tei-xml-batch-zip', label: 'TEI XML-documents, zipped (*.zip)', fileExt: 'zip' },
+];
+
 @Injectable({
   providedIn: 'root'
 })
 export class ExportService {
+  private readonly batchResults = inject(BatchResultsService);
   private readonly imageListService = inject(ImageListService);
 
   private previousFileFormat: string | null = null;
@@ -47,10 +55,16 @@ export class ExportService {
       this.generateTAB(this.imageListService.imageList, safeBaseFilename);
     } else if (fileFormat == 'tei-xml' || fileFormat == 'tei-xml-lb') {
       this.generateXML(this.imageListService.imageList, safeBaseFilename, fileFormat);
+    } else if (fileFormat == 'tei-xml-batch') {
+      this.generateXMLFromBatches(this.batchResults.results(), safeBaseFilename);
+    } else if (fileFormat == 'tei-xml-batch-zip') {
+      this.generateXMLZipFromBatches(this.batchResults.results(), safeBaseFilename);
     } else if (fileFormat == 'txt') {
       this.generateTXT(this.imageListService.imageList, safeBaseFilename);
     } else if (fileFormat == 'txt-zip') {
       this.generateTXTPerImageZip(this.imageListService.imageList, safeBaseFilename);
+    } else {
+      console.error('Unknown export format.');
     }
   }
 
@@ -197,6 +211,47 @@ export class ExportService {
     this.initiateDownload(blob, `${filename}.xml`);
   }
 
+  generateXMLFromSingleBatch(batch: BatchResult): void {
+    const batchFilename = `batch-${batch.batchIndex}`;
+    let data = this.convertTeiBodyToTEIXML(batch.teiBody ?? '', batchFilename);
+    data = this.ensureNewlineEnding(data);
+    const blob = new Blob([data], { type: 'application/xml;charset=UTF-8' });
+    this.initiateDownload(blob, `${batchFilename}.xml`);
+  }
+
+  generateXMLFromBatches(batchResults: BatchResult[], filename: string = FALLBACK_FILENAME): void {
+    let concatBody = '';
+    batchResults.forEach((batch: BatchResult) => {
+      let imgDetails = (batch.imageIds.length > 1)
+        ? `images ${batch.imageIds[0]+1}–${batch.imageIds[batch.imageIds.length-1]+1}`
+        : `image ${batch.imageIds[0]+1}`
+      imgDetails = imgDetails + ` (${batch.imageIds.length})`;
+
+      const xmlComment = `Batch ${batch.batchIndex}: ${imgDetails}`;
+      concatBody = concatBody + '\r\n' + `<!-- ${xmlComment} -->` + '\r\n';
+      concatBody = concatBody + (batch.teiBody ?? '');
+    });
+    let data = this.convertTeiBodyToTEIXML(concatBody, filename);
+    data = this.ensureNewlineEnding(data);
+    const blob = new Blob([data], { type: 'application/xml;charset=UTF-8' });
+    this.initiateDownload(blob, `${filename}.xml`);
+  }
+
+  generateXMLZipFromBatches(batchResults: BatchResult[], filename: string = FALLBACK_FILENAME): void {
+    const files: Record<string, Uint8Array> = {};
+
+    batchResults.forEach((batch: BatchResult) => {
+      const batchFilename = `${filename}-batch-${batch.batchIndex}`;
+      let txtContent = this.convertTeiBodyToTEIXML(batch.teiBody ?? '', batchFilename);
+      txtContent = this.ensureNewlineEnding(txtContent);
+
+      // Convert string to Uint8Array for fflate
+      files[`${batchFilename}.xml`] = strToU8(txtContent);
+    });
+
+    this.zipAndInitiateDownload(files, `${filename}.zip`);
+  }
+
   generateTXT(imageFiles: ImageData[], filename: string = FALLBACK_FILENAME): void {
     let data = '';
     imageFiles.forEach((imageObj: ImageData) => {
@@ -213,8 +268,11 @@ export class ExportService {
     this.initiateDownload(blob, `${filename}.txt`);
   }
 
-  private generateTXTPerImageZip(imageFiles: ImageData[], filename: string = FALLBACK_FILENAME): void {
-    const files: { [name: string]: Uint8Array } = {};
+  private generateTXTPerImageZip(
+    imageFiles: ImageData[],
+    filename: string = FALLBACK_FILENAME
+  ): void {
+    const files: Record<string, Uint8Array> = {};
 
     imageFiles.forEach((imageObj: ImageData) => {
       const description = this.normaliseForExport(
@@ -231,8 +289,15 @@ export class ExportService {
       files[`${baseName}.txt`] = strToU8(txtContent);
     });
 
+    this.zipAndInitiateDownload(files, `${filename}.zip`);
+  }
+
+  private zipAndInitiateDownload(
+    files: Record<string, Uint8Array>,
+    zipFilename: string
+  ): void {
     // Create ZIP archive synchronously
-    const zipped = zipSync(files);  // Uint8Array<ArrayBufferLike>
+    const zipped = zipSync(files); // Uint8Array<ArrayBufferLike>
 
     /**
      * `zipSync` returns a Uint8Array view over an underlying ArrayBufferLike.
@@ -254,7 +319,7 @@ export class ExportService {
     ) as ArrayBuffer;
 
     const blob = new Blob([arrayBuffer], { type: 'application/zip' });
-    this.initiateDownload(blob, `${filename}.zip`);
+    this.initiateDownload(blob, zipFilename);
   }
 
   private convertToDelimited(imageFiles: ImageData[], delimiter: string): string {
@@ -275,23 +340,7 @@ export class ExportService {
     const teiEncoded: boolean = imageFiles[0].descriptions[imageFiles[0].activeDescriptionIndex].teiEncoded ?? false;
     const useLb: boolean = teiEncoded ? false : (fileFormat === 'tei-xml-lb');
 
-    let contentStr = '<?xml version="1.0" encoding="UTF-8"?>\r\n';
-    contentStr += '<TEI xmlns="http://www.tei-c.org/ns/1.0">\r\n';
-    contentStr += '\t<teiHeader>\r\n';
-    contentStr += '\t\t<fileDesc>\r\n';
-    contentStr += '\t\t\t<titleStmt>\r\n';
-    contentStr += '\t\t\t\t<title>' + filename + '</title>\r\n';
-    contentStr += '\t\t\t</titleStmt>\r\n';
-    contentStr += '\t\t\t<publicationStmt>\r\n';
-    contentStr += '\t\t\t\t<publisher></publisher>\r\n';
-    contentStr += '\t\t\t</publicationStmt>\r\n';
-    contentStr += '\t\t\t<sourceDesc>\r\n';
-    contentStr += '\t\t\t\t<p></p>\r\n';
-    contentStr += '\t\t\t</sourceDesc>\r\n';
-    contentStr += '\t\t</fileDesc>\r\n';
-    contentStr += '\t</teiHeader>\r\n';
-    contentStr += '\t<text>\r\n';
-    contentStr += '\t\t<body xml:space="preserve">\r\n';
+    let contentStr = this.getTeiHeader(filename);
 
     let imageCounter = 0;
     let bodyStr = '';
@@ -314,7 +363,44 @@ export class ExportService {
     }
 
     contentStr += bodyStr;
-    contentStr += '\t\t</body>\r\n';
+    contentStr += this.getTeiTrailer();
+    return contentStr;
+  }
+
+  private convertTeiBodyToTEIXML(teiBody: string, filename: string): string {
+    let trimmedBody = teiBody.trim();
+    trimmedBody = this.extractBody(trimmedBody);
+    trimmedBody = trimmedBody.trim() + '\r\n';
+
+    let contentStr = this.getTeiHeader(filename);
+    contentStr += trimmedBody;
+    contentStr += this.getTeiTrailer();
+    return contentStr;
+  }
+
+  private getTeiHeader(filename: string): string {
+    let contentStr = '<?xml version="1.0" encoding="UTF-8"?>\r\n';
+    contentStr += '<TEI xmlns="http://www.tei-c.org/ns/1.0">\r\n';
+    contentStr += '\t<teiHeader>\r\n';
+    contentStr += '\t\t<fileDesc>\r\n';
+    contentStr += '\t\t\t<titleStmt>\r\n';
+    contentStr += '\t\t\t\t<title>' + filename + '</title>\r\n';
+    contentStr += '\t\t\t</titleStmt>\r\n';
+    contentStr += '\t\t\t<publicationStmt>\r\n';
+    contentStr += '\t\t\t\t<publisher></publisher>\r\n';
+    contentStr += '\t\t\t</publicationStmt>\r\n';
+    contentStr += '\t\t\t<sourceDesc>\r\n';
+    contentStr += '\t\t\t\t<p></p>\r\n';
+    contentStr += '\t\t\t</sourceDesc>\r\n';
+    contentStr += '\t\t</fileDesc>\r\n';
+    contentStr += '\t</teiHeader>\r\n';
+    contentStr += '\t<text>\r\n';
+    contentStr += '\t\t<body xml:space="preserve">\r\n';
+    return contentStr;
+  }
+
+  private getTeiTrailer(): string {
+    let contentStr = '\t\t</body>\r\n';
     contentStr += '\t</text>\r\n';
     contentStr += '</TEI>\r\n';
     return contentStr;
@@ -460,12 +546,32 @@ export class ExportService {
   }
 
   /**
-   * Removes the opening <body> tag (including any attributes) from the start
-   * of the string and the closing </body> tag from the end, returning only
-   * the content inside the body element.
+   * Extracts the content of a <body> element.
+   * If a <pb .../> appears before <body>, it is preserved and moved
+   * to the beginning of the extracted body content.
    */
   extractBody(text: string): string {
-    return text.replace(/^<body[^>]*>/i, '').replace(/<\/body>$/i, '');
+    let t = text.trim();
+
+    // 1) Capture any leading <pb .../> before <body>
+    const leadingPbMatch = t.match(/^(?:\s*(<pb\b[^>]*\/>))+/i);
+    const leadingPb = leadingPbMatch ? leadingPbMatch[0].trim() : '';
+
+    // 2) Remove leading <pb .../> from the text
+    if (leadingPb) {
+      t = t.slice(leadingPb.length).trimStart();
+    }
+
+    // 3) Remove opening <body ...> and closing </body>
+    t = t.replace(/^<body\b[^>]*>/i, '');
+    t = t.replace(/<\/body>\s*$/i, '');
+
+    // 4) Reattach <pb .../> at the beginning of body content
+    if (leadingPb) {
+      t = `${leadingPb}\n${t}`;
+    }
+
+    return t.trim();
   }
 
   normaliseCharacters(s: string, teiEncoded: boolean = false): string {
@@ -474,7 +580,7 @@ export class ExportService {
     // Remove soft hyphen (U+00AD; &shy;) (invisible in VS Code)
     text = text.replaceAll('­', '');
     // Replace no-break spaces with ordinary spaces
-    text = text.replaceAll(' ', '');
+    // text = text.replaceAll(' ', ' ');
     // Replace not signs with hyphens when followed by newlines
     text = text.replaceAll('¬\n', '-\n');
     // Replace hyphens with dashes when surrounded by combinations of space and newline
@@ -486,10 +592,9 @@ export class ExportService {
     // Replace apostrophe-like characters
     text = text.replaceAll("'", '’');
     text = text.replaceAll('´', '’');
-    // Replace double quotes only if not teiEncoded text
-    if (!teiEncoded) {
-      text = text.replaceAll('"', '”');
-    }
+    // Entity encoding
+    text = text.replaceAll('& ', '&amp; ');
+
     // Replace fractions (avoid when followed by a 2-, 3-, or 4-digit "year")
     text = text.replace(/ 1\/2 (?!\d{2,4})/g, ' ½ ');
     text = text.replace(/ 1\/3 (?!\d{2,4})/g, ' ⅓ ');
@@ -510,9 +615,16 @@ export class ExportService {
     text = text.replace(/ 1\/9 (?!\d{2,4})/g, ' ⅑ ');
     text = text.replace(/ 1\/10 (?!\d{2,4})/g, ' ⅒ ');
 
+    // Insert no-break spaces as customary
+    text = text.replaceAll('. . .', '. . .');
+    text = text.replaceAll('o. s. v.', 'o. s. v.');
+
     text = text.trim();
 
     if (teiEncoded) {
+      // Remove leading whitespace from all lines
+      text = text.replace(/^[ \t]+/gm, '');
+
       if (text.startsWith('```') && text.endsWith('```')) {
         const lines = text.split('\n');
         let new_text = (lines[0] === '```xml' || lines[0] === '```')
@@ -530,14 +642,126 @@ export class ExportService {
       }
 
       text = text.trim();
-      text = this.extractBody(text);
-      text = text.trim();
+      text = this.extractBody(text).trim();
+      text = this.removeBlankLinesAroundPb(text);
+      text = this.normaliseTeiStructureBeforeLb(text);
+      text = this.tightenPbLb(text);
+      text = this.tightenFootnoteSpacing(text);
+      text = this.replaceStraightDoubleQuotesOutsideTags(text, '”');
 
       text = text.replaceAll('<lb/>', '<lb break="line"/>');
       text = this.fixLbEncoding(text);
+    } else {
+      // Replace all double quotes only if not teiEncoded text
+      text = text.replaceAll('"', '”');
     }
 
     return text;
+  }
+
+  /**
+   * - Strip whitespace at start of a line before <lb/>
+   * - If <lb/> is not at start of a line: remove any whitespace right before it and insert '\n' before it
+   * - <p>\n... -> <p>...
+   * - Strip whitespace immediately before </p>
+   */
+  private normaliseTeiStructureBeforeLb(s: string): string {
+    let text = s.replaceAll('\r', '');
+
+    // 1) Line-start whitespace before <lb/> is removed
+    //    (also handles tabs/spaces; keeps newline)
+    text = text.replace(/^[ \t]+(?=<lb\/>)/gm, '');
+
+    // 2) If <lb/> occurs not at start of a line, insert newline before it
+    //    and strip whitespace right before it.
+    //    This turns: "word   <lb/>" into "word\n<lb/>"
+    //    It will NOT affect cases already at line-start because those are preceded by '\n'
+    text = text.replace(/([^\n])[ \t]*<lb\/>/g, '$1\n<lb/>');
+
+    // 3) <p ...> followed by newline becomes <p ...> (and also eats leading whitespace after that newline)
+    //    Example: "<p rend="noIndent">\n   Text" -> "<p rend="noIndent">Text"
+    text = text.replace(/(<p\b[^>]*>)\s*\n\s*/g, '$1');
+
+    // 4) Strip whitespace immediately before </p>
+    //    Example: "Text   </p>" or "Text\n</p>" -> "Text</p>"
+    text = text.replace(/\s+<\/p>/g, '</p>');
+
+    return text;
+  }
+
+  /**
+   * Replaces straight double quotes only when NOT inside tags.
+   * i.e. transforms:  <p foo="bar">He said "hi"</p>
+   * into:             <p foo="bar">He said ”hi”</p>
+   */
+  private replaceStraightDoubleQuotesOutsideTags(input: string, replacement: string): string {
+    let out = '';
+    let inTag = false;
+
+    for (let i = 0; i < input.length; i++) {
+      const ch = input[i];
+
+      if (ch === '<') {
+        inTag = true;
+        out += ch;
+        continue;
+      }
+      if (ch === '>') {
+        inTag = false;
+        out += ch;
+        continue;
+      }
+
+      if (!inTag && ch === '"') {
+        out += replacement;
+      } else {
+        out += ch;
+      }
+    }
+
+    return out;
+  }
+
+  /**
+   * Removes blank/whitespace-only lines immediately before or after <pb .../>.
+   * Keeps <pb/> on its own line if it is already there.
+   */
+  private removeBlankLinesAroundPb(input: string): string {
+    let text = input.replaceAll('\r', '');
+
+    // Remove one or more blank lines BEFORE a <pb .../> line.
+    // (i.e. collapse "\n\n<pb.../>" -> "\n<pb.../>")
+    text = text.replace(/\n(?:[ \t]*\n)+(?=[ \t]*<pb\b[^>]*\/>)/g, '\n');
+
+    // Remove one or more blank lines AFTER a <pb .../> line.
+    // (i.e. collapse "<pb.../>\n\n" -> "<pb.../>\n")
+    text = text.replace(/(<pb\b[^>]*\/>)[ \t]*\n(?:[ \t]*\n)+/g, '$1\n');
+
+    return text;
+  }
+
+  /**
+   * Ensures <pb .../> followed by a continued line uses the required inline pattern:
+   *   <pb .../><lb .../>
+   * i.e. removes any whitespace/newlines between <pb .../> and the following <lb .../>.
+   */
+  private tightenPbLb(input: string): string {
+    // Remove whitespace (spaces/tabs/newlines) between <pb .../> and the next <lb .../>
+    return input.replace(
+      /(<pb\b[^>]*\/>)\s+(<lb\b[^>]*\/>)/g,
+      '$1$2'
+    );
+  }
+
+  /**
+   * Removes a single space immediately before a footnote <note>.
+   * Applies only to notes with place="foot".
+   */
+  private tightenFootnoteSpacing(input: string): string {
+    return input.replace(
+      / (\<note\b[^>]*\bplace="foot"[^>]*>)/g,
+      '$1'
+    );
   }
 
 }

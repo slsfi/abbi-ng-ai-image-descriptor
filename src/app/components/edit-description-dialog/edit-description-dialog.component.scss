@@ -47,15 +47,22 @@ mat-dialog-content.mat-mdc-dialog-content {
     gap: .75rem;
   }
 
-  .zoom-toolbar {
+  .img-toolbar,
+  .zoom-toolbar,
+  .page-toolbar {
     align-items: center;
     display: flex;
+    flex-wrap: wrap;
     gap: .5rem;
     justify-content: center;
+  }
+
+  .img-toolbar {
+    column-gap: 5rem;
     width: 100%;
   }
 
-  .zoom-label {
+  .toolbar-label {
     min-width: 64px;
     text-align: center;
   }

@@ -1,0 +1,112 @@
+@let transcriptionVisibility = teiOpenById();
+
+@if (batchResults.hasResults()) {
+  @for (r of batchResults.results(); track r.id) {
+    @let previewShown = transcriptionVisibility[r.id];
+
+    <div class="batch-result-wrapper">
+      <div class="batch-header">
+        <div class="batch-details">
+          <h3>Batch {{ r.batchIndex ?? '?' }}: @if (r.imageIds.length > 1) {images {{ r.imageIds[0]+1 }}–{{ r.imageIds[r.imageIds.length-1]+1 }}} @else {image {{r.imageIds[0]+1}}} ({{ r.imageIds.length }})</h3>
+
+          @if (r.status === 'generating') {
+            <div class="batch-status batch-generating">
+              <mat-icon>progress_activity</mat-icon>
+              <p>Generating TEI transcription...</p>
+            </div>
+          } @else if (r.status === 'pending') {
+            <div class="batch-status batch-pending">
+              <mat-icon>pending</mat-icon>
+              <p>Pending...</p>
+            </div>
+          } @else if (r.status === 'error') {
+            <div class="batch-status batch-error">
+              <mat-icon>error</mat-icon>
+              <p>{{ r.error }}</p>
+            </div>
+          } @else {
+            @if (r.teiBody) {
+              <div class="batch-status batch-success">
+                <mat-icon>check_circle</mat-icon>
+                <p>TEI transcription successfully generated.</p>
+              </div>
+            } @else {
+              <div class="batch-status batch-warn">
+                <mat-icon>warning</mat-icon>
+                <p>The result body is empty: the AI model did not error, but returned no content.</p>
+              </div>
+            }
+          }
+        </div>
+        
+        @if (r.status === 'success' || r.status === 'error') {
+          <div class="batch-actions">
+            @if (r.teiBody) {
+              <button matIconButton
+                (click)="togglePreview(r.id)"
+                [attr.aria-label]="previewShown ? 'Hide transcription' : 'Show transcription'"
+                [matTooltip]="previewShown ? 'Hide transcription' : 'Show transcription'"
+              >
+                <mat-icon>
+                  {{ previewShown ? 'visibility_off' : 'visibility' }}
+                </mat-icon>
+              </button>
+              <button matIconButton
+                (click)="editOne(r)"
+                [attr.aria-label]="'Edit transcription'"
+                [matTooltip]="'Edit transcription'"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button matIconButton
+                [cdkCopyToClipboard]="r.teiBody"
+                [attr.aria-label]="'Copy to clipboard'"
+                [matTooltip]="'Copy to clipboard'"
+              >
+                <mat-icon>content_copy</mat-icon>
+              </button>
+              <button matIconButton
+                (click)="downloadTei(r)"
+                [attr.aria-label]="'Download XML'"
+                [matTooltip]="'Download XML'"
+              >
+                <mat-icon>download</mat-icon>
+              </button>
+            }
+            
+            <button matIconButton
+              (click)="generateOne(r)"
+              [attr.aria-label]="'Regenerate'"
+              [matTooltip]="'Regenerate'"
+            >
+              <mat-icon>refresh</mat-icon>
+            </button>
+            <button matIconButton
+              (click)="removeOne(r.id)"
+              class="warn-button"
+              [attr.aria-label]="'Remove'"
+              [matTooltip]="'Remove'"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (r.status === 'success' && r.teiBody) {
+        <div class="batch-result-preview">
+          <pre class="language-markup" [hidden]="!previewShown"><code
+                class="language-markup"
+                #codeEl
+                [attr.data-result-id]="r.id"
+                [textContent]="r.teiBody"
+          ></code></pre>
+        </div>
+      }
+    </div>
+  }
+} @else {
+  <div class="no-results">
+    <p>No generated TEI transcriptions.</p>
+  </div>
+}

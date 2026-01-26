@@ -1,4 +1,6 @@
-import { AfterViewInit, Component, DestroyRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, OnInit, ViewChild,
+         afterRenderEffect, inject, signal, viewChildren
+        } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,25 +9,35 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule,
+         PageEvent
+        } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarRef,
+         TextOnlySnackBar
+        } from '@angular/material/snack-bar';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+import Prism from '../../utils/prism';
+import { BatchPlanComponent } from '../batch-plan/batch-plan.component';
+import { BatchResultsComponent } from '../batch-results/batch-results.component';
 import { ConfirmActionDialogComponent } from '../confirm-action-dialog/confirm-action-dialog.component';
 import { EditDescriptionDialogComponent } from '../edit-description-dialog/edit-description-dialog.component';
 import { ExportDialogComponent } from '../export-dialog/export-dialog.component';
 import { TranslateDescriptionDialogComponent } from '../translate-description-dialog/translate-description-dialog.component';
 import { CharacterCountPipe } from '../../pipes/character-count.pipe';
 import { AiService } from '../../services/ai.service';
+import { BatchResultsService } from '../../services/batch-results.service';
 import { CostService } from '../../services/cost.service';
 import { ExportService } from '../../services/export.service';
 import { ImageListService } from '../../services/image-list.service';
 import { SettingsService } from '../../services/settings.service';
+import { BatchResult } from '../../types/batch-result.types';
 import { DescriptionData } from '../../types/description-data.types';
 import { ImageData } from '../../types/image-data.types';
+import { AiResult } from '../../types/ai.types';
 import { RequestSettings } from '../../types/settings.types';
 import { LanguageCode } from '../../../assets/config/prompts';
 
@@ -45,8 +57,10 @@ import { LanguageCode } from '../../../assets/config/prompts';
     MatSelectModule,
     MatTableModule,
     MatTooltipModule,
-    CharacterCountPipe
-  ],
+    BatchResultsComponent,
+    CharacterCountPipe,
+    BatchPlanComponent
+],
   templateUrl: './generate-descriptions.component.html',
   styleUrl: './generate-descriptions.component.scss'
 })
@@ -57,8 +71,12 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   private readonly exportService = inject(ExportService);
   public readonly imageListService = inject(ImageListService);
   private readonly aiService = inject(AiService);
+  readonly batchResults = inject(BatchResultsService);
   readonly settings = inject(SettingsService);
   private readonly snackBar = inject(MatSnackBar);
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  readonly teiCodeEls = viewChildren<ElementRef<HTMLElement>>('teiCodeEl');
 
   currentPaginatorSize: number = 10;
   matTableDataSource = new MatTableDataSource<ImageData>([]);
@@ -68,11 +86,33 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
   teiEncoding = signal<boolean>(false);
 
-  private progressSnackRef: any | null = null;
+  private progressSnackRef: MatSnackBarRef<TextOnlySnackBar> | null = null;
+  private errorSnackRef: MatSnackBarRef<TextOnlySnackBar> | null = null;
   private progressStopSub?: { unsubscribe(): void };
   private lastProgressMessage: string | null = null;
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  private readonly needsHighlight = signal<Set<string>>(new Set());
+
+  constructor() {
+    afterRenderEffect(() => {
+      // Run Prism and highlighting code blocks only when there
+      // are code nodes in DOM and some of them have been marked
+      // as needing highlighting
+      const need = this.needsHighlight();
+      if (need.size === 0) return;
+
+      for (const elRef of this.teiCodeEls()) {
+        const el = elRef.nativeElement;
+        const key = `${el.getAttribute('data-image-id')}:${el.getAttribute('data-desc-idx')}`;
+        if (need.has(key)) {
+          Prism.highlightElement(el);
+        }
+      }
+
+      // clear after we ran
+      this.needsHighlight.set(new Set());
+    });
+  }
 
   ngOnInit(): void {
     // Subscribe to the image list in the service to update the data source
@@ -93,7 +133,9 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   async generateAll() {
     const settings: RequestSettings = this.settings.getSettings();
 
-    if (settings.taskType === 'transcription' && settings.teiEncode) {
+    if (settings.taskType === 'transcriptionBatchTei') {
+      await this.transcribeAndTeiEncodeBatchedAll();
+    } else if (settings.taskType === 'transcription' && settings.teiEncode) {
       await this.transcribeAndTeiEncodeAll();
     } else {
       await this.generateImageDescriptionsAll();
@@ -179,6 +221,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
     this.setGlobalGenerating(false);
     this.setImageGenerating(imageObj, false);
+    this.teiEncoding.set(false);
   }
 
   private async generateImageDescriptionsAll() {
@@ -279,6 +322,172 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
         this.setImageGenerating(imageObj, false);
       }
+      this.teiEncoding.set(false);
+    }
+
+    this.closeProgressSnack();
+    this.setGlobalGenerating(false);
+    this.teiEncoding.set(false);
+  }
+
+  private async transcribeAndTeiEncodeBatchedAll() {
+    this.setGlobalGenerating(true);
+
+    // clear old batch results at the start of a run
+    this.batchResults.clear();
+
+    const settings: RequestSettings = this.settings.getSettings();
+    const prompt = this.constructPromptTemplate();
+
+    const images = this.imageListService.imageList;
+    const batchSize = settings.batchSize || 10;
+    const batches = this.chunkArray(images, batchSize);
+
+    let lastRequestAt: number | null = null;
+
+    // Create batch results with pending status
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
+
+      const batchId = (globalThis.crypto && 'randomUUID' in globalThis.crypto)
+        ? globalThis.crypto.randomUUID()
+        : `${Date.now()}-${batchIndex}-${Math.random().toString(16).slice(2)}`;
+
+      const pending: BatchResult = {
+        id: batchId,
+        createdAt: new Date().toISOString(),
+        taskType: 'transcriptionBatchTei',
+        status: 'pending',
+        imageIds: batch.map(i => i.id),
+        imageNames: batch.map(i => i.filename),
+        modelId: settings.model.id,
+        batchIndex: batchIndex + 1,
+        batchSize: batch.length,
+      };
+
+      this.batchResults.add(pending);
+    }
+
+    // Process each batch
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      if (!this.generating) {
+        break;
+      }
+
+      // Throttle per REQUEST (per batch)
+      lastRequestAt = await this.enforceRpm(settings.model?.rpm, lastRequestAt);
+      if (!this.generating) {
+        break;
+      }
+
+      const batch = batches[batchIndex];
+
+      this.openProgressSnack(`Generating TEI batch ${batchIndex + 1}/${batches.length} (${batch.length} ${batch.length === 1 ? 'image' : 'images'})`);
+
+      // mark images generating (even if table hidden, keeps state consistent)
+      for (const img of batch) {
+        this.setImageGenerating(img, true);
+      }
+
+      const batchId = this.batchResults.results()[batchIndex].id;
+
+      const generating: Partial<BatchResult> = {
+        status: 'generating',
+      };
+
+      this.batchResults.update(batchId, generating);
+
+      const res = await this.runAiTaskBatchImages('filesApiImages', settings, prompt, undefined, batch);
+      if (res) {
+        // normaliseCharacters already strips/normalizes; pass teiEncoded=true
+        const teiBody = this.exportService.normaliseCharacters(res.text, true);
+
+        this.batchResults.update(batchId, {
+          status: 'success',
+          updatedAt: new Date().toISOString(),
+          teiBody,
+          inputTokens: res.usage?.inputTokens ?? 0,
+          outputTokens: res.usage?.outputTokens ?? 0,
+          cost: res.cost,
+        });
+      } else {
+        // runAiTaskBatchImages already showed a snackbar; mark the batch as error
+        this.batchResults.update(batchId, {
+          status: 'error',
+          error: 'Batch request failed.',
+        });
+
+        // For stop-on-error behavior uncomment:
+        // this.setGlobalGenerating(false);
+      }
+
+      for (const img of batch) {
+        this.setImageGenerating(img, false);
+      }
+    }
+
+    // Ensure any “generating” flags are cleared (if user hit Stop mid-batch)
+    for (const img of this.imageListService.imageList) {
+      this.setImageGenerating(img, false);
+    }
+
+    this.closeProgressSnack();
+    this.setGlobalGenerating(false);
+  }
+
+  async transcribeAndTeiEncodeBatch(batch: BatchResult) {
+    // regenerate single batch
+    this.setGlobalGenerating(true);
+
+    const settings: RequestSettings = this.settings.getSettings();
+    const prompt = this.constructPromptTemplate();
+    const batchId = batch.id;
+    const batchImages = this.imageListService.imageList.filter(
+      (img: ImageData) => batch.imageIds.includes(img.id)
+    );
+
+    if (batchImages.length !== batch.batchSize) {
+      console.error('Batch size does not correspond to number of images in batch.');
+      return;
+    }
+
+    // mark images generating (even if table hidden, keeps state consistent)
+    for (const img of batchImages) {
+      this.setImageGenerating(img, true);
+    }
+
+    this.openProgressSnack(`Regenerating TEI batch ${batch.batchIndex} (${batch.imageIds.length} ${batch.imageIds.length === 1 ? 'image' : 'images'})`);
+
+    const generating: Partial<BatchResult> = {
+        status: 'generating',
+        modelId: settings.model.id,
+      };
+
+    this.batchResults.update(batchId, generating);
+
+    const res = await this.runAiTaskBatchImages('filesApiImages', settings, prompt, undefined, batchImages);
+    if (res) {
+      // normaliseCharacters already strips/normalizes; pass teiEncoded=true
+      const teiBody = this.exportService.normaliseCharacters(res.text, true);
+
+      this.batchResults.update(batchId, {
+        status: 'success',
+        updatedAt: new Date().toISOString(),
+        teiBody,
+        inputTokens: (batch.inputTokens ?? 0) + (res.usage?.inputTokens ?? 0),
+        outputTokens: (batch.outputTokens ?? 0) + (res.usage?.outputTokens ?? 0),
+        cost: (batch.cost ?? 0) + (res.cost),
+      });
+    } else {
+      // runAiTaskBatchImages already showed a snackbar; mark the batch as error
+      this.batchResults.update(batchId, {
+        status: 'error',
+        error: 'Batch request failed.',
+      });
+    }
+
+    for (const img of batchImages) {
+      this.setImageGenerating(img, false);
     }
 
     this.closeProgressSnack();
@@ -313,7 +522,9 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
     dialogRef.afterClosed().subscribe((remove: boolean) => {
       if (remove) {
-        this.imageListService.removeImage(imageObj);
+        this.aiService.deleteUploadedFile(imageObj).finally(() => {
+          this.imageListService.removeImage(imageObj);
+        });
       }
     });
   }
@@ -330,20 +541,34 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
     dialogRef.afterClosed().subscribe((remove: boolean) => {
       if (remove) {
-        this.imageListService.updateImageList([]);
+        Promise.allSettled(this.imageListService.imageList.map(img => this.aiService.deleteUploadedFile(img)))
+          .finally(() => {
+            this.imageListService.updateImageList([]);
+            this.batchResults.clear();
+          });
       }
     });
   }
 
   previousDescription(imageObj: ImageData): void {
     if (imageObj.activeDescriptionIndex > 0) {
-      imageObj.activeDescriptionIndex--;
+      const idx = imageObj.activeDescriptionIndex - 1;
+      imageObj.activeDescriptionIndex = idx;
+
+      if (imageObj.descriptions[idx]?.teiEncoded) {
+        this.markNeedsHighlight(imageObj.id, idx);
+      }
     }
   }
 
   nextDescription(imageObj: ImageData): void {
     if (imageObj.activeDescriptionIndex < imageObj.descriptions.length - 1) {
-      imageObj.activeDescriptionIndex++;
+      const idx = imageObj.activeDescriptionIndex + 1;
+      imageObj.activeDescriptionIndex = idx;
+
+      if (imageObj.descriptions[idx]?.teiEncoded) {
+        this.markNeedsHighlight(imageObj.id, idx);
+      }
     }
   }
 
@@ -366,13 +591,19 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
   editDescription(imageObj: ImageData): void {
     const dialogRef = this.dialog.open(EditDescriptionDialogComponent, {
-      data: imageObj,
+      data: { imageObj },
       panelClass: 'editDescriptionDialog'
     });
 
-    dialogRef.afterClosed().subscribe((editedDescription: string | null | undefined) => {
-      if (editedDescription !== null && editedDescription !== undefined) {
-        imageObj.descriptions[imageObj.activeDescriptionIndex].description = editedDescription;
+    dialogRef.afterClosed().subscribe((edited: string | null | undefined) => {
+      if (edited != null) {
+        const idx = imageObj.activeDescriptionIndex;
+        const activeDesc = imageObj.descriptions[idx];
+        activeDesc.description = edited;
+
+        if (activeDesc.teiEncoded) {
+          this.markNeedsHighlight(imageObj.id, idx);
+        }
       }
     });
   }
@@ -405,8 +636,11 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     });
   }
 
-  export(): void {
-    const dialogRef = this.dialog.open(ExportDialogComponent, { minWidth: '500px' });
+  export(teiTranscriptions = false): void {
+    const dialogRef = this.dialog.open(ExportDialogComponent, {
+      data: { teiTranscriptions },
+      minWidth: '500px'
+    });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result?.value && result?.selectedExportFormat) {
@@ -418,6 +652,10 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         this.exporting = false;
       }
     });
+  }
+
+  exportTeiTranscriptions(): void {
+    this.export(true);
   }
 
   /**
@@ -469,13 +707,20 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   }
 
   private openProgressSnack(message: string) {
+    // Always remember the latest message so we can resume after error.
     this.lastProgressMessage = message;
+
+    // If an error snackbar is currently open, do NOT open/replace progress.
+    if (this.errorSnackRef) {
+      return;
+    }
 
     this.progressStopSub?.unsubscribe();
     this.progressStopSub = undefined;
 
     this.progressSnackRef?.dismiss();
     this.progressSnackRef = this.snackBar.open(message, 'Stop');
+
     this.progressStopSub = this.progressSnackRef.onAction().subscribe(() => {
       this.setGlobalGenerating(false);
     });
@@ -494,21 +739,35 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     // so we should tear down the progress subscription first.
     this.progressStopSub?.unsubscribe();
     this.progressStopSub = undefined;
+    this.progressSnackRef?.dismiss();
     this.progressSnackRef = null;
+
+    // If an error is already visible, just update last message & don't stack errors
+    if (this.errorSnackRef) {
+      // Optional: replace the existing error snackbar text by dismissing & reopening,
+      // or just ignore subsequent errors.
+      this.errorSnackRef.dismiss();
+    }
 
     const ref = this.snackBar.open(message, 'Dismiss', {
       duration: undefined,
       panelClass: 'snackbar-error'
     });
 
-    ref.onAction().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => ref.dismiss());
+    this.errorSnackRef = ref;
 
-    // If we're still generating, re-open the progress snackbar after the error is dismissed.
+    ref.onAction().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
+      () => ref.dismiss()
+    );
+
+    // If we're still generating, re-open the progress snackbar after the error
+    // is dismissed.
     ref.afterDismissed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.errorSnackRef = null;
+
       if (this.generating && this.lastProgressMessage) {
         this.openProgressSnack(this.lastProgressMessage);
       } else {
-        // Not generating anymore → clear stale progress state
         this.closeProgressSnack();
       }
     });
@@ -558,7 +817,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   private handleApiFailure(settings: RequestSettings, result: any, stopGeneration: boolean, imageObj?: ImageData) {
     const e = result?.error;
     if (e) {
-      const msg = `Error communicating with the ${settings.model?.provider} API: ${e.code ? e.code + ' ' : ''}${e.message ?? ''}`.trim();
+      const msg = `Error from the ${settings.model?.provider} API: ${e.message ?? 'unknown error'}`.trim();
       this.showAPIErrorMessage(msg);
       if (stopGeneration) {
         this.setGlobalGenerating(false);
@@ -606,6 +865,48 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     }
   }
 
+  private async runAiTaskBatchImages(
+    mode: 'inlineImages' | 'filesApiImages',
+    settings: RequestSettings,
+    prompt: string,
+    base64Images?: string[],
+    images?: ImageData[]
+  ): Promise<{ text: string; usage: any; cost: number } | null> {
+    try {
+      let result: AiResult | null = null;
+
+      if (mode === 'inlineImages' && base64Images !== undefined) {
+        result = await this.aiService.describeImages(settings, prompt, base64Images);
+      } else if (mode === 'filesApiImages' && images !== undefined) {
+        try {
+          result = await this.aiService.describeImagesFilesApi(settings, prompt, images);
+        } finally {
+          // delete the uploaded files
+          await Promise.allSettled(
+            images
+              .filter(img => img.filesApiProvider === settings.model.provider && !!img.filesApiId)
+              .map(img => this.aiService.deleteUploadedFile(img))
+          );
+        }
+      } else {
+        throw new Error('Batch image mode and provided data does not match.');
+      }
+
+      const text = result?.text ?? '';
+      if (!text && result?.error) {
+        this.handleApiFailure(settings, result, false);
+        return null;
+      }
+
+      const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
+      return { text, usage: result?.usage, cost };
+    } catch (e) {
+      console.error(e);
+      this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model?.provider} API: ${e}`);
+      return null;
+    }
+  }
+
   private buildDescription(
     settings: RequestSettings,
     text: string,
@@ -627,7 +928,28 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
   private commitDescription(imageObj: ImageData, desc: DescriptionData) {
     imageObj.descriptions.push(desc);
-    imageObj.activeDescriptionIndex = imageObj.descriptions.length - 1;
+    const idx = imageObj.descriptions.length - 1;
+    imageObj.activeDescriptionIndex = idx;
+
+    if (desc.teiEncoded) {
+      this.markNeedsHighlight(imageObj.id, idx);
+    }
+  }
+
+  private chunkArray<T>(arr: T[], chunkSize: number): T[][] {
+    const out: T[][] = [];
+    for (let i = 0; i < arr.length; i += chunkSize) {
+      out.push(arr.slice(i, i + chunkSize));
+    }
+    return out;
+  }
+
+  private markNeedsHighlight(imageId: number, descIdx: number): void {
+    this.needsHighlight.update(prev => {
+      const next = new Set(prev);
+      next.add(`${imageId}:${descIdx}`);
+      return next;
+    });
   }
 
 }

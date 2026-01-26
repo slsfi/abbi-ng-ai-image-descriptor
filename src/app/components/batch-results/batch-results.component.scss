@@ -1,0 +1,125 @@
+@use '@angular/material' as mat;
+
+:host {
+  display: block;
+  margin-top: 2rem;
+}
+
+.no-results {
+  border-top: 1px solid #dbdbdb;
+  width: 100%;
+
+  p {
+    font-size: 1.125rem;
+    font-weight: 500;
+    margin: 2rem 0;
+    text-align: center;
+  }
+}
+
+.batch-result-wrapper {
+  margin: 0;
+  padding: 1em;
+  border-top: 1px solid #dbdbdb;
+  border-bottom: 1px solid transparent;
+
+  &:last-child {
+    margin-bottom: -0.75em;
+  }
+}
+
+.batch-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 2em;
+  row-gap: 0.5em
+}
+
+.batch-details {
+  h3 {
+    margin: 0 0 0.5em 0;
+  }
+}
+
+.batch-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+
+  p {
+    margin: 0;
+  }
+}
+
+.batch-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75em;
+}
+
+.batch-result-preview {
+  width: 100%;
+
+  pre {
+    background-color: #f7f7f9;
+    border: 1px solid #dbdbdb;
+    border-radius: 2px;
+    overflow-x: auto;
+    padding: 0.5em 0.75em;
+  }
+
+  code {
+    font-family: "Fira Code", monospace !important;
+    font-weight: 400;
+    font-size: 0.9375em;
+    font-style: normal;
+  }
+}
+
+.batch-generating {
+  mat-icon {
+    display: inline-block;
+    animation: mat-rotate 1s linear infinite;
+    transform-origin: center;
+
+    @keyframes mat-rotate {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    mat-icon { animation: none; }
+  }
+}
+
+.warn-button,
+.batch-error mat-icon {
+  @include mat.icon-overrides((
+    color: #A82424,
+  ));
+}
+
+.batch-warn mat-icon {
+  @include mat.icon-overrides((
+    color: #a16305,
+  ));
+}
+
+.batch-pending,
+.batch-generating {
+  mat-icon {
+    @include mat.icon-overrides((
+      color: #0622c2,
+    ));
+  }
+}
+
+.batch-success mat-icon {
+  @include mat.icon-overrides((
+    color: #2A652C,
+  ));
+}

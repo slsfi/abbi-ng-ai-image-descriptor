@@ -1,30 +1,60 @@
 @let taskNoun = settings.taskNouns();
+@let aspectRatioValue = aspectRatio();
+@let imageIndex = activeImage();
 
 <mat-dialog-content>
   <div class="container"
-        [class.wider-img-container]="aspectRatio > 1.25"
-        [class.narrower-img-container]="aspectRatio < 0.8"
+        [class.wider-img-container]="aspectRatioValue > 1.25"
+        [class.narrower-img-container]="aspectRatioValue < 0.8"
   >
     <div class="img-container">
-      <div class="zoom-toolbar">
-        <button matIconButton
-              (click)="zoomOut()"
-              aria-label="Zoom out"
-              [disabled]="zoom <= minZoom"
-              matTooltip="Zoom out"
-        >
-          <mat-icon>remove</mat-icon>
-        </button>
-        <span class="zoom-label" aria-label="Zoom level">{{ (zoom * 100) | number:'1.0-0' }}%</span>
-        <button matIconButton
-              (click)="zoomIn()"
-              aria-label="Zoom in"
-              [disabled]="zoom >= maxZoom"
-              matTooltip="Zoom in"
-        >
-          <mat-icon>add</mat-icon>
-        </button>
-        <button matButton="tonal" (click)="resetZoom()" [disabled]="zoom === 1">Reset</button>
+      <div class="img-toolbar">
+        @if (dialogImages.length > 1) {
+          <div class="page-toolbar">
+            <button matIconButton
+                  (click)="previousImage()"
+                  aria-label="Previous image"
+                  matTooltip="Previous image"
+            >
+              <mat-icon>arrow_left_alt</mat-icon>
+            </button>
+            <span class="toolbar-label" aria-label="Image number">{{ imageIndex + 1 }} / {{ dialogImages.length }}</span>
+            <button matIconButton
+                  (click)="nextImage()"
+                  aria-label="Next image"
+                  matTooltip="Next image"
+            >
+              <mat-icon>arrow_right_alt</mat-icon>
+            </button>
+          </div>
+        }
+        <div class="zoom-toolbar">
+          <button matIconButton
+                (click)="zoomOut()"
+                [disabled]="zoom <= minZoom"
+                aria-label="Zoom out"
+                matTooltip="Zoom out"
+          >
+            <mat-icon>remove</mat-icon>
+          </button>
+          <span class="toolbar-label" aria-label="Zoom level">{{ (zoom * 100) | number:'1.0-0' }}%</span>
+          <button matIconButton
+                (click)="zoomIn()"
+                [disabled]="zoom >= maxZoom"
+                aria-label="Zoom in"
+                matTooltip="Zoom in"
+          >
+            <mat-icon>add</mat-icon>
+          </button>
+          <button matIconButton
+                (click)="resetZoom()"
+                [disabled]="zoom === 1"
+                aria-label="Reset zoom"
+                matTooltip="Reset zoom"
+          >
+            <mat-icon>crop_free</mat-icon>
+          </button>
+        </div>
       </div>
 
       <div
@@ -39,16 +69,16 @@
       >
         <img
           #imgEl
-          [src]="imageObj.base64Image"
-          [height]="imageObj.height"
-          [width]="imageObj.width"
+          [src]="dialogImages[imageIndex].base64Image"
+          [height]="dialogImages[imageIndex].height"
+          [width]="dialogImages[imageIndex].width"
           [style.transform]="imageTransform"
           alt="Image"
           draggable="false"
         >
       </div>
     </div>
-    <div class="textarea-container" [class.tei-encoding]="activeDescriptionData?.teiEncoded">
+    <div class="textarea-container" [class.tei-encoding]="teiEncoding">
       <h2>Edit {{ taskNoun.singular }}</h2>
       <mat-form-field appearance="outline">
         <mat-label>{{ taskNoun.singular | upperFirstLetter }}</mat-label>

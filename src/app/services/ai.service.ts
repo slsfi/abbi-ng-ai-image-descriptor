@@ -5,6 +5,7 @@ import { GoogleService } from './google.service';
 import { OpenAiService } from './openai.service';
 import { SettingsService } from './settings.service';
 import { AiResult } from '../types/ai.types';
+import { ImageData } from '../types/image-data.types';
 import { RequestSettings } from '../types/settings.types';
 
 /**
@@ -47,7 +48,25 @@ export class AiService {
     return Promise.resolve({ text: '', error: { code: 400, message: `Unsupported provider: ${settings.model.provider}` } });
   }
 
-  // Keep the same method name for now to avoid churn.
+  describeImages(settings: RequestSettings, prompt: string, base64Images: string[]): Promise<AiResult> {
+    if (settings.model.provider === 'Google') {
+      return this.google.describeImages(settings, prompt, base64Images);
+    } else if (settings.model.provider === 'OpenAI') {
+      return Promise.resolve({
+        text: '',
+        error: { code: 400, message: 'Batch transcription is currently supported only for Google models.' }
+      });
+    }
+    return Promise.resolve({ text: '', error: { code: 400, message: `Unsupported provider: ${settings.model.provider}` } });
+  }
+
+  describeImagesFilesApi(settings: RequestSettings, prompt: string, images: ImageData[]): Promise<AiResult> {
+    if (settings.model.provider === 'Google') {
+      return this.google.describeImagesWithFilesApi(settings, prompt, images);
+    }
+    return Promise.resolve({ text: '', error: { code: 400, message: 'Files API batching not supported for this provider yet.' } });
+  }
+
   responsesTextTask(settings: RequestSettings, prompt: string): Promise<AiResult> {
     if (settings.model.provider === 'OpenAI') {
       return this.openAi.responsesTextTask(settings, prompt);
@@ -55,6 +74,18 @@ export class AiService {
       return this.google.responsesTextTask(settings, prompt);
     }
     return Promise.resolve({ text: '', error: { code: 400, message: `Unsupported provider: ${settings.model.provider}` } });
+  }
+
+  deleteUploadedFile(image: ImageData): Promise<void> {
+    if (image.filesApiProvider === 'Google') {
+      return this.google.deleteUploadedFile(image);
+    }
+    /*
+    if (image.filesApiProvider === 'OpenAI') {
+      return this.openAi.deleteUploadedFile(image);
+    }
+      */
+    return Promise.resolve();
   }
 
   private providerFromUI(): 'OpenAI' | 'Google' {

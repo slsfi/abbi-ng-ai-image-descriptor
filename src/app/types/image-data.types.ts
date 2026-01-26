@@ -1,4 +1,5 @@
 import { DescriptionData } from './description-data.types';
+import { ModelProvider } from '../../assets/config/models';
 
 export type ImageData = {
   id: number;
@@ -9,4 +10,8 @@ export type ImageData = {
   descriptions: DescriptionData[];
   activeDescriptionIndex: number;
   generating: boolean;
+  filesApiId?: string;
+  filesApiUri?: string;
+  mimeType?: string;
+  filesApiProvider?: ModelProvider;
 }
