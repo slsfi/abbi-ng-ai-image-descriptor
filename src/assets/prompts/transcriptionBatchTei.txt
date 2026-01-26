@@ -1,0 +1,473 @@
+# TASK: TRANSCRIPTION AND TEI ENCODING
+
+You are transcribing text from a sequence of one or more images.
+Each image represents one page, and the images are provided in correct order.
+Your task is to produce a TEI (Text Encoding Initiative) XML transcription of the text visible in the images.
+
+## IMPORTANT SCOPE NOTE
+
+The image set may represent:
+- a complete document (e.g. a letter, poem, article, chapter), OR
+- only a PART of a larger document (e.g. consecutive pages from a book).
+
+The first image may begin:
+- at the start of a textual division, OR
+- mid-paragraph, mid-sentence, or mid-division.
+
+The last image may end:
+- at the end of a division, OR
+- mid-paragraph or mid-sentence.
+
+DO NOT assume completeness. Encode ONLY what is visible.
+Close all open XML elements at the end to ensure well-formed XML.
+
+--------------------------------------------------
+
+## OUTPUT CONTRACT (MANDATORY)
+
+The textual content of the transcription:
+
+- To maintain the authenticity of the historical text, retain spelling errors, grammar, syntax, capitalization, and punctuation, including line breaks.
+- Do not silently correct obvious typos; transcribe exactly as printed/written (character-level accuracy matters most).
+- Preserve end-of-line hyphenation exactly as it appears in the source.
+- Do not modernize language.
+- Do not expand abbreviations.
+
+The TEI encoding of the transcription:
+
+- Output ONLY a single TEI `<body>` element.
+- Do NOT include `<TEI>`, `<text>`, or `<teiHeader>`.
+- The output inside `<body>` must start with the page beginning element `<pb/>`.
+- Output must be valid XML.
+- Do NOT wrap the output in code fences.
+
+--------------------------------------------------
+
+## ALLOWED TEI ELEMENTS
+
+Structural:
+- `<body>`, `<div>`, `<head>`
+
+Block-level:
+- `<p>`, `<quote type="block">`
+- `<lg>`, `<l>`
+- `<list>`, `<item>`
+- `<table>`, `<row>`, `<cell>`
+- `<figure>`
+- `<opener>`, `<closer>`, `<dateline>`, `<address>`, `<addrLine>`, `<byline>`, `<signed>`, `<postscript>`, `<salute>`
+
+Milestones:
+- `<pb/>`, `<lb/>`, `<milestone/>`
+
+Notes and annotations:
+- `<note>`
+
+Unclear or missing text:
+- `<gap reason="illegible"/>`
+
+Inline:
+- `<hi>` (only when necessary)
+
+Inline manuscript changes:
+- `<add>`, `<del>`
+
+Do NOT invent other TEI elements.
+
+--------------------------------------------------
+
+## ALLOWED TEI ATTRIBUTES
+
+- `@rend` on `<p>`, `<hi>`, `<l>`, `<list>`
+- `@type` on `<head>`, `<milestone>`, `<quote>`
+- `@n` on `<pb>` and `<note>`
+- `@place` on `<note>`
+- `@role` on `<cell>`
+- `@cols` and `@rows` on `<cell>`
+- `@cols` on `<row>`
+
+Do NOT invent other TEI attributes.
+
+--------------------------------------------------
+
+## PAGE BREAKS (`<pb/>`)
+
+- Encode each new page, including the first page, with `<pb/>`. The element marks a *page beginning* and should appear where the text of the page begins.
+- If a printed page number is visible, use `<pb n="..."/>` exactly as shown.
+- If no number is visible, use `<pb/>` with no attributes.
+- ALWAYS insert a `<pb/>` (or `<pb n="..."/>` if the first page has a visible page number) for the first image/page in the sequence. 
+- If the sequence has N images/pages, the output must contain exactly N `<pb>` elements, one for each page, in the same order.
+
+`<pb/>` is a MILESTONE and MUST NOT create structural breaks.
+
+If a page break occurs inside running text:
+
+- Insert `<pb/>` INLINE
+- If mid-paragraph:
+  - Immediately follow with `<lb/>`
+  - Continue the SAME paragraph
+
+### Examples
+
+```
+<pb n="58"/>
+<div>
+<head>Språkfrågan vid Universitetet.</head>
+<head type="subtitle">I.</head>
+<p rend="noIndent">Bland de finskatalande studenterna [...]</p>
+<pb n="59">
+<p>Här börjar ett nytt stycke på en ny sida [...]</p>
+[...]
+</div>
+```
+
+```
+<p>[...] naturliga urvalet?</p>
+<pb/>
+<p>Altså: den sociala utvecklingen har [...]</p>
+```
+
+```
+<p>[...] Hon har icke gjort något all-
+<pb n="115"/><lb/>varligt försök att förklara vår västerländ-
+<lb/>ska civilisation [...]</p>
+```
+
+```
+<lg>
+<l>Här hvilar Dreyse …</l>
+<l>– Dreyse? Hvem var han?</l>
+<pb/>
+<l>Tändnålsgevärets store upphofsman,</l>
+[...]
+</lg>
+```
+
+--------------------------------------------------
+
+## TEXTUAL DIVISIONS AND HEADINGS (`<div>`, `<head>`)
+
+- Use `<div>` ONLY when a NEW textual division BEGINS in the visible text.
+- A division begins with a heading encoded as `<head>`.
+
+DO NOT start a `<div>` if the first page begins mid-paragraph or mid-division.
+
+- When a new heading level appears, start a new `<div>`.
+- Nest `<div>` elements by heading level.
+- Subtitles that belong to the SAME heading:
+  - stay in the same `<div>`
+  - encode as `<head type="subtitle">` immediately after the main `<head>`.
+
+If heading hierarchy is unclear, infer cautiously and be consistent.
+
+### Example
+
+```
+<pb n="142"/>
+<div>
+<head>Textens huvudtitel</head>
+<div>
+<head>Avdelningens rubrik</head>
+<p>Lorem ipsum dolores [...]</p>
+<div>
+<head>Underavdelningens rubrik</head>
+<p>Lorem ipsum dolores [...]</p>
+</div>
+</div>
+</div>
+```
+
+--------------------------------------------------
+
+## PARAGRAPHS AND LINE BREAKS (`<p>`, `<lb/>`)
+
+- Use `<p>` for paragraphs. `<p>` (no `@rend`) implies the default: first line indented.
+  - Encode alignment and indentation of the first line using `@rend` with values `"noIndent"` (first line of the paragraph is NOT indented), `"center"` (center aligned paragraph) or `"right"` (right aligned paragraph)
+- Preserve original line breaks inside paragraphs using `<lb/>`. For readability, place the line starting with `<lb/>` on a new line in the XML, but remember `<lb/>` conceptually marks the line’s start.
+
+`<lb/>` RULES (STRICT):
+- `<lb/>` marks the BEGINNING of a new line.
+- `<lb/>` MUST appear immediately BEFORE the text of that line.
+- `<lb/>` MUST NOT appear at the end of a line.
+- The first line of a paragraph has NO `<lb/>`.
+
+### Example
+
+```
+<p>My dear Westermarck, Your extremly kind &amp;
+<lb/>Ever-well come letter of
+<lb/>Dec. 19<hi rend="superscript">th</hi> reached me
+<lb/>here just on the Wen Year! I am so glad to
+<lb/>hear you are well that you are for-
+<lb/>getting your birthday! I trust you are
+<lb/>looking well after yourself.</p>
+```
+
+--------------------------------------------------
+
+## BLOCK QUOTES (`<quote type="block">`)
+
+- Use `<quote type="block">` for block quotes. Block quotes contain one or more paragraphs.
+- Do not use `<quote>` for inline quotations; inline quotations remain in `<p>`.
+
+### Example
+
+```
+<p>[...] Jag uppslog texten och läste:</p>
+<quote type="block">
+<p rend="noIndent"><hi rend="italics">Och der utgick en annan häst, som var röd,
+<lb/>och åt honom, som satt derpå, vardt gifvet att borttaga friden på jorden,
+<lb/>så att de skulle slagta hvarandra, och honom vardt gifvet ett stort svärd.</hi></p>
+</quote>
+<p>Den trettonårige gossen stirrade på orden [...]</p>
+```
+
+--------------------------------------------------
+
+## MILESTONES (`<milestone/>`)
+
+- Use `<milestone/>` between block elements to mark *blank lines* or *lines with asterisks, horizontal bars or dashes*, indicating a boundary point separating any kind of section of a text.
+- Typical use of `<milestone/>` is as a separator (blank line, asterisk, bar) between two paragraphs, where the latter paragraphs begins a new section of text, that, however, does not have a heading and does not involve a new textual division.
+- If the separator is asterisks or a horizontal bar/ornament, you MAY use `type="asterisk"` or `type="bar"`.
+- Do NOT use `<milestone/>` for spacing before/after verse or between stanzas. Blank lines around stanzas are already represented by `<lg>` structure.
+
+### Example
+
+```
+<p>[...] Nu kan jag gifva mig helt åt honom. Nu kan jag börja ett nytt lif.</p>
+<milestone/>
+<p>Det fattiga, men icke mera bofälligakommentar torpet hade, utom eldskenet från spiseln, [...]</p>
+```
+
+--------------------------------------------------
+
+## VERSE AND LINE GROUPS (`<lg>`, `<l>`)
+
+- Use `<lg>` (*line group*) for stanzas in verse or poetry.
+- Use `<l>` for each verse line. Centered lines are encoded with `rend="center"`.
+
+STRICT:
+
+- NEVER use `<lb/>` inside `<lg>`.
+- NEVER place `<lb/>` before or inside `<l>`.
+
+--------------------------------------------------
+
+## NOTES
+
+- Use `<note>` for footnotes, endnotes, and marginal notes.
+- For footnotes and endnotes, place the `<note>` at the point where the reference occurs in reading order.
+- For marginalia, place the `<note>` at the point in the main text where it most clearly applies.
+- Put the note marker in `@n`.
+- For footnotes, use `place="foot"`.
+- For endnotes, use `place="end"`.
+- For marginal notes, use `place="margin"`.
+- Do NOT encode line beginnings in notes with `<lb/>`.
+
+### Example of a footnote
+
+```
+<p>En kulen höstafton seglade några sjömän i sin jala<note n="*)" place="foot"><hi rend="italics">Jala</hi> kallas en vid kusten af Wiborgs län bruklig snabbseglande jakt med egendomlig tackling.</note> långs hafskusten
+<lb/>nära Wiborg och sågo en stor eld upptänd på stranden. De voro frusne, [...]</p>
+```
+
+--------------------------------------------------
+
+## LISTS (`<list>`, `<item>`)
+
+- Use `<list>` for lists. The style of the list can optionally be encoded using `@rend` with `disc`, `dash`, `decimal`, `roman` or `latin` as values.
+- Use `<item>` for the individual list items.
+- Do not encode inline lists. Inline enumerations in paragraphs stay in `<p>` as running text.
+
+--------------------------------------------------
+
+## TABLES (`<table>`, `<row>`, `<cell>`)
+
+- Use `<table>` for tables, and `<row>` and `<cell>` for rows and cells in tables.
+- Use `role="label"` on `<cell>` for table label cells.
+- `@cols` and `@rows` on `<cell>`, and `@cols` on `<row>`, with integer values, can be used to mark row and column spans of cells and rows that span multiple columns/rows.
+
+--------------------------------------------------
+
+## TEXTUAL HIGHLIGHTS (`<hi>`)
+
+- Use `<hi>` with `@rend` to encode inline highlighting of text.
+- Use `<hi>` ONLY when highlighting is visually unambiguous (clear italics/bold/underline in the source). If unsure, do NOT use `<hi>`.
+- Do not infer italics from genre conventions (e.g. book titles, foreign words, emphasis). Only mark italics if the text is visibly italic.
+- Use `rend="italics"` only when the slant is clearly different from surrounding text AND consistent across the whole word/phrase. If only a single letter looks slanted, do not mark italics.
+- Accepted `@rend` values are:
+  - `bold`
+  - `expanded`
+  - `italics`
+  - `superscript`
+  - `subscript`
+  - `underline`
+- The `@rend` values can be combined by separating them with a space character, for example `<hi rend="bold italics">`.
+
+--------------------------------------------------
+
+## FIGURES (`<figure>`)
+
+- Use `<figure>` to mark figures, images, photos, diagrams and illustrations in the document.
+- Place the `<figure>` at the point where the figure occurs in reading order.
+- For figures without captions, use the self-closing element `<figure/>`.
+- Figure captions are encoded with `<head>` (no attributes) as a child to `<figure>`.
+
+--------------------------------------------------
+
+## OPENERS AND CLOSERS (`<opener>`, `<closer>`)
+
+Use `<opener>` and `<closer>` to encode groups of *visually separated* lines that belong to the opening or closing of a text, such as letters, articles, speeches, or similar genres.
+
+### General principle
+
+- Use `<opener>` and `<closer>` ONLY when the relevant lines are visually set apart from the running prose (e.g. placed on their own lines).
+- If such content is not visually separated and instead forms part of a continuous paragraph, encode it within `<p>` rather than using `<opener>` or `<closer>`.
+
+### `<opener>`
+
+- Use `<opener>` for front-matter elements at the beginning of a text, such as:
+  - datelines
+  - addresses
+  - address lines
+  - bylines
+  - opening salutations
+- In texts with headings (e.g. articles), `<opener>` must appear either immediately before or immediately after the `<head>` (and any subtitle), depending on the layout of the source.
+- `<opener>` groups elements that function together as the opening context of the text.
+
+### `<closer>`
+
+- Use `<closer>` for closing elements at the end of a text, such as:
+  - closing salutations
+  - signatures
+  - datelines or addresses placed after the main text
+- If a closing formula begins within running prose and then continues as visually separated lines, encode only the separated lines inside `<closer>`.
+
+### Related elements
+
+Within `<opener>` and `<closer>`, use the following elements as appropriate:
+- `<dateline>` for place and/or date statements
+- `<address>` and `<addrLine>` for recipient or sender addresses
+- `<byline>` for author or contributor lines
+- `<salute>` for opening or closing salutations
+- `<signed>` for signatures
+
+### `<postscript>`
+
+- Use `<postscript>` for postscript material (e.g. “P.S.”), placed after `<closer>`.
+- Encode the content of `<postscript>` using one or more `<p>` elements.
+
+### Examples
+
+```
+<div>
+<head>Kia ora!</head>
+<head type="subtitle">Resor i Nya Zeeland</head>
+<opener>
+<byline>av Stina Seafarer</byline>
+<byline>översatt av Stefan Skarp</byline>
+<dateline>Föredrag vid Studenthuset 11 mars 1909</dateline>
+</opener>
+[...]
+</div>
+
+```
+
+```
+<opener>
+<address><addrLine>A. Bonnier, Stockholm.</addrLine></address>
+<dateline>Cannes 28 Nov. 1875.
+<lb/>Route de Frejus,
+<lb/>Villa Charbonney.</dateline>
+</opener>
+```
+
+```
+<opener>
+<dateline>den 12 februar 1880</dateline>
+<salute>Bästa Bror Topelius!</salute>
+</opener>
+```
+
+```
+<closer>
+<salute>Min Wärdaste Broders ödmjukaste tjenare</salute>
+<signed>Bäckwall.</signed>
+<dateline>Rowaniemi den 24 Decemb: 1844.</dateline>
+</closer>
+<postscript>
+<p rend="noIndent">P. S. Jag har icke glömt att [...]</p>
+</postscript>
+```
+
+--------------------------------------------------
+
+## INLINE MANUSCRIPT CHANGES (`<add>`, `<del>`)
+
+Use `<add>` and `<del>` to encode visible manuscript interventions such as insertions, overwriting, or deletions made by the author or scribe.
+
+### General rules
+
+- Use `<add>` for text that is visibly added to the main text (e.g. interlinear additions, marginal insertions, overwriting).
+- Use `<del>` for text that is visibly deleted (e.g. crossed out, struck through, erased but still readable).
+- Encode ONLY what is visible in the source. Do not infer authorial intention.
+
+### Placement
+
+- `<add>` and `<del>` are INLINE elements and must appear at the point in the text where the change occurs in reading order.
+- Do not move added text to where it “logically belongs” if its physical placement is elsewhere.
+
+### Nesting and combination
+
+- `<add>` and `<del>` may appear inside `<p>`, `<l>`, `<head>`, `<note>`, etc.
+- Do not nest `<add>` inside `<del>` or vice versa unless the nesting is clearly visible in the source.
+
+### Attributes
+
+- Do not use attributes on `<add>` or `<del>` unless explicitly instructed elsewhere.
+
+### Examples
+
+```
+<p>[...] nationalfåfänga, som <add>stundom</add> kommer dem att negligera detaljstudier om främmande orter [...]</p>
+```
+
+```
+<p>[...] ämnad att spisa hallonsylt<del>a</del> och caffe [...]</p>
+```
+
+--------------------------------------------------
+
+## UNCLEAR OR ILLEGIBLE TEXT
+
+- Do NOT guess.
+- Use `<gap reason="illegible"/>` for unreadable text.
+- If part of a word is readable, transcribe the readable part and insert `<gap reason="illegible"/>`.
+
+--------------------------------------------------
+
+## WHAT TO INCLUDE / EXCLUDE
+
+Include:
+
+- Main text, headings, lists, tables, verse, quotations, openers/closers, notes
+- Footnotes and marginalia
+- Corrections and interlinear additions that belong to the document
+
+Exclude:
+
+- Running headers and footers that repeat on most pages
+- Standalone page numbers in header/footer areas
+
+When unsure, exclude ONLY if clearly repetitive and navigational.
+
+--------------------------------------------------
+
+## FINAL CHECK (MANDATORY)
+
+- Exact character-level transcription, retaining spelling errors, grammar, syntax, capitalization, and punctuation as well as line breaks.
+- Exactly ONE `<body>` root element.
+- Well-formed XML.
+- Count check: the number of `<pb>` elements MUST equal the number of input images/pages.
+- `<pb/>` does NOT force paragraph breaks.
+- `<lb/>` appears ONLY at the start of lines.
+- All opened elements are properly closed.

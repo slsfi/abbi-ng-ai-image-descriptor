@@ -25,7 +25,8 @@ export const EXPORT_FORMAT_OPTIONS: ExportFormatOption[] = [
 ];
 
 export const TEI_TRANSC_FORMAT_OPTIONS: ExportFormatOption[] = [
-  { fileFormat: 'tei-xml-zip', label: 'TEI XML-documents, zipped (*.zip)', fileExt: 'zip' },
+  { fileFormat: 'tei-xml-batch', label: 'TEI XML-document (*.xml)', fileExt: 'xml' },
+  { fileFormat: 'tei-xml-batch-zip', label: 'TEI XML-documents, zipped (*.zip)', fileExt: 'zip' },
 ];
 
 @Injectable({
@@ -54,8 +55,10 @@ export class ExportService {
       this.generateTAB(this.imageListService.imageList, safeBaseFilename);
     } else if (fileFormat == 'tei-xml' || fileFormat == 'tei-xml-lb') {
       this.generateXML(this.imageListService.imageList, safeBaseFilename, fileFormat);
-    } else if (fileFormat == 'tei-xml-zip') {
-      this.generateXMLZip(this.batchResults.results(), safeBaseFilename);
+    } else if (fileFormat == 'tei-xml-batch') {
+      this.generateXMLFromBatches(this.batchResults.results(), safeBaseFilename);
+    } else if (fileFormat == 'tei-xml-batch-zip') {
+      this.generateXMLZipFromBatches(this.batchResults.results(), safeBaseFilename);
     } else if (fileFormat == 'txt') {
       this.generateTXT(this.imageListService.imageList, safeBaseFilename);
     } else if (fileFormat == 'txt-zip') {
@@ -208,7 +211,7 @@ export class ExportService {
     this.initiateDownload(blob, `${filename}.xml`);
   }
 
-  generateXMLFromBatch(batch: BatchResult) {
+  generateXMLFromSingleBatch(batch: BatchResult): void {
     const batchFilename = `batch-${batch.batchIndex}`;
     let data = this.convertTeiBodyToTEIXML(batch.teiBody ?? '', batchFilename);
     data = this.ensureNewlineEnding(data);
@@ -216,7 +219,25 @@ export class ExportService {
     this.initiateDownload(blob, `${batchFilename}.xml`);
   }
 
-  generateXMLZip(batchResults: BatchResult[], filename: string = FALLBACK_FILENAME): void {
+  generateXMLFromBatches(batchResults: BatchResult[], filename: string = FALLBACK_FILENAME): void {
+    let concatBody = '';
+    batchResults.forEach((batch: BatchResult) => {
+      let imgDetails = (batch.imageIds.length > 1)
+        ? `images ${batch.imageIds[0]+1}–${batch.imageIds[batch.imageIds.length-1]+1}`
+        : `image ${batch.imageIds[0]+1}`
+      imgDetails = imgDetails + ` (${batch.imageIds.length})`;
+
+      const xmlComment = `Batch ${batch.batchIndex}: ${imgDetails}`;
+      concatBody = concatBody + '\r\n' + `<!-- ${xmlComment} -->` + '\r\n';
+      concatBody = concatBody + (batch.teiBody ?? '');
+    });
+    let data = this.convertTeiBodyToTEIXML(concatBody, filename);
+    data = this.ensureNewlineEnding(data);
+    const blob = new Blob([data], { type: 'application/xml;charset=UTF-8' });
+    this.initiateDownload(blob, `${filename}.xml`);
+  }
+
+  generateXMLZipFromBatches(batchResults: BatchResult[], filename: string = FALLBACK_FILENAME): void {
     const files: Record<string, Uint8Array> = {};
 
     batchResults.forEach((batch: BatchResult) => {
@@ -539,7 +560,7 @@ export class ExportService {
     // Remove soft hyphen (U+00AD; &shy;) (invisible in VS Code)
     text = text.replaceAll('­', '');
     // Replace no-break spaces with ordinary spaces
-    text = text.replaceAll(' ', '');
+    // text = text.replaceAll(' ', ' ');
     // Replace not signs with hyphens when followed by newlines
     text = text.replaceAll('¬\n', '-\n');
     // Replace hyphens with dashes when surrounded by combinations of space and newline
@@ -604,6 +625,7 @@ export class ExportService {
       text = this.extractBody(text);
       text = text.trim();
 
+      text = this.removeBlankLinesAroundPb(text);
       text = this.normaliseTeiStructureBeforeLb(text);
       text = this.replaceStraightDoubleQuotesOutsideTags(text, '”');
 
@@ -636,9 +658,9 @@ export class ExportService {
     //    It will NOT affect cases already at line-start because those are preceded by '\n'
     text = text.replace(/([^\n])[ \t]*<lb\/>/g, '$1\n<lb/>');
 
-    // 3) <p> followed by newline becomes <p> (and also eats leading whitespace after that newline)
-    //    Example: "<p>\n   Text" -> "<p>Text"
-    text = text.replace(/<p>\s*\n\s*/g, '<p>');
+    // 3) <p ...> followed by newline becomes <p ...> (and also eats leading whitespace after that newline)
+    //    Example: "<p rend="noIndent">\n   Text" -> "<p rend="noIndent">Text"
+    text = text.replace(/(<p\b[^>]*>)\s*\n\s*/g, '$1');
 
     // 4) Strip whitespace immediately before </p>
     //    Example: "Text   </p>" or "Text\n</p>" -> "Text</p>"
@@ -678,6 +700,24 @@ export class ExportService {
     }
 
     return out;
+  }
+
+  /**
+   * Removes blank/whitespace-only lines immediately before or after <pb .../>.
+   * Keeps <pb/> on its own line if it is already there.
+   */
+  private removeBlankLinesAroundPb(input: string): string {
+    let text = input.replaceAll('\r', '');
+
+    // Remove one or more blank lines BEFORE a <pb .../> line.
+    // (i.e. collapse "\n\n<pb.../>" -> "\n<pb.../>")
+    text = text.replace(/\n(?:[ \t]*\n)+(?=[ \t]*<pb\b[^>]*\/>)/g, '\n');
+
+    // Remove one or more blank lines AFTER a <pb .../> line.
+    // (i.e. collapse "<pb.../>\n\n" -> "<pb.../>\n")
+    text = text.replace(/(<pb\b[^>]*\/>)[ \t]*\n(?:[ \t]*\n)+/g, '$1\n');
+
+    return text;
   }
 
 }

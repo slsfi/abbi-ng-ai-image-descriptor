@@ -5,7 +5,6 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -21,7 +20,6 @@ import { BatchResult } from '../../types/batch-result.types';
     ClipboardModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
     MatTooltipModule,
   ],
   templateUrl: './batch-results.component.html',
@@ -88,7 +86,7 @@ export class BatchResultsComponent {
   }
 
   downloadTei(result: BatchResult): void {
-    this.exportService.generateXMLFromBatch(result);
+    this.exportService.generateXMLFromSingleBatch(result);
   }
 
   editOne(result: BatchResult): void {
