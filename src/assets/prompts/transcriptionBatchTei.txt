@@ -36,9 +36,9 @@ The textual content of the transcription:
 
 The TEI encoding of the transcription:
 
-- Output ONLY a single TEI `<body>` element.
+- The output must begin with `<body>` as the first/root element.
+- Inside `<body>`, the first child element must be `<pb/>` marking a page beginning.
 - Do NOT include `<TEI>`, `<text>`, or `<teiHeader>`.
-- The output inside `<body>` must start with the page beginning element `<pb/>`.
 - Output must be valid XML.
 - Do NOT wrap the output in code fences.
 

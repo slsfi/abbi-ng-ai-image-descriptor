@@ -546,12 +546,32 @@ export class ExportService {
   }
 
   /**
-   * Removes the opening <body> tag (including any attributes) from the start
-   * of the string and the closing </body> tag from the end, returning only
-   * the content inside the body element.
+   * Extracts the content of a <body> element.
+   * If a <pb .../> appears before <body>, it is preserved and moved
+   * to the beginning of the extracted body content.
    */
   extractBody(text: string): string {
-    return text.replace(/^<body[^>]*>/i, '').replace(/<\/body>$/i, '');
+    let t = text.trim();
+
+    // 1) Capture any leading <pb .../> before <body>
+    const leadingPbMatch = t.match(/^(?:\s*(<pb\b[^>]*\/>))+/i);
+    const leadingPb = leadingPbMatch ? leadingPbMatch[0].trim() : '';
+
+    // 2) Remove leading <pb .../> from the text
+    if (leadingPb) {
+      t = t.slice(leadingPb.length).trimStart();
+    }
+
+    // 3) Remove opening <body ...> and closing </body>
+    t = t.replace(/^<body\b[^>]*>/i, '');
+    t = t.replace(/<\/body>\s*$/i, '');
+
+    // 4) Reattach <pb .../> at the beginning of body content
+    if (leadingPb) {
+      t = `${leadingPb}\n${t}`;
+    }
+
+    return t.trim();
   }
 
   normaliseCharacters(s: string, teiEncoded: boolean = false): string {
@@ -622,10 +642,9 @@ export class ExportService {
       }
 
       text = text.trim();
-      text = this.extractBody(text);
-      text = text.trim();
-
+      text = this.extractBody(text).trim();
       text = this.removeBlankLinesAroundPb(text);
+      text = this.tightenPbLb(text);
       text = this.normaliseTeiStructureBeforeLb(text);
       text = this.replaceStraightDoubleQuotesOutsideTags(text, '”');
 
@@ -718,6 +737,19 @@ export class ExportService {
     text = text.replace(/(<pb\b[^>]*\/>)[ \t]*\n(?:[ \t]*\n)+/g, '$1\n');
 
     return text;
+  }
+
+  /**
+   * Ensures <pb .../> followed by a continued line uses the required inline pattern:
+   *   <pb .../><lb .../>
+   * i.e. removes any whitespace/newlines between <pb .../> and the following <lb .../>.
+   */
+  private tightenPbLb(input: string): string {
+    // Remove whitespace (spaces/tabs/newlines) between <pb .../> and the next <lb .../>
+    return input.replace(
+      /(<pb\b[^>]*\/>)\s+(<lb\b[^>]*\/>)/g,
+      '$1$2'
+    );
   }
 
 }
