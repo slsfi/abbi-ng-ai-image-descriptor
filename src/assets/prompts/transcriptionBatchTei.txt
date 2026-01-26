@@ -314,17 +314,15 @@ STRICT:
 
 ## TEXTUAL HIGHLIGHTS (`<hi>`)
 
-- Use `<hi>` with `@rend` to encode unambiguous inline highlighting of text (clear italics/bold/underline etc. in the source).
-- Use `<hi>` ONLY when highlighting is visually unambiguous (clear italics/bold/underline in the source). If unsure, do NOT use `<hi>`.
-- Do not infer italics from genre conventions (e.g. book titles, foreign words, emphasis). Only mark italics FOR WHOLE WORDS if the text is visibly italic.
+- Use `<hi>` with `@rend` to encode unambiguous inline highlighting of text in the source. If unsure, do NOT use `<hi>`.
+- Do NOT encode italics. Transcribe the text, but leave it unmarked. Italics will be handled by human editors.
 - Accepted `@rend` values are:
   - `bold`
   - `expanded`
-  - `italics`
   - `superscript`
   - `subscript`
   - `underline`
-- The `@rend` values can be combined by separating them with a space character, for example `<hi rend="bold italics">`.
+- The `@rend` values can be combined by separating them with a space character, for example `<hi rend="bold expanded">`.
 
 --------------------------------------------------
 
