@@ -67,7 +67,7 @@ Unclear or missing text:
 - `<gap reason="illegible"/>`
 
 Inline:
-- `<hi>` (only when necessary)
+- `<hi rend="superscript">`, `<hi rend="subscript">`
 
 Inline manuscript changes:
 - `<add>`, `<del>`
@@ -78,15 +78,23 @@ Do NOT invent other TEI elements.
 
 ## ALLOWED TEI ATTRIBUTES
 
-- `@rend` on `<p>`, `<hi>`, `<l>`, `<list>`
-- `@type` on `<head>`, `<milestone>`, `<quote>`
-- `@n` on `<pb>` and `<note>`
-- `@place` on `<note>`
-- `@role` on `<cell>`
-- `@cols` and `@rows` on `<cell>`
-- `@cols` on `<row>`
+Only the attributes and values listed below are allowed.  
+If an attribute/value is not explicitly listed here, DO NOT use it.
 
-Do NOT invent other TEI attributes.
+- On `<p>`: optional `rend="noIndent" | "center" | "right"`
+- On `<l>`: optional `rend="center"`
+- On `<list>`: optional `rend="disc" | "dash" | "decimal" | "roman" | "latin"`
+- On `<hi>`: required `rend="superscript" | "subscript"` (ONLY these; no italics/bold/underline/etc.)
+- On `<head>`: optional `type="subtitle"`
+- On `<quote>`: required `type="block"`
+- On `<milestone>`: required `unit="item"` and `n="..."`
+- On `<pb>`: optional `n="..."`
+- On `<note>`: optional `n="..."` and required `place="foot" | "end" | "margin"` (as applicable)
+- On `<cell>`: optional `role="label"`, optional `cols="N"`, optional `rows="N"`
+- On `<row>`: optional `cols="N"`
+- On `<gap>`: required `reason="illegible"`
+
+DO NOT invent other attributes or other values.
 
 --------------------------------------------------
 
@@ -98,14 +106,20 @@ Do NOT invent other TEI attributes.
 - ALWAYS insert a `<pb/>` (or `<pb n="..."/>` if the first page has a visible page number) for the first image/page in the sequence. 
 - If the sequence has N images/pages, the output must contain exactly N `<pb>` elements, one for each page, in the same order.
 
-`<pb/>` is a MILESTONE and MUST NOT create structural breaks. Do not close/open `<div>` solely because of `<pb/>`.
+`<pb/>` is a MILESTONE and MUST NOT create structural breaks.
+A page break by itself NEVER ends or restarts a structural element.
 
-If a page break occurs inside running text:
+Do NOT close or reopen any of the following solely because a `<pb/>` occurs:
+`<div>`, `<p>`, `<list>`, `<item>`, `<table>`, `<row>`, `<cell>`, `<lg>`, `<quote>`,
+`<opener>`, `<closer>`, `<note>`.
 
-- Insert `<pb/>` INLINE
-- If mid-paragraph:
-  - Immediately follow with `<lb/>`
-  - Continue the SAME paragraph
+
+If a page break occurs inside running text or inside a container that continues across pages:
+
+- If the text continues on the next page:
+  - Immediately follow `<pb/>` with `<lb/>` when the text continues on the same line.
+  - Continue the SAME element (`<p>`, `<item>`, `<cell>`, `<l>`, etc.).
+  - Do NOT close and reopen the surrounding structure.
 
 ### Examples
 
@@ -127,6 +141,8 @@ If a page break occurs inside running text:
 <p>Altså: den sociala utvecklingen har [...]</p>
 ```
 
+Correct: paragraph continues across page break (DO NOT split `<p>`):
+
 ```
 <p>[...] Hon har icke gjort något all-
 <pb n="115"/><lb/>varligt försök att förklara vår västerländ-
@@ -143,25 +159,71 @@ If a page break occurs inside running text:
 </lg>
 ```
 
+Correct: list item continues across page break (DO NOT split the list):
+
+```
+<list>
+<item>Första punkten som fortsätter över sidbrytning
+<pb n="12"/><lb/>och fortsätter i samma punkt.</item>
+<item>Andra punkten.</item>
+</list>
+```
+
+Correct: list continues across page break (DO NOT split the list):
+
+```
+<list>
+<item>Första punkten på en sida.</item>
+<pb n="12"/>
+<item>Andra punkten på nästa sida.</item>
+</list>
+```
+
 --------------------------------------------------
 
 ## TEXTUAL DIVISIONS AND HEADINGS (`<div>`, `<head>`)
 
+### What a textual division is
+
 - Use `<div>` ONLY when a NEW textual division BEGINS in the visible text.
-- A `<div>` continues across page breaks. Do NOT close a `<div>` at a page break unless the source clearly ends the division there (e.g. a new heading begins, or the text visibly ends).
-- A division begins with a heading encoded as `<head>`.
+- A textual division normally begins with a heading encoded as `<head>`.
+- A `<div>` continues across page breaks.
+  Do NOT close a `<div>` at a page break unless the source clearly ends the division there (e.g. a new heading begins, or the text visibly ends).
 
 DO NOT start a `<div>` if the first page begins mid-paragraph or mid-division.
 
+### When to use `<head>`
+
+- Use `<head>` ONLY for headings that are visually separated from the following text (e.g. on their own line, with whitespace before and/or after).
+- A `<head>` must represent a structural heading in the source, not merely emphasis or numbering.
+
+DO NOT use `<head>` for:
+- paragraph-initial numbering
+- title-like phrases that are part of a paragraph
+- entries in numbered lists, catalogues, or collections
+
+Numbered entries that begin a paragraph are PARAGRAPHS, not headings.
+
+### Nesting and hierarchy
+
 - When a new heading level appears, start a new `<div>`.
 - Nest `<div>` elements by heading level.
+- If heading hierarchy is unclear, infer cautiously and be consistent.
+
+### Subtitles
+
 - Subtitles that belong to the SAME heading:
   - stay in the same `<div>`
-  - encode as `<head type="subtitle">` immediately after the main `<head>`.
+  - encode as `<head type="subtitle">`
+  - place immediately after the main `<head>`
 
-If heading hierarchy is unclear, infer cautiously and be consistent.
+### FORBIDDEN
 
-### Example
+- Using `<head>` for text that continues directly into a paragraph.
+- Starting a new `<div>` on a page that contains no heading.
+- Using `<head>` for entries that are part of a numbered list or catalogue.
+
+### Examples
 
 ```
 <pb n="142"/>
@@ -188,19 +250,39 @@ If heading hierarchy is unclear, infer cautiously and be consistent.
 </div>
 ```
 
+### Example: numbered entries that are NOT headings
+
+Correct:
+
+```
+<p>373. Töjmo by. För omkring ett hundra år sedan fanns det ett hemman i Töjmo [...]</p>
+```
+
+Incorrect (DO NOT DO THIS):
+
+```
+<div>
+<head>373. Töjmo by.</head>
+<p>För omkring ett hundra år sedan [...]</p>
+</div>
+```
+
 --------------------------------------------------
 
 ## PARAGRAPHS AND LINE BREAKS (`<p>`, `<lb/>`)
 
 - Use `<p>` for paragraphs. `<p>` (no `@rend`) implies the default: first line indented.
   - Encode alignment and indentation of the first line using `@rend` with values `"noIndent"` (first line of the paragraph is NOT indented), `"center"` (center aligned paragraph) or `"right"` (right aligned paragraph).
+- A `<p>` may span page breaks; do NOT close a paragraph solely because a new page begins.
 - Preserve original line breaks inside paragraphs using `<lb/>`. For readability, place the line starting with `<lb/>` on a new line in the XML, but remember `<lb/>` conceptually marks the line’s start.
+- Use `<lb/>` only inside elements that represent running text (e.g. `<p>`, `<head>`, `<dateline>`).
 
 `<lb/>` RULES (STRICT):
 - `<lb/>` marks the BEGINNING of a new line.
 - `<lb/>` MUST appear immediately BEFORE the text of that line.
 - `<lb/>` MUST NOT appear at the end of a line.
 - The first line of a paragraph has NO `<lb/>`.
+
 
 ### Example
 
@@ -216,64 +298,62 @@ If heading hierarchy is unclear, infer cautiously and be consistent.
 
 --------------------------------------------------
 
-## BLOCK QUOTES (`<quote type="block">`)
+## TEXTUAL HIGHLIGHTS (`<hi>`)
 
-- Use `<quote type="block">` for block quotes. Block quotes contain one or more paragraphs.
-- Do not use `<quote>` for inline quotations; inline quotations remain in `<p>`.
-
-### Example
-
-```
-<p>[...] Jag uppslog texten och läste:</p>
-<quote type="block">
-<p rend="noIndent">Och der utgick en annan häst, som var röd,
-<lb/>och åt honom, som satt derpå, vardt gifvet att borttaga friden på jorden,
-<lb/>så att de skulle slagta hvarandra, och honom vardt gifvet ett stort svärd.</p>
-</quote>
-<p>Den trettonårige gossen stirrade på orden [...]</p>
-```
-
---------------------------------------------------
-
-## MILESTONES (`<milestone/>`)
-
-- Use `<milestone/>` between block elements to mark *blank lines* or *lines with asterisks, horizontal bars or dashes*, indicating a boundary point separating any kind of section of a text.
-- Typical use of `<milestone/>` is as a separator (blank line, asterisk, bar) between two paragraphs, where the latter paragraphs begins a new section of text, that, however, does not have a heading and does not involve a new textual division.
-- If the separator is asterisks or a horizontal bar/ornament, you MAY use `type="asterisk"` or `type="bar"`.
-- Do NOT use `<milestone/>` for spacing before/after verse or between stanzas. Blank lines around stanzas are already represented by `<lg>` structure.
+- Use `<hi>` ONLY for superscript and subscript characters that are visually unambiguous (e.g. ordinal markers, raised letters/numbers).
+- `<hi>` must NEVER use any `@rend` value except `superscript` or `subscript`.
+- If you output `<hi rend="...">` with any other value, it is invalid.
+- If unsure, do not use `<hi>`.
+- Accepted `@rend` values are:
+  - `superscript`
+  - `subscript`
+- FORBIDDEN: for example `<hi rend="italics">` and `<hi rend="underline">`.
 
 ### Example
 
 ```
-<p>[...] Nu kan jag gifva mig helt åt honom. Nu kan jag börja ett nytt lif.</p>
-<milestone/>
-<p>Det fattiga, men icke mera bofälligakommentar torpet hade, utom eldskenet från spiseln, [...]</p>
+Dec. 19<hi rend="superscript">th</hi>
 ```
-
---------------------------------------------------
-
-## VERSE AND LINE GROUPS (`<lg>`, `<l>`)
-
-- Use `<lg>` (*line group*) for stanzas in verse or poetry.
-- Use `<l>` for each verse line. Centered lines are encoded with `rend="center"`.
-
-STRICT:
-
-- NEVER use `<lb/>` inside `<lg>`.
-- NEVER place `<lb/>` before or inside `<l>`.
 
 --------------------------------------------------
 
 ## NOTES
 
-- Use `<note>` for footnotes, endnotes, and marginal notes.
-- For footnotes and endnotes, place the `<note>` at the point where the reference occurs in reading order.
-- For marginalia, place the `<note>` at the point in the main text where it most clearly applies.
-- Put the note marker, if there is one, in `@n`.
-- When a note marker appears in the main text (e.g. `1)`, `*`), encode it ONLY as `@n` on the `<note>`. Do NOT also transcribe the marker as plain text in the running prose.
-- If the marker is encoded in `@n`, remove any leftover partial marker characters from the prose (e.g. do not leave `)` behind).
-- If the marker is printed as superscript/raised, still encode it in `@n` using NORMAL characters (e.g. `1`, `2`, `*`, `a`), NOT superscript glyphs (e.g. `¹`, `²`, `³`). Do not keep a separate marker in the prose.
-- Example: if the printed marker looks like a raised “2”, encode `@n="2"` (not `@n="²"`).
+### General use
+
+- Use `<note>` for footnotes, endnotes, and marginal notes that contain explanatory, descriptive, or linguistic content.
+- If marginal content consists ONLY of a reference marker (number) and optional short label, and contains no explanatory text, encode it as `<milestone/>`, NOT as `<note>`.
+
+### Marginal text: `<milestone/>` vs `<note place="margin">` (IMPORTANT)
+
+For PRINTED source material:
+
+- Marginal text usually functions as part of a reference system (item numbers, labels, identifiers).
+- Therefore, `<milestone/>` is the DEFAULT encoding for marginal text in printed works.
+
+Use `<note place="margin">` ONLY if the marginal text contains explanatory, descriptive, or linguistic content.
+
+For HANDWRITTEN source material:
+
+- Marginal text is usually authorial commentary, annotation, or addition.
+- Therefore, `<note place="margin">` is the DEFAULT for handwritten marginalia.
+
+### Alignment rule (STRICT)
+
+- If marginal text is aligned with the FIRST LINE of a paragraph or heading, it functions as a reference marker.
+  - Encode it as `<milestone/>` and place it IMMEDIATELY BEFORE the paragraph or heading.
+- Do NOT encode such markers as `<note place="margin">`.
+
+### Note markers (`@n`)
+
+- If a note has a marker in the source (e.g. `1)`, `*`, `a`), encode the marker ONLY in the `@n` attribute of `<note>`.
+- Do NOT also transcribe the marker as plain text in the running prose. The `@n` value REPLACES the visible marker in the text.
+- If the marker is encoded in `@n`, remove any leftover marker characters from the prose (e.g. do not leave a trailing `)` or `.` behind).
+- If the marker is printed as superscript/raised, encode it in `@n` using NORMAL characters (e.g. `1`, `2`, `*`, `a`), NOT superscript glyphs (e.g. `¹`, `²`, `³`).
+  - Example: a raised “2” → `@n="2"` (not `@n="²"`).
+
+### Note placement (`@place`)
+
 - For footnotes, use `place="foot"`.
 - For endnotes, use `place="end"`.
 - For marginal notes, use `place="margin"`.
@@ -286,15 +366,89 @@ STRICT:
 <lb/>nära Wiborg och sågo en stor eld upptänd på stranden. De voro frusne, [...]</p>
 ```
 
-### Example of a marginal note
+### Example of a marginal note (addition in a handwritten manuscript)
 
 ```
-<div>
-<note place="margin">3.</note>
-<head>Den kloka bondflickan, gumman, som riktigt löser kungens villkor.</head>
-<p>a 1. I hednatiden brukade man [...]</p>
-</div>
+<p>Men för de högre och friare studierna,
+<lb/>för den akademiska bildningen, <note place="margin" n="ψ">för civilisationens
+<lb/>fordringar, för de
+<lb/>praktiska behofven</note> för hela
+<lb/>det långa lifvets lefvande erfarenhet
+<lb/>är det för litet.</p>
 ```
+
+--------------------------------------------------
+
+## MILESTONES (`<milestone/>`)
+
+Use `<milestone/>` ONLY to encode *marginal reference markers* that identify
+logical units in a running reference system (e.g. numbered riddles, examples,
+catalogue items).
+
+### Typical use cases
+
+- Running item numbers that continue across pages or divisions
+- Marginal reference markers that do NOT create textual divisions
+- Reference labels consisting of:
+  - a number alone (e.g. `55.`), OR
+  - a number plus a short label (e.g. `2. Motsats och likhet.`)
+
+### Encoding
+
+- Use `<milestone/>` with:
+  - `unit="item"`
+  - `@n` containing the full marker exactly as printed (number + label)
+
+### Placement
+
+- Place the `<milestone/>` at the point where the referenced unit begins.
+
+### Example
+
+```
+<milestone unit="item" n="2. Motsats och likhet."/>
+<p>Om vintern är kall i början, skall den bliva mild mot slutet [...]</p>
+```
+
+```
+<milestone unit="item" n="169."/>
+<p>4. Brandvakten i tornet.</p>
+<p>Vemm ji he, som ji høkst i stán? [...]</p>
+```
+
+### Marginal ONLY (STRICT)
+
+- Use `<milestone/>` ONLY for markers printed in the margin or clearly functioning
+as marginal reference labels.
+- Do NOT use `<milestone/>` for inline numbers or markers that appear as part of
+the running text.
+
+### Distinction from notes
+
+- If the marginal content contains only a reference marker (number/label),
+use `<milestone/>`.
+- If the marginal content contains explanatory or linguistic text, use
+`<note place="margin">`.
+
+### FORBIDDEN
+
+- Do NOT use `<milestone/>` for:
+  - inline markers
+  - blank lines or spacing
+  - decorative separators (asterisks, bars, ornaments)
+  - layout-only features
+
+--------------------------------------------------
+
+## VERSE AND LINE GROUPS (`<lg>`, `<l>`)
+
+- Use `<lg>` (*line group*) for stanzas in verse or poetry.
+- Use `<l>` for each verse line. Centered lines are encoded with `rend="center"`.
+
+STRICT:
+
+- NEVER use `<lb/>` inside `<lg>`.
+- NEVER place `<lb/>` before or inside `<l>`.
 
 --------------------------------------------------
 
@@ -314,23 +468,32 @@ STRICT:
 
 --------------------------------------------------
 
-## TEXTUAL HIGHLIGHTS (`<hi>`)
-
-- Use `<hi>` with `@rend` to encode unambiguous inline highlighting of text in the source. If unsure, do NOT use `<hi>`.
-- Do NOT encode italics, bold or expanded. Transcribe the text, but leave it unmarked. Italics, bold and expanded will be handled by human editors.
-- Accepted `@rend` values are:
-  - `superscript`
-  - `subscript`
-  - `underline`
-
---------------------------------------------------
-
 ## FIGURES (`<figure>`)
 
 - Use `<figure>` to mark figures, images, photos, diagrams and illustrations in the document.
 - Place the `<figure>` at the point where the figure occurs in reading order.
 - For figures without captions, use the self-closing element `<figure/>`.
 - Figure captions are encoded with `<head>` (no attributes) as a child to `<figure>`.
+
+--------------------------------------------------
+
+## BLOCKQUOTES (`<quote type="block">`)
+
+- Use `<quote type="block">` for blockquotes which are set apart visually as a distinct block of text, typically by indentation, blank lines before and after, and without quotation marks, signaling it's an extended passage rather than inline text.
+- Block quotes must contain one or more paragraphs encoded with `<p>`.
+- Do not use `<quote type="block">` for inline quotations; inline quotations remain in `<p>`.
+
+### Example
+
+```
+<p>[...] Jag uppslog texten och läste:</p>
+<quote type="block">
+<p rend="noIndent">Och der utgick en annan häst, som var röd,
+<lb/>och åt honom, som satt derpå, vardt gifvet att borttaga friden på jorden,
+<lb/>så att de skulle slagta hvarandra, och honom vardt gifvet ett stort svärd.</p>
+</quote>
+<p>Den trettonårige gossen stirrade på orden [...]</p>
+```
 
 --------------------------------------------------
 
@@ -490,6 +653,6 @@ When unsure, exclude ONLY if clearly repetitive and navigational.
 - Well-formed XML.
 - Count check: the number of `<pb>` elements MUST equal the number of input images/pages.
 - `<pb/>` does NOT force paragraph breaks.
-- Never start a new `<div>` unless a new `<head>` begins on that page.
+- Never start a new `<div>` unless a new `<head>` begins in the visible text.
 - `<lb/>` appears ONLY at the start of lines.
 - All opened elements are properly closed.
