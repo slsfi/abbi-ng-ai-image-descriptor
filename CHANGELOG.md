@@ -8,21 +8,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [2.0.0] – 2026-01-27
+
 ### Added
 
-- Support for Google GenAI models: [`gemini-3-flash-preview`](https://ai.google.dev/gemini-api/docs/models#gemini-3-flash), [`gemini-3-pro-preview`](https://ai.google.dev/gemini-api/docs/models#gemini-3-pro), [`gemini-2.5-flash`](https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash) and [`gemini-2.5-pro`](https://ai.google.dev/gemini-api/docs/models#gemini-2.5-pro).
-- Support for the OpenAI [`gpt-5.2`](https://platform.openai.com/docs/models/gpt-5.2) model.
-- Option to export generated descriptions as separate plain text (txt) files that are zipped for downloading.
-- Option to export generated descriptions in TEI XML format, either with line beginning encoding or not. Replaces the previous XML export option.
-- Normalisation of characters in descriptions.
-- Ability to zoom image when editing generated description.
-- Property `parameters.maxImageShortsidePx` to the model object to allow configuration of the size of images in prompts. The value defaults to `768` if omitted. Setting the value to `null` means that the images are not resized.
-- Enforcement of model rate-per-minute limit when generating descriptions for all images.
-- Selected model details to the settings form view.
-- Option to TEI XML encode transcriptions.
-- Support transcription and TEI XML encoding of sequences of images.
-- Task descriptions.
-- Support for tiered model pricing. `inputPrice` and `outputPrice` of models can be expressed as either flat prices per 1 million tokens (old behaviour), or as ordered tiers. Each tier defines a price per one million tokens up to a given token limit; the final tier (upToTokens: null) applies to all higher token counts. There must be at least one tier – the `upToTokens: null` – tier, and the tiers must be ordered according to the `upToTokens` value. The "null-tier" must be the last tier. Example:
+- Support for the OpenAI [`gpt-5.2`](https://platform.openai.com/docs/models/gpt-5.2) model. ([83f995c](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/83f995c56c3ae3cda34f39768819539dd6a6ccd5))
+- Option to export generated descriptions as separate plain text (txt) files that are zipped for downloading. ([204f4fa](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/204f4fa7a369aec8ab6a1dbd9eec181450e90961))
+- Option to export generated descriptions in TEI XML format, either with line beginning encoding or not. Replaces the previous XML export option. ([5cf1a4e](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/5cf1a4ebac06df27bf6e7d9d1ed246564ec5b328))
+- Normalisation of characters in descriptions. ([d397342](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/d397342854e09d0b8e933a31d07e217ea39904eb))
+- Ability to zoom image when editing generated description. ([46f0d05](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/46f0d05a21ad814bed1ed4f58232af659f90c98b))
+- Property `parameters.maxImageShortsidePx` to the model object to allow configuration of the size of images in prompts. The value defaults to `768` if omitted. Setting the value to `null` means that the images are not resized. ([6398482](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/63984821c7a0d92fee0f4626be960832e885d6ac))
+- Support for Google GenAI models: [`gemini-3-flash-preview`](https://ai.google.dev/gemini-api/docs/models#gemini-3-flash), [`gemini-3-pro-preview`](https://ai.google.dev/gemini-api/docs/models#gemini-3-pro), [`gemini-2.5-flash`](https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash) and [`gemini-2.5-pro`](https://ai.google.dev/gemini-api/docs/models#gemini-2.5-pro). ([0b92f41](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/0b92f418b789aa5aa0b6a38cc1c6eb55a94a1365), [b6ef2b8](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/b6ef2b886db207a5e59e4201ee098e8b7d2ffaa2), [3b53a97](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/3b53a97145536b382ba3e732b73ec55dd4dc7303))
+- Enforcement of model rate-per-minute limit when generating descriptions for all images. ([9b14537](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/9b1453752778a5aba84e422adc59807c57c2d2b3))
+- Selected model details to the settings form view. ([d65bf3b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/d65bf3b77b7286f1597d7591d6e51a699356bae6))
+- Option to TEI XML encode transcriptions. ([7ec5479](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/7ec5479ad9f37aad62decea7617313d1894fbe8c))
+- Support transcription and TEI XML encoding of sequences of images in batches. ([94bb9c9](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/94bb9c9e02f92bc7d9ee4f15072611c9e6687790))
+- Task descriptions. ([7685a52](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/7685a52d3fcaa0cdc983de9222c959f6d94e87eb))
+- Support for tiered model pricing. `inputPrice` and `outputPrice` of models can be expressed as either flat prices per 1 million tokens (old behaviour), or as ordered tiers. Each tier defines a price per one million tokens up to a given token limit; the final tier (upToTokens: null) applies to all higher token counts. There must be at least one tier – the `upToTokens: null` – tier, and the tiers must be ordered according to the `upToTokens` value. The "null-tier" must be the last tier. ([275ebda](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/275ebdad4dc0b350fe0b6f7ee86b4119c07490a6)) Example:
 
 ```typescript
   inputPrice: { tiers: [{ upToTokens: 200000, per1M: 2.00 }, { upToTokens: null, per1M: 4.00 }] },
@@ -31,38 +35,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 
-- Move export format selection to dialog.
-- Migrate to new Angular Material button directives.
-- Migrate constructor-based injection to the `inject` function.
-- Replace general “image description” term in the UI with term for actual task, i.e. “alt text” or “transcription”.
-- Improve settings UX.
-- Normalise indentation.
-- Improve image handling.
-- Improve alt text prompt structure.
-- Decouple prompts by task type, move model compatibility to models, and replace BehaviorSubjects with signals.
-- Moved prompts to separate text files, which are imported by `prompts.ts`.
-- Deps: update `@angular/cli`, `@angular/core`, `@angular/cdk` and `@angular/material` to 21.1.1.
-- Deps: update `openai` to 6.16.0.
-- Deps: update `zone.js` t0 0.16.0.
-- Deps (dev): update `@types/jasmine` to 5.1.15.
-- Deps: update transitive dependencies.
+- Move export format selection to dialog. ([aaeb0cc](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/aaeb0cc40b628b3aac5057fd19845d5cff57cba1))
+- Migrate to new Angular Material button directives. ([c161e00](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/c161e0049a6740e51a3198718ad9e9f2ffee5ae3))
+- Migrate constructor-based injection to the `inject` function. ([7003269](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/7003269425695da4e052f6b8c36316b1800918fb))
+- Replace general “image description” term in the UI with term for actual task, e.g. “alt text” or “transcription”. ([7cca624](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/7cca624df3f177c73a5175f57b2ecdfbf11b70c6), [8272a03](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/8272a033d1ff6fe6c28263995d76280b0056dd74))
+- Improve settings UX. ([8bb865b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/8bb865bf9b6f8434652f17023c7cf8d31d602c87))
+- Normalise indentation. ([76f60ba](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/76f60ba40007a438f60482fd80bf7dfe4514becc))
+- Improve image handling. ([d53b560](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/d53b5608bfd9af28491d08b05a1cfe2977d2117e))
+- Improve alt text prompt structure. ([41b955d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/41b955da6ffd0f0083156c211354e1e1004351ed))
+- Decouple prompts by task type, move model compatibility to models, and replace BehaviorSubjects with signals. ([8b7c885](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/8b7c885fd78d8061cec21dde1a6a2f764dcfecd0))
+- Moved prompts to separate text files, which are imported by `prompts.ts`. ([32271f6](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/32271f6a133f735c6dae1e8e8fd2ec11df7f5a80))
+- Deps: update `@angular/cli`, `@angular/core`, `@angular/cdk` and `@angular/material` to 21.1.1. ([1af877c](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/1af877c844d34b31e7bd573eafb9fdbe2ea27f5c), [b67b073](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/b67b0730e210e846a5d895d9e08a390dd937777b), [46f3c32](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/46f3c326bb1af3b029c2f4c6aaa4e0228eaade34), [ab4cbf0](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/ab4cbf03fc80c0f25aad30398f73972ea4e96517))
+- Deps: update `openai` to 6.16.0. ([c59e27c](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/c59e27cffcd6d9b9ff886873b88233e1db3c9971), [bb53aa8](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/bb53aa83e1ce20e99c28a20fad31009fd0ae5dc0))
+- Deps: update `zone.js` t0 0.16.0. ([271cd23](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/271cd23fde161084f59667621ebe180be265d197))
+- Deps (dev): update `@types/jasmine` to 5.1.15. ([8354cbd](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/8354cbd0bde7b8fb55705c7bbe6ea3b3d0927842))
+- Deps: update transitive dependencies. ([fccea6a](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/fccea6aef76b2b00873464edf8cf321bc7131c94), [741dc65](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/741dc6593be2570179f3767ea85f17c7719c8462))
 
 ### Fixed
 
-- Ensure exported text files end with newline.
-- Button label.
-- Persistent subscription to image list.
-- Increase description text area width in edit description dialog.
-- API key form reset on model provider change as part of task change.
+- Ensure exported text files end with newline. ([93c975d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/93c975d1bf02a111367e12dab102907596bfaac7))
+- Button label. ([765212a](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/765212aa6fe9e9d470422a0f6a95345e069a8b5d))
+- Persistent subscription to image list. ([a559169](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/a55916957e0e96ecae7c09f15f799a3b37d981ce))
+- Increase description text area width in edit description dialog. ([6db3540](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/6db354013af11a5289a6498e14f4cbe8bc40d630))
+- API key form reset on model provider change as part of task change. ([b749961](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/b749961ff0d95d796e83208d2bc6a5cad345e2e6))
+- Improve TEI encoding prompts. ([0d1043f](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/0d1043fba454cbdd855fcb60759bd81eb060c54d))
 
 ### Removed
 
-- Deprecated `provideAnimationsAsync()` from `app.config.ts`.
-- The `gpt-5.1` model.
+- Deprecated `provideAnimationsAsync()` from `app.config.ts`. ([5e5ba95](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/5e5ba95b6726ccf99e6adac81c9415943593f487))
+- The `gpt-5.1` model. ([83f995c](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/83f995c56c3ae3cda34f39768819539dd6a6ccd5))
 
 ### BREAKING CHANGES
 
-- The `reasoning` property of model objects has been replaced with `parameters.reasoningEffort`.
+- The `reasoning` property of model objects has been replaced with `parameters.reasoningEffort`. ([c118ab6](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/c118ab6c00066673310c9747f39d60075c97ac43))
 - The shape of AI model and prompt definitions in `src/assets/config/models.ts` and `src/assets/config/prompts.ts` has been updated.
 
 
@@ -256,7 +261,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.5.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.0.0...HEAD
+[2.0.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.5.0...2.0.0
 [1.5.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.4.0...1.5.0
 [1.4.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.2.0...1.3.0
