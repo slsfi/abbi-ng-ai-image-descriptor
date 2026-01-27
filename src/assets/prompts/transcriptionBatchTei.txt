@@ -193,7 +193,7 @@ If heading hierarchy is unclear, infer cautiously and be consistent.
 ## PARAGRAPHS AND LINE BREAKS (`<p>`, `<lb/>`)
 
 - Use `<p>` for paragraphs. `<p>` (no `@rend`) implies the default: first line indented.
-  - Encode alignment and indentation of the first line using `@rend` with values `"noIndent"` (first line of the paragraph is NOT indented), `"center"` (center aligned paragraph) or `"right"` (right aligned paragraph)
+  - Encode alignment and indentation of the first line using `@rend` with values `"noIndent"` (first line of the paragraph is NOT indented), `"center"` (center aligned paragraph) or `"right"` (right aligned paragraph).
 - Preserve original line breaks inside paragraphs using `<lb/>`. For readability, place the line starting with `<lb/>` on a new line in the XML, but remember `<lb/>` conceptually marks the line’s start.
 
 `<lb/>` RULES (STRICT):
@@ -272,7 +272,8 @@ STRICT:
 - Put the note marker, if there is one, in `@n`.
 - When a note marker appears in the main text (e.g. `1)`, `*`), encode it ONLY as `@n` on the `<note>`. Do NOT also transcribe the marker as plain text in the running prose.
 - If the marker is encoded in `@n`, remove any leftover partial marker characters from the prose (e.g. do not leave `)` behind).
-- If the marker is printed as superscript/raised, still encode it in `@n` as plain text (do not keep a separate superscript in prose).
+- If the marker is printed as superscript/raised, still encode it in `@n` using NORMAL characters (e.g. `1`, `2`, `*`, `a`), NOT superscript glyphs (e.g. `¹`, `²`, `³`). Do not keep a separate marker in the prose.
+- Example: if the printed marker looks like a raised “2”, encode `@n="2"` (not `@n="²"`).
 - For footnotes, use `place="foot"`.
 - For endnotes, use `place="end"`.
 - For marginal notes, use `place="margin"`.
