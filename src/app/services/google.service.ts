@@ -18,6 +18,12 @@ type FilesApiUploadedFile = {
 };
 
 
+/**
+ * Converts a base64 data URL (data:<mime>;base64,<...>) into a Blob.
+ *
+ * Used for Google Files API uploads which expect binary data.
+ * Returns null if the input is not a valid base64 data URL.
+ */
 function dataUrlToBlob(dataUrl: string): DataUrlBlob | null {
   const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl ?? '');
   if (!match) return null;
@@ -30,6 +36,12 @@ function dataUrlToBlob(dataUrl: string): DataUrlBlob | null {
   return { mimeType, blob: new Blob([bytes], { type: mimeType }) };
 }
 
+/**
+ * Parses a base64 image data URL into (mimeType, base64Payload).
+ *
+ * This is used for inlineData requests (non-Files-API) where the SDK expects
+ * a base64 payload without the "data:<mime>;base64," prefix.
+ */
 function parseDataUrl(dataUrl: string): ParsedDataUrl | null {
   // Expected: data:image/png;base64,AAAA...
   const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl ?? '');
@@ -43,9 +55,36 @@ function parseDataUrl(dataUrl: string): ParsedDataUrl | null {
 })
 export class GoogleService {
   private apiKey = '';
-  private client: any = null;
+  private client: GoogleGenAI | null = null;
   private modelList: any[] = [];
 
+  /**
+   * Tracks in-flight uploads keyed by ImageData.id (not object
+   * identity).
+   *
+   * ImageData objects may be replaced during UI/state updates;
+   * using the stable id avoids losing the in-flight handle and
+   * makes cancellation cleanup reliable.
+   */
+  private readonly uploadByImageId = new Map<string, Promise<FilesApiUploadedFile | null>>();
+
+  /**
+   * Tracks in-flight deletions by Files API resource name (e.g. "files/abc123").
+   *
+   * Cancellation and UI flows may trigger deletion for the same file multiple times
+   * (cancel button, snackbar stop, batch loop finally blocks, delayed cleanup).
+   * Deduplicating avoids repeated DELETE calls and prevents retry loops from
+   * stacking up.
+   */
+  private readonly deleteByFileName = new Map<string, Promise<void>>();
+
+  /**
+   * Updates (or initializes) the Google GenAI SDK client for the given API key.
+   *
+   * The SDK client is recreated whenever the key changes.
+   * Note: we intentionally do not force an apiVersion because preview models may
+   * require v1beta for some config fields (thinkingConfig, mediaResolution).
+   */
   updateClient(apiKey: string): void {
     if (apiKey !== this.apiKey) {
       this.apiKey = apiKey;
@@ -58,6 +97,11 @@ export class GoogleService {
     }
   }
 
+  /**
+   * Performs a lightweight API call to validate an API key.
+   *
+   * Returns an Observable<boolean> which resolves to true if the key is accepted.
+   */
   isValidApiKey(apiKey: string): Observable<boolean> {
     const client = new GoogleGenAI({
       apiKey: apiKey,
@@ -67,7 +111,8 @@ export class GoogleService {
     return from(
       client.models.list().then(
         (result: any) => {
-          this.modelList = result.data;
+          // console.log(result);
+          this.modelList = result?.pageInternal;
           // console.log(this.modelList);
           return true;
         }
@@ -198,12 +243,16 @@ export class GoogleService {
   }
 
   /**
-   * Runs a multi-image request using Google’s Files API (upload first,
-   * then prompt by URI).
+   * Runs a multi-image request using Google’s Files API:
+   *  1) Upload each image via Files API
+   *  2) Build prompt parts using the resulting file URIs
+   *  3) Call models.generateContent(...)
    *
-   * @param options Optional request options (currently: AbortSignal).
-   *                If aborted during upload or generation, the method
-   *                throws/rejects with AbortError.
+   * Cancellation:
+   * - If `options.signal` is aborted while uploading or generating, this method returns
+   *   an AiResult with error code 499 ("Request cancelled.").
+   * - The underlying HTTP request may still complete (SDK-dependent); callers should
+   *   run best-effort cleanup (deleteUploadedFile) when cancelling.
    */
   async describeImagesWithFilesApi(
     settings: RequestSettings,
@@ -305,30 +354,80 @@ export class GoogleService {
     }
   }
 
+  /**
+   * Best-effort deletion of a Google Files API upload.
+   *
+   * This is used during cancellation cleanup to delete any uploaded file objects
+   * associated with an ImageData instance.
+   *
+   * Key behaviors:
+   * - If the image does not yet have `filesApiId`, the method attempts to resolve a
+   *   just-finished in-flight upload (tracked internally) so it can still be deleted.
+   * - Deletion is idempotent: 404 is treated as success (already deleted).
+   * - Multiple delete requests for the same file name are deduplicated so we don't
+   *   spam the API or stack retry loops.
+   *
+   * This method must never throw; cleanup is best-effort.
+   */
   async deleteUploadedFile(image: ImageData): Promise<void> {
     if (!this.client) return;
 
-    if (image.filesApiProvider !== 'Google' || !image.filesApiId) return;
+    // If we don't have an id yet, try to resolve a just-finished in-flight upload.
+    // Do NOT require filesApiProvider here: during upload it may not be set yet.
+    if (!image.filesApiId) {
+      const uploaded = await this.tryResolveInFlightUpload(image, 8000);
+      if (uploaded) {
+        image.filesApiProvider = 'Google';
+        image.filesApiId = uploaded.name;
+        image.filesApiUri = uploaded.uri;
+        image.mimeType = uploaded.mimeType;
+      }
+    }
+
+    if (!image.filesApiId) return;
+
+    const name = image.filesApiId;
+
+    // Clear cached file reference immediately (UI/state should move on even if cleanup fails).
+    image.filesApiId = undefined;
+    image.filesApiUri = undefined;
+    image.filesApiProvider = undefined;
+
+    // Deduplicate: if a delete for this file is already running, just await it.
+    const existing = this.deleteByFileName.get(name);
+    if (existing) {
+      await existing;
+      return;
+    }
+
+    const p = this.deleteWithRetry(name);
+    this.deleteByFileName.set(name, p);
 
     try {
-      await this.client.files.delete({ name: image.filesApiId });
-    } catch (e: any) {
-      console.warn('Failed to delete Google file:', image.filesApiId, e);
+      await p;
     } finally {
-      // Clear cached file reference
-      image.filesApiId = undefined;
-      image.filesApiUri = undefined;
-      image.filesApiProvider = undefined;
-      // Keep image.mimeType as-is (it still describes the local resized image)
+      // Only clear if we're still the same promise (defensive against replacement).
+      if (this.deleteByFileName.get(name) === p) {
+        this.deleteByFileName.delete(name);
+      }
     }
   }
 
   /**
-   * Ensures a local ImageData has a corresponding Google Files API upload.
+   * Ensures that an ImageData has a corresponding Google Files API upload.
    *
-   * If the upload is cached, it validates the cached handle still exists.
-   * If the signal is aborted, the method throws AbortError (so callers can
-   * stop quickly).
+   * Behavior:
+   * - If ImageData already contains cached Files API identifiers (filesApiId/Uri) for Google,
+   *   the method validates the file still exists via files.get and refreshes metadata.
+   * - Otherwise it uploads the (resized) image bytes to Files API.
+   *
+   * Cancellation:
+   * - If `options.signal` is aborted, this method throws AbortError to allow the caller
+   *   to stop quickly.
+   *
+   * Cancellation race handling:
+   * - Upload completion is tracked in `uploadByImageId` even if the caller aborts waiting.
+   *   This allows cancel-time cleanup to still discover the file id and delete it.
    */
   private async ensureUploadedViaFilesApi(
     image: ImageData,
@@ -393,30 +492,61 @@ export class GoogleService {
     const converted = dataUrlToBlob(image.base64Image);
     if (!converted) return null;
 
+    if (signal?.aborted) {
+      throw new DOMException('Aborted', 'AbortError');
+    }
+
+    if (!this.client) return null;
+
     try {
-      if (signal?.aborted) {
-        throw new DOMException('Aborted', 'AbortError');
-      }
+      /**
+       * Start the real upload without wrapping it in abortable().
+       * Even if the user cancels, the underlying request may still
+       * complete and create a file. We want to learn its id for
+       * best-effort deletion.
+       */
+      const rawUpload = this.client.files.upload({
+        file: converted.blob,
+        config: { mimeType: converted.mimeType },
+      }) as Promise<File>;
 
-      const uploaded = await this.abortable<File>(
-        this.client.files.upload({
-          file: converted.blob,
-          config: { mimeType: converted.mimeType },
-        }),
-        signal
-      );
-
-      // Cache provider-agnostic fields on the ImageData object
-      image.filesApiProvider = 'Google';
-      image.filesApiId = uploaded?.name;           // used for get/delete
-      image.filesApiUri = uploaded?.uri;           // used for prompting
-      image.mimeType = uploaded?.mimeType ?? converted.mimeType;
-
-      if (!image.filesApiId || !image.filesApiUri || !image.mimeType) {
+      // Normalize to the minimal shape we need and track it.
+      const tracked: Promise<FilesApiUploadedFile | null> = rawUpload.then((u) => {
+        if (!u?.name || !u?.uri) return null;
+        return {
+          name: u.name,
+          uri: u.uri,
+          mimeType: u.mimeType ?? converted.mimeType,
+        };
+      }).catch((e) => {
+        console.warn('upload promise rejected', e);
         return null;
+      });
+
+      this.uploadByImageId.set(image.uploadKey, tracked);
+
+      // IMPORTANT: do NOT delete immediately; keep for a short TTL
+      // so cancel cleanup can use it.
+      this.scheduleUploadEntryCleanup(image.uploadKey, tracked, 60_000);
+
+      // For the normal generation flow, we still want to stop waiting immediately on cancel.
+      const uploaded = await this.abortable(tracked, signal);
+      if (!uploaded) return null;
+
+      // Cache fields on ImageData
+      image.filesApiProvider = 'Google';
+      image.filesApiId = uploaded.name;
+      image.filesApiUri = uploaded.uri;
+      image.mimeType = uploaded.mimeType;
+
+      // Since we now have a stable cached id, we can drop the in-flight entry early.
+      // TTL cleanup already handles this, but this reduces memory pressure during
+      // long sessions.
+      if (this.uploadByImageId.get(image.uploadKey) === tracked) {
+        this.uploadByImageId.delete(image.uploadKey);
       }
 
-      return { name: image.filesApiId, uri: image.filesApiUri, mimeType: image.mimeType };
+      return uploaded;
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') {
         throw e;
@@ -426,6 +556,9 @@ export class GoogleService {
     }
   }
 
+  /**
+   * Maps the UI model parameter (low/medium/high) to the SDK MediaResolution enum.
+   */
   private mediaResolutionFromModel(settings: RequestSettings): MediaResolution | null {
     const modelMediaResolution = settings.model.parameters?.mediaResolution ?? null;
     const mediaResolution = modelMediaResolution === 'low'
@@ -438,6 +571,9 @@ export class GoogleService {
     return mediaResolution;
   }
 
+  /**
+   * Maps the UI model parameter (minimal/low/medium/high) to the SDK ThinkingLevel enum.
+   */
   private thinkingLevelFromModel(settings: RequestSettings): ThinkingLevel | null {
     const modelThinkingLevel = settings.model.parameters?.thinkingLevel ?? null;
     const thinkingLevel = modelThinkingLevel === 'minimal'
@@ -452,6 +588,11 @@ export class GoogleService {
     return thinkingLevel;
   }
 
+  /**
+   * Converts an SDK GenerateContentResponse to the app's AiResult format.
+   *
+   * Keeps the raw response for debugging and attaches token usage if available.
+   */
   private responseToAiResult(response?: GenerateContentResponse): AiResult {
     return {
       text: this.resolveResponseText(response),
@@ -463,15 +604,24 @@ export class GoogleService {
     };
   }
 
+  /**
+   * Extracts the response text from the SDK response.
+   */
   private resolveResponseText(response?: GenerateContentResponse): string {
     // return response?.text ?? response?.candidates?.[0].content?.parts?.[0].text ?? '';
     return response?.text ?? '';
   } 
 
+  /**
+   * Extracts prompt/input token count if the model provided usage metadata.
+   */
   private resolveinputTokenCount(response?: GenerateContentResponse): number {
     return response?.usageMetadata?.promptTokenCount ?? 0;
   }
 
+  /**
+   * Extracts output token count (candidates + thoughts) if the model provided usage metadata.
+   */
   private resolveOutputTokenCount(response?: GenerateContentResponse): number {
     const candidatesTokens = response?.usageMetadata?.candidatesTokenCount ?? 0;
     const thoughtsTokens = response?.usageMetadata?.thoughtsTokenCount ?? 0;
@@ -544,6 +694,8 @@ export class GoogleService {
    * - This guarantees the *caller* stops waiting when aborted.
    * - It may or may not cancel the underlying network request, depending on whether
    *   the SDK uses fetch with AbortSignal internally. (We do not rely on that.)
+   * - If aborted, the returned promise rejects with AbortError, but the original promise `p`
+   *   is not cancelled unless the underlying SDK supports AbortSignal internally.
    */
   private abortable<T>(p: Promise<T>, signal?: AbortSignal): Promise<T> {
     if (!signal) {
@@ -561,6 +713,112 @@ export class GoogleService {
         signal.removeEventListener('abort', onAbort);
       });
     });
+  }
+
+  /**
+   * Attempts to resolve an in-flight Files API upload for the given image.
+   *
+   * This is used during cancellation cleanup to handle the race where:
+   * - the upload HTTP request completed, but the app was aborted before caching
+   *   `filesApiId` onto the ImageData object.
+   *
+   * The wait is bounded by `timeoutMs` to keep cancellation responsive.
+   */
+  private async tryResolveInFlightUpload(
+    image: ImageData,
+    timeoutMs: number
+  ): Promise<FilesApiUploadedFile | null> {
+    const p = this.uploadByImageId.get(image.uploadKey);
+
+    if (!p) return null;
+
+    try {
+      return await Promise.race([
+        p,
+        new Promise<FilesApiUploadedFile | null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
+      ]);
+    } catch {
+      // Includes AbortError from abortable(upload, signal)
+      return null;
+    }
+  }
+
+  /**
+   * Schedules removal of a tracked upload promise after a TTL.
+   *
+   * We keep finished upload promises around briefly to handle the cancellation race where:
+   * - upload completes
+   * - caller aborts before caching filesApiId onto ImageData
+   * - cancellation cleanup needs to read the resolved upload (name/uri) to delete it
+   *
+   * The "only delete if same promise" check ensures that a newer upload for the same image id
+   * is not accidentally removed.
+   */
+  private scheduleUploadEntryCleanup(
+    key: string,
+    p: Promise<FilesApiUploadedFile | null>,
+    ttlMs: number
+  ): void {
+    void p.finally(() => {
+      setTimeout(() => {
+        // Only delete if nobody replaced the promise for this image id
+        if (this.uploadByImageId.get(key) === p) {
+          this.uploadByImageId.delete(key);
+        }
+      }, ttlMs);
+    });
+  }
+
+  /**
+   * Deletes a Google Files API object with retries for transient failures.
+   *
+   * Notes on status handling:
+   * - 404 is treated as success (the file is already deleted).
+   * - 403 is ambiguous in this API (it can mean "still in use" *or* "not found/no permission").
+   *   We retry 403 only a small number of times to handle short-lived "in use" windows,
+   *   but we stop quickly to avoid noisy repeated attempts once the file is effectively gone.
+   * - 429 and 5xx are treated as retryable.
+   */
+  private async deleteWithRetry(name: string): Promise<void> {
+    if (!this.client) return;
+
+    // Retry delays (ms): 1s, 3s, 7s, 15s, 31s
+    const delays = [1000, 3000, 7000, 15000, 31000];
+
+    let retries403 = 0;
+    const max403Retries = 2;
+
+    for (let attempt = 0; attempt <= delays.length; attempt++) {
+      try {
+        await this.client.files.delete({ name });
+        return;
+      } catch (e: any) {
+        const status = e?.status ?? e?.code ?? e?.error?.code;
+
+        if (status === 404) return; // already deleted
+
+        if (status === 403) {
+          retries403++;
+          if (retries403 > max403Retries) {
+            // Treat as non-retryable after a couple of attempts (likely already gone / inaccessible).
+            return;
+          }
+        }
+
+        const retryable =
+          status === 403 ||
+          status === 429 ||
+          (typeof status === 'number' && status >= 500 && status < 600);
+
+        if (!retryable || attempt === delays.length) {
+          console.warn('Failed to delete Google file (best-effort):', name, e);
+          return;
+        }
+
+        const jitter = Math.floor(Math.random() * 250);
+        await new Promise<void>(resolve => setTimeout(resolve, delays[attempt] + jitter));
+      }
+    }
   }
 
 }

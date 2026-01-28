@@ -44,9 +44,9 @@
           }
         </div>
         
-        @if (r.status === 'success' || r.status === 'error') {
+        @if (r.status === 'success' || r.status === 'error' || r.status === 'generating' || r.status === 'cancelled') {
           <div class="batch-actions">
-            @if (r.teiBody) {
+            @if (r.status === 'success' && r.teiBody) {
               <button matIconButton
                 (click)="togglePreview(r.id)"
                 [attr.aria-label]="previewShown ? 'Hide transcription' : 'Show transcription'"
@@ -79,32 +79,33 @@
               </button>
             }
             
-            <button matIconButton
-              (click)="generateOne(r)"
-              [attr.aria-label]="'Regenerate'"
-              [matTooltip]="'Regenerate'"
-            >
-              <mat-icon>refresh</mat-icon>
-            </button>
-            <button matIconButton
-              (click)="removeOne(r.id)"
-              class="warn-button"
-              [attr.aria-label]="'Remove'"
-              [matTooltip]="'Remove'"
-            >
-              <mat-icon>delete</mat-icon>
-            </button>
-          </div>
-        } @else if (r.status === 'generating') {
-          <div class="batch-actions">
-            <button matIconButton
-              (click)="cancelOne(r.id)"
-              class="warn-button"
-              [attr.aria-label]="'Cancel batch'"
-              [matTooltip]="'Cancel batch'"
-            >
-              <mat-icon>cancel</mat-icon>
-            </button>
+            @if (r.status === 'success' || r.status === 'error' || r.status === 'cancelled') {
+              <button matIconButton
+                (click)="generateOne(r)"
+                [attr.aria-label]="'Regenerate'"
+                [matTooltip]="'Regenerate'"
+              >
+                <mat-icon>refresh</mat-icon>
+              </button>
+              <button matIconButton
+                (click)="removeOne(r.id)"
+                class="warn-button"
+                [attr.aria-label]="'Remove'"
+                [matTooltip]="'Remove'"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            }
+
+            @if (r.status === 'generating') {
+              <button matIconButton
+                (click)="cancelOne(r.id)"
+                [attr.aria-label]="'Cancel batch'"
+                [matTooltip]="'Cancel batch'"
+              >
+                <mat-icon>cancel</mat-icon>
+              </button>
+            }
           </div>
         }
       </div>

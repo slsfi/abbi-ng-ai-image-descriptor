@@ -486,9 +486,35 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     this.setGlobalGenerating(false);
   }
 
+  /**
+   * Regenerates a single TEI transcription batch.
+   *
+   * This method runs the same batch transcription + TEI encoding pipeline
+   * as the "generate all batches" flow, but only for the given batch.
+   *
+   * While running:
+   *  - the batch is marked as `generating`
+   *  - associated images are marked as generating
+   *  - a progress snackbar with a Stop action is shown
+   *
+   * Cancellation behavior:
+   *  - the request can be cancelled via the batch cancel button or the
+   *    global progress snackbar
+   *  - cancelling aborts the in-flight AI request, deletes any uploaded
+   *    Files API images, and prevents the batch state from being overwritten
+   *
+   * On completion, the batch is updated with the generated TEI body,
+   * token usage, and cost, or marked as error if the request fails.
+   */
   async transcribeAndTeiEncodeBatch(batch: BatchResult) {
     // regenerate single batch
     this.setGlobalGenerating(true);
+
+    // clear previous cancelled state for this batch (optional but nice)
+    this.cancelledBatchIds.delete(batch.id);
+
+    const ctrl = new AbortController();
+    this.abortByBatchId.set(batch.id, ctrl);
 
     const settings: RequestSettings = this.settings.getSettings();
     const prompt = this.constructPromptTemplate();
@@ -516,33 +542,50 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
     this.batchResults.update(batchId, generating);
 
-    const res = await this.runAiTaskBatchImages('filesApiImages', settings, prompt, undefined, batchImages);
-    if (res) {
-      // normaliseCharacters already strips/normalizes; pass teiEncoded=true
-      const teiBody = this.exportService.normaliseCharacters(res.text, true);
+    try {
+      const res = await this.runAiTaskBatchImages(
+        'filesApiImages',
+        settings,
+        prompt,
+        undefined,
+        batchImages,
+        ctrl.signal
+      );
 
-      this.batchResults.update(batchId, {
-        status: 'success',
-        updatedAt: new Date().toISOString(),
-        teiBody,
-        inputTokens: (batch.inputTokens ?? 0) + (res.usage?.inputTokens ?? 0),
-        outputTokens: (batch.outputTokens ?? 0) + (res.usage?.outputTokens ?? 0),
-        cost: (batch.cost ?? 0) + (res.cost),
-      });
-    } else {
-      // runAiTaskBatchImages already showed a snackbar; mark the batch as error
-      this.batchResults.update(batchId, {
-        status: 'error',
-        error: 'Batch request failed.',
-      });
+      // Batch was cancelled while request was in flight; do not overwrite state.
+      if (this.cancelledBatchIds.has(batch.id)) {
+        return;
+      }
+
+      if (res) {
+        // normaliseCharacters already strips/normalizes; pass teiEncoded=true
+        const teiBody = this.exportService.normaliseCharacters(res.text, true);
+
+        this.batchResults.update(batchId, {
+          status: 'success',
+          updatedAt: new Date().toISOString(),
+          teiBody,
+          inputTokens: (batch.inputTokens ?? 0) + (res.usage?.inputTokens ?? 0),
+          outputTokens: (batch.outputTokens ?? 0) + (res.usage?.outputTokens ?? 0),
+          cost: (batch.cost ?? 0) + (res.cost),
+        });
+      } else {
+        // runAiTaskBatchImages already showed a snackbar; mark the batch as error
+        this.batchResults.update(batchId, {
+          status: 'error',
+          error: 'Batch request failed.',
+        });
+      }
+    } finally {
+      this.abortByBatchId.delete(batch.id);
+
+      for (const img of batchImages) {
+        this.setImageGenerating(img, false);
+      }
+
+      this.closeProgressSnack();
+      this.setGlobalGenerating(false);
     }
-
-    for (const img of batchImages) {
-      this.setImageGenerating(img, false);
-    }
-
-    this.closeProgressSnack();
-    this.setGlobalGenerating(false);
   }
 
   private async generateDescriptionTranslation(imageObj: ImageData, prompt: string, targetLanguageCode: LanguageCode) {
@@ -567,9 +610,11 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
    * This:
    *  - marks the batch result as `cancelled`
    *  - aborts the currently running request (if it is running)
-   *  - deletes any already-uploaded Files API objects for images in this batch
+   *  - schedules best-effort deletion of any already-uploaded Files API objects
    *
-   * Note: deleting uploads uses the cached `filesApiId` on each ImageData object.
+   * Important:
+   * - Aborting happens immediately so the UI and batch loop can continue.
+   * - Deleting uploads is best-effort and must not block cancellation.
    */
   async cancelBatch(batchId: string): Promise<void> {
     this.cancelledBatchIds.add(batchId);
@@ -587,15 +632,25 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       ctrl.abort();
     }
 
-    // Delete any already uploaded Files API files for images in the batch
     const batch = this.batchResults.results().find(r => r.id === batchId);
     if (!batch) return;
 
-    const imgs = this.imageListService.imageList.filter(img => batch.imageIds.includes(img.id));
-    await Promise.allSettled(imgs.map(img => this.aiService.deleteUploadedFile(img)));
+    const imgs = this.imageListService.imageList.filter(img =>
+      batch.imageIds.includes(img.id)
+    );
 
-    // Clear image "generating" flags for a nicer UX
-    for (const img of imgs) this.setImageGenerating(img, false);
+    // Clear image "generating" flags immediately for a responsive UX
+    for (const img of imgs) {
+      this.setImageGenerating(img, false);
+    }
+
+    // Best-effort cleanup:
+    // Give the backend a brief moment to release file locks, then delete
+    // in background.
+    const deleteAll = () => Promise.allSettled(
+      imgs.map(img => this.aiService.deleteUploadedFile(img))
+    );
+    setTimeout(() => { void deleteAll(); }, 750);
   }
 
   removeImage(imageObj: ImageData): void {
@@ -810,7 +865,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     this.progressSnackRef = this.snackBar.open(message, 'Stop');
 
     this.progressStopSub = this.progressSnackRef.onAction().subscribe(() => {
-      this.setGlobalGenerating(false);
+      this.stopFromProgressSnack();
     });
   }
 
@@ -1064,6 +1119,40 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       next.add(`${imageId}:${descIdx}`);
       return next;
     });
+  }
+
+  /**
+   * Handles clicks on the global progress snackbar "Stop" action.
+   *
+   * - For batch TEI generation:
+   *   - cancels the currently running batch (aborts request + deletes uploads)
+   *   - cancels all pending batches (marks them cancelled so they won't start)
+   * - For all other tasks:
+   *   - simply stops future iterations by clearing the global generating flag.
+   *
+   * Note: This is intentionally "best effort" and should never throw.
+   */
+  private stopFromProgressSnack(): void {
+    // Always stop future iterations for all task types.
+    this.setGlobalGenerating(false);
+
+    const settings = this.settings.getSettings();
+    if (settings.taskType !== 'transcriptionBatchTei') return;
+
+    const results = this.batchResults.results();
+
+    // Cancel the in-progress batch (if any)
+    const running = results.find(r => r.status === 'generating');
+    if (running) {
+      // fire-and-forget; cancelBatch() is async
+      void this.cancelBatch(running.id);
+    }
+
+    // Ccancel all still pending
+    const pending = results.filter(r => r.status === 'pending');
+    for (const p of pending) {
+      void this.cancelBatch(p.id);
+    }
   }
 
 }
