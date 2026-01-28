@@ -163,7 +163,7 @@ export class GoogleService {
         config: {
           ...(maxOutputTokens ? { maxOutputTokens: maxOutputTokens } : {}),
           ...(mediaResolution ? { mediaResolution: mediaResolution } : {}),
-          ...(settings.temperature ? { temperature: settings.temperature } : {}),
+          ...(settings.temperature !== null ? { temperature: settings.temperature } : {}),
           ...(thinkingLevel ? { thinkingConfig: { thinkingLevel: thinkingLevel } } : {}),
           ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget: thinkingBudget } } : {})
         }
@@ -229,7 +229,7 @@ export class GoogleService {
         config: {
           ...(maxOutputTokens ? { maxOutputTokens } : {}),
           ...(mediaResolution ? { mediaResolution } : {}),
-          ...(settings.temperature ? { temperature: settings.temperature } : {}),
+          ...(settings.temperature !== null ? { temperature: settings.temperature } : {}),
           ...(thinkingLevel ? { thinkingConfig: { thinkingLevel } } : {}),
           ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget } } : {})
         }
@@ -306,7 +306,7 @@ export class GoogleService {
         contents: createUserContent(parts),
         config: {
           ...(mediaResolution ? { mediaResolution } : {}),
-          ...(settings.temperature ? { temperature: settings.temperature } : {}),
+          ...(settings.temperature !== null ? { temperature: settings.temperature } : {}),
           ...(thinkingLevel ? { thinkingConfig: { thinkingLevel } } : {}),
           ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget } } : {}),
         }
