@@ -97,7 +97,8 @@
 }
 
 .warn-button,
-.batch-error mat-icon {
+.batch-error mat-icon,
+.batch-cancelled mat-icon {
   @include mat.icon-overrides((
     color: #A82424,
   ));

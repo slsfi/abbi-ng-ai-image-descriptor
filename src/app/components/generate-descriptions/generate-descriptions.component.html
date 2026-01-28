@@ -34,7 +34,10 @@
             (click)="removeAllImages()"
           >Remove all images</button>
         </div>
-        <batch-results (generateBatch)="transcribeAndTeiEncodeBatch($event)"></batch-results>
+        <batch-results
+              (generateBatch)="transcribeAndTeiEncodeBatch($event)"
+              (cancelBatch)="cancelBatch($event)"
+        ></batch-results>
       </div>
 
     } @else {

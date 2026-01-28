@@ -60,9 +60,20 @@ export class AiService {
     return Promise.resolve({ text: '', error: { code: 400, message: `Unsupported provider: ${settings.model.provider}` } });
   }
 
-  describeImagesFilesApi(settings: RequestSettings, prompt: string, images: ImageData[]): Promise<AiResult> {
+  /**
+   * Executes a Files API based multi-image request.
+   *
+   * @param options Optional request options (currently: AbortSignal).
+   *                When aborted, the provider call should reject/short-circuit.
+   */
+  describeImagesFilesApi(
+    settings: RequestSettings,
+    prompt: string,
+    images: ImageData[],
+    options?: { signal?: AbortSignal }
+  ): Promise<AiResult> {
     if (settings.model.provider === 'Google') {
-      return this.google.describeImagesWithFilesApi(settings, prompt, images);
+      return this.google.describeImagesWithFilesApi(settings, prompt, images, options);
     }
     return Promise.resolve({ text: '', error: { code: 400, message: 'Files API batching not supported for this provider yet.' } });
   }
@@ -76,16 +87,37 @@ export class AiService {
     return Promise.resolve({ text: '', error: { code: 400, message: `Unsupported provider: ${settings.model.provider}` } });
   }
 
-  deleteUploadedFile(image: ImageData): Promise<void> {
-    if (image.filesApiProvider === 'Google') {
-      return this.google.deleteUploadedFile(image);
+  /**
+   * Best-effort deletion of any provider-side uploaded file associated with an
+   * ImageData.
+   *
+   * Routing rules:
+   * - If `filesApiProvider` is known, delete via that provider only.
+   * - If provider is not set yet (common during an in-flight upload), attempt
+   *   Google cleanup because Google Files API uploads are the only ones
+   *   currently used in this flow and GoogleService can resolve in-flight
+   *   uploads by image id.
+   *
+   * This method must never throw.
+   */
+  async deleteUploadedFile(image: ImageData): Promise<void> {
+    try {
+      if (image.filesApiProvider === 'Google') {
+        await this.google.deleteUploadedFile(image);
+        return;
+      }
+
+      // if (image.filesApiProvider === 'OpenAI') {
+      //   await this.openAi.deleteUploadedFile(image);
+      //   return;
+      // }
+
+      // Provider not set yet:
+      // Try Google because it can resolve just-finished uploads (cancel race).
+      await this.google.deleteUploadedFile(image);
+    } catch {
+      // best-effort: swallow
     }
-    /*
-    if (image.filesApiProvider === 'OpenAI') {
-      return this.openAi.deleteUploadedFile(image);
-    }
-      */
-    return Promise.resolve();
   }
 
   private providerFromUI(): 'OpenAI' | 'Google' {

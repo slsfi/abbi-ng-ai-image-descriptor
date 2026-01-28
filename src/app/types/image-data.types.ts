@@ -14,4 +14,9 @@ export type ImageData = {
   filesApiUri?: string;
   mimeType?: string;
   filesApiProvider?: ModelProvider;
+  /**
+   * Stable identifier for provider upload lifecycle tracking.
+   * Must be unique across the lifetime of the app session and never reused.
+   */
+  uploadKey: string;
 }

@@ -18,7 +18,10 @@ export class FileInputComponent implements OnInit {
   uniqueId: string = '';
 
   ngOnInit(): void {
-    this.uniqueId = 'file-input-' + crypto.randomUUID();
+    const randomKey = (globalThis.crypto && 'randomUUID' in globalThis.crypto)
+      ? globalThis.crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    this.uniqueId = `file-input-${randomKey}`;
   }
 
   onFileSelected(event: Event): void {

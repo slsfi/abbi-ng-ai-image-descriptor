@@ -49,12 +49,17 @@ export class AddImagesComponent {
         const img = new Image();
         const reader = new FileReader();
 
+        const imgId = this.imageListService.generateId();
+        const uploadKey = (globalThis.crypto && 'randomUUID' in globalThis.crypto)
+          ? globalThis.crypto.randomUUID()
+          : `${Date.now()}-${imgId}-${Math.random().toString(16).slice(2)}`;
+
         reader.onerror = () => reject(reader.error);
         reader.onload = (e: any) => {
           img.onload = () => {
             const resized = this.imageListService.resizeImage(img);
             processedFiles.push({
-              id: this.imageListService.generateId(),
+              id: imgId,
               filename: file.name,
               mimeType: resized.mimeType,
               base64Image: resized.base64,
@@ -66,6 +71,7 @@ export class AddImagesComponent {
               filesApiId: undefined,
               filesApiUri: undefined,
               filesApiProvider: undefined,
+              uploadKey: uploadKey,
             });
 
             this.processedCounter++;
