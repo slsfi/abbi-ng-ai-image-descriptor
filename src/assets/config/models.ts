@@ -92,7 +92,7 @@ export const MODELS: Model[] = [
     supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
     url: 'https://ai.google.dev/gemini-api/docs/models#gemini-3-flash',
     parameters: {
-      thinkingLevel: 'minimal',
+      thinkingLevel: 'low',
       maxImageShortsidePx: null,
       mediaResolution: 'high'
     }
@@ -108,7 +108,7 @@ export const MODELS: Model[] = [
     supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
     url: 'https://ai.google.dev/gemini-api/docs/models#gemini-2.5-pro',
     parameters: {
-      thinkingBudget: 128,
+      thinkingBudget: 512,
       maxImageShortsidePx: null,
       mediaResolution: 'high'
     }
@@ -124,7 +124,7 @@ export const MODELS: Model[] = [
     supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
     url: 'https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash',
     parameters: {
-      thinkingBudget: 0,
+      thinkingBudget: 512,
       maxImageShortsidePx: null,
       mediaResolution: 'high'
     }

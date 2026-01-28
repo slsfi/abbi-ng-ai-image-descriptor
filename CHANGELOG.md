@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Improve TEI encoding prompts.
 - Include temperature setting in Google API requests.
+- Increase thinking level/budget of `gemini-3-flash-preview`, `gemini-2.5-flash` and `gemini-2.5-pro`.
 
 
 
