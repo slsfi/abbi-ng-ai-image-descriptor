@@ -118,6 +118,17 @@
                 [attr.data-result-id]="r.id"
                 [textContent]="r.teiBody"
           ></code></pre>
+
+          @if (previewShown) {
+            <button matIconButton
+              class="hide-preview-button"
+              (click)="togglePreview(r.id)"
+              [attr.aria-label]="'Hide the transcription above'"
+              [matTooltip]="'Hide the transcription above'"
+            >
+              <mat-icon>visibility_off</mat-icon>
+            </button>
+          }
         </div>
       }
     </div>
