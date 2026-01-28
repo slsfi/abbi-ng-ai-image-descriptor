@@ -1,6 +1,7 @@
 @let taskNoun = settings.taskNouns();
 @let aspectRatioValue = aspectRatio();
 @let imageIndex = activeImage();
+@let previewShownValue = previewShown();
 
 <mat-dialog-content>
   <div class="container"
@@ -79,19 +80,40 @@
       </div>
     </div>
     <div class="textarea-container" [class.tei-encoding]="teiEncoding">
-      <h2>Edit {{ taskNoun.singular }}</h2>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ taskNoun.singular | upperFirstLetter }}</mat-label>
-        <textarea matInput
-              [(ngModel)]="editedDescription"
-              #autosize="cdkTextareaAutosize"
-              cdkTextareaAutosize
-              cdkAutosizeMinRows="1"
-              cdkAutosizeMaxRows="30"
-        ></textarea>
-      </mat-form-field>
+      <h2>@if (!previewShownValue) { Edit } @else { View } {{ taskNoun.singular }}</h2>
+      @if (previewShownValue) {
+        <pre class="language-markup"><code
+              class="language-markup"
+              #codeElEditDialog
+              [textContent]="editedDescription"
+        ></code></pre>
+      } @else {
+        <mat-form-field appearance="outline">
+          <mat-label>{{ taskNoun.singular | upperFirstLetter }}</mat-label>
+          <textarea matInput
+                [(ngModel)]="editedDescription"
+                #autosize="cdkTextareaAutosize"
+                cdkTextareaAutosize
+                cdkAutosizeMinRows="1"
+                cdkAutosizeMaxRows="30"
+          ></textarea>
+        </mat-form-field>
+      }
+      
       <div class="dialog-actions">
-        <button mat-button [mat-dialog-close]="null">Cancel</button>
+        @if (teiEncoding) {
+          <button matIconButton
+            class="toggle-preview-button"
+            (click)="togglePreview()"
+            [attr.aria-label]="previewShownValue ? 'Edit transcription' : 'Show transcription with syntax highlighting'"
+            [matTooltip]="previewShownValue ? 'Edit transcription' : 'Show transcription with syntax highlighting'"
+          >
+            <mat-icon>
+              {{ previewShownValue ? 'edit' : 'visibility' }}
+            </mat-icon>
+          </button>
+        }
+        <button matButton [mat-dialog-close]="null">Cancel</button>
         <button matButton="filled" [mat-dialog-close]="editedDescription">Save</button>
       </div>
     </div>

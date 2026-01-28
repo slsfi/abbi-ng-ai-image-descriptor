@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Option to cancel batch TEI-transcription requests in progress and pending.
 - Button for hiding TEI-transcription below preview.
+- Preview with syntax highlighting of TEI-transcriptions in the edit description dialog.
 
 ### Fixed
 

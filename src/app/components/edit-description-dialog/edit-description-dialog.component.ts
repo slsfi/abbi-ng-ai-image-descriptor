@@ -1,5 +1,6 @@
-import { Component, ElementRef, HostListener, OnInit,
-         ViewChild, afterNextRender, computed, inject, signal
+import { Component, ElementRef, HostListener, OnInit, ViewChild,
+         afterNextRender, afterRenderEffect, computed, inject, signal,
+         viewChild
         } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,6 +14,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+import Prism from '../../utils/prism';
 import { UpperFirstLetterPipe } from '../../pipes/upper-first-letter.pipe';
 import { ImageListService } from '../../services/image-list.service';
 import { SettingsService } from '../../services/settings.service';
@@ -49,6 +51,8 @@ export class EditDescriptionDialogComponent implements OnInit {
   imageListService = inject(ImageListService);
   settings = inject(SettingsService);
 
+  readonly codeEl = viewChild<ElementRef<HTMLElement>>('codeElEditDialog');
+
   imageObj?: ImageData = this.data.imageObj;
   batchObj?: BatchResult = this.data.batchObj;
 
@@ -62,6 +66,7 @@ export class EditDescriptionDialogComponent implements OnInit {
         (img: ImageData) => this.batchObj?.imageIds.includes(img.id)
       );
   
+  previewShown = signal<boolean>(false);
   activeImage = signal<number>(0);
 
   aspectRatio = computed<number>(() => {
@@ -104,6 +109,17 @@ export class EditDescriptionDialogComponent implements OnInit {
       write: () => {
         this.autosize?.resizeToFitContent(true);
       }
+    });
+
+    afterRenderEffect(() => {
+      // Run Prism to update code block after previewShown has
+      // changed, the preview is shown AND Angular has finished
+      // updating the DOM.
+      const previewShown = this.previewShown();
+      const elRef = this.codeEl();
+      if (!previewShown || !elRef) return;
+
+      Prism.highlightElement(elRef.nativeElement);
     });
   }
 
@@ -234,6 +250,11 @@ export class EditDescriptionDialogComponent implements OnInit {
 
   get isZoomed(): boolean {
     return this.zoom > 1;
+  }
+
+  togglePreview(): void {
+    const v = this.previewShown();
+    this.previewShown.set(!v);
   }
 
 }
