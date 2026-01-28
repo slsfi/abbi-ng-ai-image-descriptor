@@ -60,9 +60,20 @@ export class AiService {
     return Promise.resolve({ text: '', error: { code: 400, message: `Unsupported provider: ${settings.model.provider}` } });
   }
 
-  describeImagesFilesApi(settings: RequestSettings, prompt: string, images: ImageData[]): Promise<AiResult> {
+  /**
+   * Executes a Files API based multi-image request.
+   *
+   * @param options Optional request options (currently: AbortSignal).
+   *                When aborted, the provider call should reject/short-circuit.
+   */
+  describeImagesFilesApi(
+    settings: RequestSettings,
+    prompt: string,
+    images: ImageData[],
+    options?: { signal?: AbortSignal }
+  ): Promise<AiResult> {
     if (settings.model.provider === 'Google') {
-      return this.google.describeImagesWithFilesApi(settings, prompt, images);
+      return this.google.describeImagesWithFilesApi(settings, prompt, images, options);
     }
     return Promise.resolve({ text: '', error: { code: 400, message: 'Files API batching not supported for this provider yet.' } });
   }

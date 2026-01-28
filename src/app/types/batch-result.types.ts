@@ -1,4 +1,4 @@
-export type BatchResultStatus = 'pending' | 'success' | 'error' | 'generating';
+export type BatchResultStatus = 'pending' | 'generating' | 'success' | 'error' | 'cancelled';
 
 export interface BatchResult {
   id: string;                 // unique id for this batch run

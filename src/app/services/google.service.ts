@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { from, Observable } from 'rxjs';
-import { ApiError, GenerateContentResponse, GoogleGenAI, MediaResolution,
+import { ApiError, File, GenerateContentResponse, GoogleGenAI, MediaResolution,
          ThinkingLevel, createPartFromUri, createUserContent
         } from '@google/genai';
 
@@ -8,8 +8,15 @@ import { AiResult } from '../types/ai.types';
 import { ImageData } from '../types/image-data.types';
 import { RequestSettings } from '../types/settings.types';
 
+
 type DataUrlBlob = { mimeType: string; blob: Blob };
 type ParsedDataUrl = { mimeType: string; dataBase64: string };
+type FilesApiUploadedFile = {
+  name: string;
+  uri: string;
+  mimeType: string;
+};
+
 
 function dataUrlToBlob(dataUrl: string): DataUrlBlob | null {
   const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl ?? '');
@@ -29,6 +36,7 @@ function parseDataUrl(dataUrl: string): ParsedDataUrl | null {
   if (!match) return null;
   return { mimeType: match[1], dataBase64: match[2] };
 }
+
 
 @Injectable({
   providedIn: 'root'
@@ -189,7 +197,22 @@ export class GoogleService {
     }
   }
 
-  async describeImagesWithFilesApi(settings: RequestSettings, prompt: string, images: ImageData[]): Promise<AiResult> {
+  /**
+   * Runs a multi-image request using Google’s Files API (upload first,
+   * then prompt by URI).
+   *
+   * @param options Optional request options (currently: AbortSignal).
+   *                If aborted during upload or generation, the method
+   *                throws/rejects with AbortError.
+   */
+  async describeImagesWithFilesApi(
+    settings: RequestSettings,
+    prompt: string,
+    images: ImageData[],
+    options?: { signal?: AbortSignal }
+  ): Promise<AiResult> {
+    const signal = options?.signal;
+
     if (!this.client) {
       return { text: '', error: { code: 401, message: 'Google API key not set.' } };
     }
@@ -213,8 +236,13 @@ export class GoogleService {
 
       // Upload/ensure uploaded in order
       const parts: any[] = [];
+
       for (let i = 0; i < images.length; i++) {
-        const up = await this.ensureUploadedViaFilesApi(images[i]);
+        if (signal?.aborted) {
+          throw new DOMException('Aborted', 'AbortError');
+        }
+
+        const up = await this.ensureUploadedViaFilesApi(images[i], options);
         if (!up) {
           return { text: '', error: { code: 400, message: `Failed to upload image at index ${i}.` } };
         }
@@ -235,9 +263,16 @@ export class GoogleService {
         }
       };
 
-      const resp = await this.client.models.generateContent(payload);
+      const resp = await this.abortable<GenerateContentResponse>(
+        this.client.models.generateContent(payload),
+        signal
+      );
       return this.responseToAiResult(resp);
     } catch (e) {
+      // If aborted, surface a clean error object; the caller will typically ignore it.
+      if (e instanceof DOMException && e.name === 'AbortError') {
+        return { text: '', error: { code: 499, message: 'Request cancelled.' }, raw: e };
+      }
       return this.toAiResultErrorGoogle(e);
     }
   }
@@ -288,9 +323,23 @@ export class GoogleService {
     }
   }
 
+  /**
+   * Ensures a local ImageData has a corresponding Google Files API upload.
+   *
+   * If the upload is cached, it validates the cached handle still exists.
+   * If the signal is aborted, the method throws AbortError (so callers can
+   * stop quickly).
+   */
   private async ensureUploadedViaFilesApi(
-    image: ImageData
-  ): Promise<{ name: string; uri: string; mimeType: string } | null> {
+    image: ImageData,
+    options?: { signal?: AbortSignal }
+  ): Promise<FilesApiUploadedFile | null> {
+    const signal = options?.signal;
+
+    if (signal?.aborted) {
+      throw new DOMException('Aborted', 'AbortError');
+    }
+    
     if (!this.client) return null;
 
     // 1) Try to reuse cached upload (only if it's a Google upload)
@@ -301,7 +350,10 @@ export class GoogleService {
       image.mimeType
     ) {
       try {
-        const fetched = await this.client.files.get({ name: image.filesApiId });
+        const fetched = await this.abortable<File>(
+          this.client.files.get({ name: image.filesApiId }),
+          signal
+        );
 
         const name = fetched?.name ?? image.filesApiId;
         const uri = fetched?.uri ?? image.filesApiUri;
@@ -319,6 +371,12 @@ export class GoogleService {
 
         return { name, uri, mimeType };
       } catch (e: any) {
+        // If the user cancelled, propagate AbortError so the caller
+        // can stop immediately.
+        if (e instanceof DOMException && e.name === 'AbortError') {
+          throw e;
+        }
+
         console.warn(
           'Cached Files API entry missing/expired; will re-upload:',
           image.filesApiId,
@@ -336,10 +394,17 @@ export class GoogleService {
     if (!converted) return null;
 
     try {
-      const uploaded = await this.client.files.upload({
-        file: converted.blob,
-        config: { mimeType: converted.mimeType },
-      });
+      if (signal?.aborted) {
+        throw new DOMException('Aborted', 'AbortError');
+      }
+
+      const uploaded = await this.abortable<File>(
+        this.client.files.upload({
+          file: converted.blob,
+          config: { mimeType: converted.mimeType },
+        }),
+        signal
+      );
 
       // Cache provider-agnostic fields on the ImageData object
       image.filesApiProvider = 'Google';
@@ -352,7 +417,10 @@ export class GoogleService {
       }
 
       return { name: image.filesApiId, uri: image.filesApiUri, mimeType: image.mimeType };
-    } catch (e: any) {
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') {
+        throw e;
+      }
       console.error('Failed to upload file via Google Files API:', e);
       return null;
     }
@@ -467,6 +535,32 @@ export class GoogleService {
       } catch {}
     }
     return raw || 'Google API error.';
+  }
+
+  /**
+   * Makes an existing promise abortable using an AbortSignal.
+   *
+   * Important:
+   * - This guarantees the *caller* stops waiting when aborted.
+   * - It may or may not cancel the underlying network request, depending on whether
+   *   the SDK uses fetch with AbortSignal internally. (We do not rely on that.)
+   */
+  private abortable<T>(p: Promise<T>, signal?: AbortSignal): Promise<T> {
+    if (!signal) {
+      return p;
+    }
+    if (signal.aborted) {
+      return Promise.reject(new DOMException('Aborted', 'AbortError'));
+    }
+
+    return new Promise<T>((resolve, reject) => {
+      const onAbort = () => reject(new DOMException('Aborted', 'AbortError'));
+      signal.addEventListener('abort', onAbort, { once: true });
+
+      p.then(resolve, reject).finally(() => {
+        signal.removeEventListener('abort', onAbort);
+      });
+    });
   }
 
 }

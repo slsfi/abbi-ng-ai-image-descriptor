@@ -32,7 +32,15 @@ export class BatchResultsComponent {
   readonly exportService = inject(ExportService);
   readonly snackBar = inject(MatSnackBar);
 
+  /** Emitted when the user requests regeneration of a finished batch. */
   generateBatch = output<BatchResult>();
+  /**
+   * Emitted when the user requests cancellation of an in-progress batch.
+   * The parent component is responsible for aborting the underlying request
+   * and cleaning up any uploaded Files API objects.
+   */
+  cancelBatch = output<string>();
+
   readonly codeEls = viewChildren<ElementRef<HTMLElement>>('codeEl');
 
   private readonly lastSigById = new Map<string, string>();
@@ -115,5 +123,14 @@ export class BatchResultsComponent {
       return rest;
     });
     this.batchResults.remove(id);
+  }
+
+  /**
+   * Requests cancellation of a batch that is currently running.
+   *
+   * @param id Batch id to cancel.
+   */
+  cancelOne(id: string): void {
+    this.cancelBatch.emit(id);
   }
 }
