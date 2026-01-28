@@ -221,7 +221,7 @@ Incorrect (DO NOT DO THIS):
 ```
 <p>My dear Westermarck, Your extremly kind &amp;
 <lb/>Ever-well come letter of
-<lb/>Dec. 19<hi rend="superscript">th</hi> reached me
+<lb/>Dec. 19th reached me
 <lb/>here just on the Wen Year! I am so glad to
 <lb/>hear you are well that you are for-
 <lb/>getting your birthday! I trust you are
@@ -232,19 +232,49 @@ Incorrect (DO NOT DO THIS):
 
 ## TEXTUAL HIGHLIGHTS (`<hi>`)
 
-- Use `<hi>` ONLY for superscript and subscript characters that are visually unambiguous (e.g. ordinal markers, raised letters/numbers).
-- `<hi>` must NEVER use any `@rend` value except `superscript` or `subscript`.
-- If you output `<hi rend="...">` with any other value, it is invalid.
-- If unsure, do not use `<hi>`.
-- Accepted `@rend` values are:
-  - `superscript`
-  - `subscript`
-- FORBIDDEN: for example `<hi rend="italics">` and `<hi rend="underline">`.
+Use `<hi>` ONLY for characters that are physically raised above or lowered below the baseline in the source.
 
-### Example
+### Allowed uses
+
+- Superscript characters (e.g. ordinal markers like “19ᵗʰ”)
+- Subscript characters (e.g. mathematical or chemical notation)
+
+### Allowed `@rend` values (EXHAUSTIVE)
+
+- `superscript`
+- `subscript`
+
+### FORBIDDEN
+
+- Do NOT use `<hi>` for italics, emphasis, titles, headings, or stylistic highlighting.
+- Do NOT use `<hi>` as a workaround to encode italics.
+- Do NOT encode italics, bold, underline, or spacing with `<hi>` in any form.
+
+If text is italicized but not raised or lowered, encode it as plain text.
+
+### Examples
+
+Superscript ordinal marker (correct):
 
 ```
 Dec. 19<hi rend="superscript">th</hi>
+```
+
+Italics in the source, “Om svenskarnas invandring” (correct: NO `<hi>`):
+
+Source (italicized word shown for explanation only):
+    Om svenskarnas invandring
+
+Correct TEI (NO `<hi>` used):
+
+```
+<p>Om svenskarnas invandring hade en spannmålstorpare Strömberg hört [...]</p>
+```
+
+Incorrect (DO NOT DO THIS):
+
+```
+<p><hi rend="superscript">Om svenskarnas invandring</hi> hade [...]</p>
 ```
 
 --------------------------------------------------
@@ -411,9 +441,14 @@ STRICT:
 
 ## BLOCKQUOTES (`<quote type="block">`)
 
-- Use `<quote type="block">` for blockquotes which are set apart visually as a distinct block of text, typically by indentation, blank lines before and after, and without quotation marks, signaling it's an extended passage rather than inline text.
-- Block quotes must contain one or more paragraphs encoded with `<p>`.
-- Do not use `<quote type="block">` for inline quotations; inline quotations remain in `<p>`.
+- Use `<quote type="block">` ONLY for extended quotations set apart as prose blocks (e.g. by indentation, blank lines, or typographic layout).
+- A blockquote MUST contain one or more `<p>` elements.
+
+### FORBIDDEN:
+
+- Do NOT place `<lg>` or `<l>` inside `<quote type="block">`.
+- Do NOT encode verse, poetry, or line groups as blockquotes.
+- Do NOT use `<quote>` for inline quotations; inline quotations remain in `<p>`.
 
 ### Example
 
@@ -515,27 +550,40 @@ Within `<opener>` and `<closer>`, use the following elements as appropriate:
 
 ## INLINE MANUSCRIPT CHANGES (`<add>`, `<del>`)
 
-Use `<add>` and `<del>` to encode visible manuscript interventions such as insertions, overwriting, or deletions made by the author or scribe.
+These elements are allowed ONLY for HANDWRITTEN documents.
 
-### General rules
+### When they may be used
 
-- Use `<add>` for text that is visibly added to the main text (e.g. interlinear additions, marginal insertions, overwriting).
-- Use `<del>` for text that is visibly deleted (e.g. crossed out, struck through, erased but still readable).
-- Encode ONLY what is visible in the source. Do not infer authorial intention.
+- Use `<add>` and `<del>` ONLY when the source is handwritten.
+- Use `<add>` ONLY for:
+  - interlinear additions (written above the line)
+  - sublinear additions (written below the line)
+- Use `<del>` ONLY for text that is visibly deleted in handwriting
+  (crossed out, struck through, erased but still readable).
+
+### When they must NOT be used
+
+STRICT PROHIBITIONS:
+
+- Do NOT use `<add>` or `<del>` in printed or typewritten documents.
+- Do NOT use `<add>` for inline additions written on the baseline.
+- Do NOT use `<add>` to insert missing words or corrections.
+- Do NOT infer authorial intention.
 
 ### Placement
 
-- `<add>` and `<del>` are INLINE elements and must appear at the point in the text where the change occurs in reading order.
-- Do not move added text to where it “logically belongs” if its physical placement is elsewhere.
+- `<add>` and `<del>` are INLINE elements.
+- Place them exactly at the point where the change occurs in reading order.
+- Do not move added text to where it “logically belongs”.
 
-### Nesting and combination
+### Nesting
 
 - `<add>` and `<del>` may appear inside `<p>`, `<l>`, `<head>`, `<note>`, etc.
-- Do not nest `<add>` inside `<del>` or vice versa unless the nesting is clearly visible in the source.
+- Do NOT nest `<add>` inside `<del>` or vice versa unless the nesting is clearly visible.
 
 ### Attributes
 
-- Do not use attributes on `<add>` or `<del>` unless explicitly instructed elsewhere.
+- Do NOT use any attributes on `<add>` or `<del>`.
 
 ### Examples
 
