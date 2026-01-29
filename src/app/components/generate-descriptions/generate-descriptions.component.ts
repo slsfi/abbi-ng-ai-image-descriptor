@@ -96,6 +96,12 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
    */
   private readonly needsHighlight = signal<Set<string>>(new Set());
 
+  /** AbortController for the currently running single-image Files API request (TEI 2-pass). */
+  private teiAbortCtrl: AbortController | null = null;
+
+  /** Image currently being processed via Files API in the TEI 2-pass flow. */
+  private teiAbortImage: ImageData | null = null;
+
   /** AbortController for the *currently running* batch (keyed by batchId). */
   private readonly abortByBatchId = new Map<string, AbortController>();
 
@@ -183,60 +189,6 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     this.setImageGenerating(imageObj, false);
   }
 
-  private async transcribeAndTeiEncode(imageObj: ImageData) {
-    this.setGlobalGenerating(true);
-    this.setImageGenerating(imageObj, true);
-
-    const settings: RequestSettings = this.settings.getSettings();
-    const promptTemplate = {
-      transcription: this.constructPromptTemplate(),
-      teiEncoding: this.getTeiEncodePromptTemplate()
-    }
-
-    let transcriptionDesc: DescriptionData | null = null;
-
-    // Loop over two passes:
-    // 1. transcribe text in image
-    // 2. TEI-encode transcription from previous pass
-    for (const teiEncodingPass of [false, true]) {
-      if (!this.generating) {
-        // Generation has been stopped by user
-        break;
-      }
-
-      this.teiEncoding.set(teiEncodingPass);
-
-      const prompt: string = (teiEncodingPass && transcriptionDesc)
-        ? this.getTeiEncodePromptForTranscription(promptTemplate.teiEncoding, transcriptionDesc.description)
-        : this.constructPrompt(promptTemplate.transcription, imageObj);
-      
-      const res = await this.runAiTask('image', settings, prompt, true, imageObj);
-
-      if (res) {
-        if (teiEncodingPass) {
-          // in the TEI encoding pass, store the transcribed and encoded data in a new
-          // description and add metrics from the transcription pass
-          const totalUsage = {
-            inputTokens: (transcriptionDesc?.inputTokens ?? 0) + (res.usage?.inputTokens ?? 0),
-            outputTokens: (transcriptionDesc?.outputTokens ?? 0) + (res.usage?.outputTokens ?? 0)
-          };
-          const totalCost = (transcriptionDesc?.cost ?? 0) + res.cost;
-          const desc = this.buildDescription(settings, res.text, totalUsage, totalCost, settings.language, true);
-          this.commitDescription(imageObj, desc);
-        } else {
-          // in the transcription pass, store the transcription data in a temporary variable
-          transcriptionDesc = this.buildDescription(settings, res.text, res.usage, res.cost, settings.language, false);
-        }
-      } else {
-        break;
-      }
-    }
-
-    this.setGlobalGenerating(false);
-    this.setImageGenerating(imageObj, false);
-    this.teiEncoding.set(false);
-  }
-
   private async generateImageDescriptionsAll() {
     this.setGlobalGenerating(true);
 
@@ -276,43 +228,80 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     this.setGlobalGenerating(false);
   }
 
-  private async transcribeAndTeiEncodeAll() {
+  /**
+   * Performs a two-pass workflow for a single image:
+   *
+   * 1. Transcription of the image text
+   * 2. TEI XML encoding of the transcription
+   *
+   * Request modality:
+   * - If the selected model supports the Files API, the image is uploaded
+   *   (or reused) and referenced by URI in both passes, avoiding redundant
+   *   inline image data.
+   * - Otherwise, the image is sent inline in both passes, preserving
+   *   existing behavior.
+   *
+   * Important invariants:
+   * - This method is only called when taskType is "transcription" and TEI
+   *   encoding is enabled.
+   * - Both passes are multimodal: the model always sees the image, because
+   *   layout/structure are relevant for TEI encoding.
+   *
+   * Cleanup:
+   * - For Files API models, uploaded images are deleted after both passes
+   *   complete, or on early exit/cancellation.
+   *
+   * Cancellation behavior:
+   * - If using Files API, an AbortController is created for the currently
+   *   running request. Aborting will cause the in-flight request to return
+   *   `null` without surfacing an API error snackbar; the method then
+   *   performs best-effort cleanup and exits.
+   * - Inline-image requests cannot currently be aborted mid-flight;
+   *   stopping only takes effect between requests.
+   *
+   * The resulting TEI-encoded description is committed to the image once
+   * both passes succeed.
+   *
+   * @param imageObj The image to transcribe and TEI-encode
+   */
+  private async transcribeAndTeiEncode(imageObj: ImageData) {
     this.setGlobalGenerating(true);
-    
-    let counter = 0;
-    let lastRequestAt: number | null = null;
+    this.setImageGenerating(imageObj, true);
+
     const settings: RequestSettings = this.settings.getSettings();
+    const useFilesApi = !!settings.model?.supportsFilesApi;
+
+    if (useFilesApi) {
+      this.teiAbortCtrl = new AbortController();
+      this.teiAbortImage = imageObj;
+    }
+
     const promptTemplate = {
       transcription: this.constructPromptTemplate(),
       teiEncoding: this.getTeiEncodePromptTemplate()
     }
 
-    loopImages: for (const imageObj of this.imageListService.imageList) {
-      counter++;
-      this.openProgressSnack(`Transcribing and TEI encoding ${counter}/${this.imageListService.imageList.length}`);
+    let transcriptionDesc: DescriptionData | null = null;
 
-      let transcriptionDesc: DescriptionData | null = null;
-
+    // Loop over two passes:
+    // 1. transcribe text in image
+    // 2. TEI-encode transcription from previous pass
+    try {
       for (const teiEncodingPass of [false, true]) {
         if (!this.generating) {
           // Generation has been stopped by user
-          break loopImages;
+          break;
         }
 
-        // Throttle (only when rpm < 100)
-        lastRequestAt = await this.enforceRpm(settings.model?.rpm, lastRequestAt);
-        if (!this.generating) {
-          break loopImages;
-        }
-
-        this.setImageGenerating(imageObj, true);
         this.teiEncoding.set(teiEncodingPass);
 
         const prompt: string = (teiEncodingPass && transcriptionDesc)
           ? this.getTeiEncodePromptForTranscription(promptTemplate.teiEncoding, transcriptionDesc.description)
           : this.constructPrompt(promptTemplate.transcription, imageObj);
-        
-        const res = await this.runAiTask('image', settings, prompt, true, imageObj);
+
+        const res = useFilesApi
+          ? await this.runAiTaskSingleImageFilesApi(settings, prompt, true, imageObj, this.teiAbortCtrl?.signal)
+          : await this.runAiTask('image', settings, prompt, true, imageObj);
 
         if (res) {
           if (teiEncodingPass) {
@@ -330,12 +319,144 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
             transcriptionDesc = this.buildDescription(settings, res.text, res.usage, res.cost, settings.language, false);
           }
         } else {
-          break loopImages;
+          break;
+        }
+      }
+    } finally {
+      if (useFilesApi) {
+        // Delete uploaded files after both passes (or early exit)
+        await this.aiService.deleteUploadedFile(imageObj);
+      }
+
+      this.teiAbortCtrl = null;
+      this.teiAbortImage = null;
+
+      this.setGlobalGenerating(false);
+      this.setImageGenerating(imageObj, false);
+      this.teiEncoding.set(false);
+    }
+  }
+
+  /**
+   * Performs transcription followed by TEI XML encoding for all images in
+   * the image list, processing each image sequentially.
+   *
+   * For each image, this method runs the same two-pass workflow as
+   * `transcribeAndTeiEncode()`:
+   * - Pass 1: transcription
+   * - Pass 2: TEI encoding
+   *
+   * Request modality:
+   * - Files API–capable models upload (or reuse) each image and reference
+   *   it by URI across both passes.
+   * - Inline-image behavior is preserved for models that do not support
+   *   the Files API.
+   *
+   * Additional responsibilities handled here:
+   * - Enforcing per-model rate limits (RPM)
+   * - Progress feedback via a snackbar with a Stop action
+   * - Graceful early termination when generation is cancelled
+   *
+   * Cleanup:
+   * - For Files API models, each image’s uploaded file is deleted after
+   *   both passes complete, or when the workflow exits early (including
+   *   cancellation).
+   *
+   * Cancellation behavior:
+   * - When using Files API, a per-image AbortController is created for
+   *   the currently running request. Pressing Stop aborts the in-flight
+   *   request (if any), clears global generation, and schedules
+   *   best-effort deletion of the current uploaded image.
+   * - Inline-image requests cannot currently be aborted mid-flight;
+   *   stopping takes effect between requests.
+   *
+   * This method assumes that the current task type is transcription and
+   * that TEI encoding is enabled.
+   */
+  private async transcribeAndTeiEncodeAll() {
+    this.setGlobalGenerating(true);
+    
+    let counter = 0;
+    let lastRequestAt: number | null = null;
+    const settings: RequestSettings = this.settings.getSettings();
+    const useFilesApi = !!settings.model?.supportsFilesApi;
+
+    const promptTemplate = {
+      transcription: this.constructPromptTemplate(),
+      teiEncoding: this.getTeiEncodePromptTemplate()
+    }
+
+    loopImages: for (const imageObj of this.imageListService.imageList) {
+      counter++;
+      this.openProgressSnack(`Transcribing and TEI encoding ${counter}/${this.imageListService.imageList.length}`);
+
+      let transcriptionDesc: DescriptionData | null = null;
+
+      if (useFilesApi) {
+        this.teiAbortCtrl = new AbortController();
+        this.teiAbortImage = imageObj;
+      }
+
+      try {
+        for (const teiEncodingPass of [false, true]) {
+          if (!this.generating) {
+            // Generation has been stopped by user
+            break loopImages;
+          }
+
+          // Throttle (only when rpm < 100)
+          lastRequestAt = await this.enforceRpm(settings.model?.rpm, lastRequestAt);
+          if (!this.generating) {
+            break loopImages;
+          }
+
+          this.setImageGenerating(imageObj, true);
+          this.teiEncoding.set(teiEncodingPass);
+
+          const prompt: string = (teiEncodingPass && transcriptionDesc)
+            ? this.getTeiEncodePromptForTranscription(promptTemplate.teiEncoding, transcriptionDesc.description)
+            : this.constructPrompt(promptTemplate.transcription, imageObj);
+
+          const res = useFilesApi
+            ? await this.runAiTaskSingleImageFilesApi(settings, prompt, true, imageObj, this.teiAbortCtrl?.signal)
+            : await this.runAiTask('image', settings, prompt, true, imageObj);
+
+          if (res) {
+            if (teiEncodingPass) {
+              // in the TEI encoding pass, store the transcribed and encoded data in a new
+              // description and add metrics from the transcription pass
+              const totalUsage = {
+                inputTokens: (transcriptionDesc?.inputTokens ?? 0) + (res.usage?.inputTokens ?? 0),
+                outputTokens: (transcriptionDesc?.outputTokens ?? 0) + (res.usage?.outputTokens ?? 0)
+              };
+              const totalCost = (transcriptionDesc?.cost ?? 0) + res.cost;
+              const desc = this.buildDescription(settings, res.text, totalUsage, totalCost, settings.language, true);
+              this.commitDescription(imageObj, desc);
+            } else {
+              // in the transcription pass, store the transcription data in a temporary variable
+              transcriptionDesc = this.buildDescription(settings, res.text, res.usage, res.cost, settings.language, false);
+            }
+          } else {
+            break loopImages;
+          }
+
+          this.setImageGenerating(imageObj, false);
+        }
+      } finally {
+        if (useFilesApi) {
+          // per-image cleanup after both passes (or if we exit early)
+          await this.aiService.deleteUploadedFile(imageObj);
+        }
+
+        // Clear per-image controller/state
+        if (this.teiAbortImage === imageObj) {
+          this.teiAbortCtrl = null;
+          this.teiAbortImage = null;
         }
 
         this.setImageGenerating(imageObj, false);
+        this.teiEncoding.set(false);
       }
-      this.teiEncoding.set(false);
     }
 
     this.closeProgressSnack();
@@ -999,10 +1120,102 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       return { text, usage: result?.usage, cost };
     } catch (e) {
       console.error(e);
-      this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model?.provider} API: ${e}`);
+      this.showAPIErrorMessage(
+        `An unknown error occurred while communicating with the ${settings.model?.provider} API: ${e}`
+      );
 
       if (stopOnError) {
         this.setGlobalGenerating(false);
+      }
+      return null;
+    }
+  }
+
+  /**
+   * Runs a single-image multimodal AI request using the provider's Files API.
+   *
+   * This is a thin convenience wrapper around the existing Files API–based
+   * multi-image pipeline, restricted to exactly one image.
+   *
+   * Key characteristics:
+   * - The image is uploaded (or reused if already uploaded) via the Files API
+   *   and referenced by URI in the request instead of being sent inline.
+   * - The uploaded file is intentionally NOT deleted here, so that the same
+   *   file URI can be reused across multiple requests (e.g. transcription pass
+   *   followed by TEI encoding pass).
+   * - Cleanup of uploaded files must be handled by the caller once all passes
+   *   for the image are complete or when cancellation occurs.
+   *
+   * Cancellation behavior:
+   * - If an AbortSignal is provided and becomes aborted, the in-flight request
+   *   is aborted and this method returns `null` without surfacing an API error.
+   * - Aborted requests are treated as user-initiated cancellations rather than
+   *   failures.
+   *
+   * Error handling:
+   * - Provider errors are reported via the standard API error snackbar unless
+   *   the request was aborted.
+   * - When `stopOnError` is true, generation state is cleared on failure.
+   *
+   * This helper is only meant to be used for models that explicitly support
+   * Files API–based image handling.
+   *
+   * @param settings     Request settings including the selected model
+   * @param prompt       Fully constructed prompt text
+   * @param stopOnError  Whether a failure should stop generation immediately
+   * @param imageObj     The image to process
+   * @param signal       Optional AbortSignal used to cancel the request
+   * @returns The AI response text, token usage and cost, or null on failure
+   *          or cancellation
+   */
+  private async runAiTaskSingleImageFilesApi(
+    settings: RequestSettings,
+    prompt: string,
+    stopOnError: boolean,
+    imageObj: ImageData,
+    signal?: AbortSignal
+  ): Promise<{ text: string; usage: any; cost: number } | null> {
+    try {
+      if (signal?.aborted) {
+        return null;
+      }
+
+      const result = await this.aiService.describeImagesFilesApi(
+        settings,
+        prompt,
+        [imageObj],
+        { signal }
+      );
+
+      if (signal?.aborted) {
+        return null;
+      }
+
+      const text = result?.text ?? '';
+
+      if (!text && result?.error) {
+        // If cancelled, don't surface an API error snackbar.
+        if (!signal?.aborted) {
+          this.handleApiFailure(settings, result, stopOnError, imageObj);
+        }
+        return null;
+      }
+
+      const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
+
+      return { text, usage: result?.usage, cost };
+    } catch (e) {
+      // If the user cancelled, don’t show an error snackbar.
+      if (!signal?.aborted) {
+        console.error(e);
+        this.showAPIErrorMessage(
+          `An unknown error occurred while communicating with the ${settings.model?.provider} API: ${e}`
+        );
+
+        if (stopOnError) {
+          this.setGlobalGenerating(false);
+          this.setImageGenerating(imageObj, false);
+        }
       }
       return null;
     }
@@ -1043,7 +1256,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
           // delete the uploaded files
           await Promise.allSettled(
             images
-              .filter(img => img.filesApiProvider === settings.model.provider && !!img.filesApiId)
+              .filter(img => !!img.filesApiId)
               .map(img => this.aiService.deleteUploadedFile(img))
           );
         }
@@ -1124,35 +1337,73 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   /**
    * Handles clicks on the global progress snackbar "Stop" action.
    *
-   * - For batch TEI generation:
-   *   - cancels the currently running batch (aborts request + deletes uploads)
-   *   - cancels all pending batches (marks them cancelled so they won't start)
-   * - For all other tasks:
-   *   - simply stops future iterations by clearing the global generating flag.
+   * General behavior (all task types):
+   * - Immediately stops future iterations by clearing the global `generating` flag.
    *
-   * Note: This is intentionally "best effort" and should never throw.
+   * Batch TEI generation (`taskType === 'transcriptionBatchTei'`):
+   * - Cancels the currently running batch (if any):
+   *   - aborts the in-flight request via AbortController
+   *   - schedules best-effort deletion of any uploaded Files API images
+   * - Cancels all still-pending batches so they will not start.
+   *
+   * Sequential transcription + TEI encoding (`taskType === 'transcription'` with TEI enabled):
+   * - If the selected model supports the Files API:
+   *   - aborts the currently running Files API request (if any)
+   *   - immediately clears the image "generating" flag for responsive UI feedback
+   *   - schedules best-effort deletion of the currently uploaded Files API image
+   * - Inline-image requests (non–Files API models) cannot be aborted mid-flight;
+   *   they will stop at the next loop boundary as before.
+   *
+   * Design notes:
+   * - Aborting requests is best-effort and should never throw.
+   * - Cleanup of uploaded files must not block UI updates or cancellation.
+   * - This method intentionally does not surface error notifications when
+   *   cancellation occurs.
    */
   private stopFromProgressSnack(): void {
     // Always stop future iterations for all task types.
     this.setGlobalGenerating(false);
 
     const settings = this.settings.getSettings();
-    if (settings.taskType !== 'transcriptionBatchTei') return;
 
-    const results = this.batchResults.results();
+    // Batched TEI-transcription
+    if (settings.taskType === 'transcriptionBatchTei') {
+      const results = this.batchResults.results();
 
-    // Cancel the in-progress batch (if any)
-    const running = results.find(r => r.status === 'generating');
-    if (running) {
-      // fire-and-forget; cancelBatch() is async
-      void this.cancelBatch(running.id);
+      // Cancel the in-progress batch (if any)
+      const running = results.find(r => r.status === 'generating');
+      if (running) {
+        // Fire-and-forget; cancelBatch() is async
+        void this.cancelBatch(running.id);
+      }
+
+      // Cancel all still pending
+      const pending = results.filter(r => r.status === 'pending');
+      for (const p of pending) {
+        void this.cancelBatch(p.id);
+      }
+
+      return;
     }
 
-    // Ccancel all still pending
-    const pending = results.filter(r => r.status === 'pending');
-    for (const p of pending) {
-      void this.cancelBatch(p.id);
+    // Single-image / sequential TEI 2-pass mode using Files API
+    if (settings.taskType === 'transcription' && settings.teiEncode && !!settings.model?.supportsFilesApi) {
+      const ctrl = this.teiAbortCtrl;
+      const img = this.teiAbortImage;
+
+      if (ctrl && !ctrl.signal.aborted) {
+        ctrl.abort();
+      }
+
+      if (img) {
+        // Responsive UX: clear generating flag immediately
+        this.setImageGenerating(img, false);
+
+        // Best-effort cleanup; should not throw or block
+        setTimeout(() => { void this.aiService.deleteUploadedFile(img); }, 250);
+      }
     }
+
   }
 
 }
