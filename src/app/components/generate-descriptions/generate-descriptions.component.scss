@@ -170,6 +170,9 @@ td {
     }
 
     .desc-text {
+      display: block;
+      max-height: 65vh;
+      overflow: auto;
       white-space: pre-line;
     }
 
@@ -177,8 +180,9 @@ td {
       background-color: #f7f7f9;
       border: 1px solid #dbdbdb;
       border-radius: 2px;
+      max-height: 65vh;
       max-width: 100%;
-      overflow-x: auto;
+      overflow: auto;
       padding: 0.5em 0.75em;
 
       code {
