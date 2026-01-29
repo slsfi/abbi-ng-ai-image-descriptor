@@ -79,7 +79,8 @@ export const MODELS: Model[] = [
       thinkingLevel: 'low',
       maxImageShortsidePx: null,
       mediaResolution: 'high'
-    }
+    },
+    supportsFilesApi: true
   },
   {
     provider: 'Google',
@@ -95,7 +96,8 @@ export const MODELS: Model[] = [
       thinkingLevel: 'low',
       maxImageShortsidePx: null,
       mediaResolution: 'high'
-    }
+    },
+    supportsFilesApi: true
   },
   {
     provider: 'Google',
@@ -111,7 +113,8 @@ export const MODELS: Model[] = [
       thinkingBudget: 512,
       maxImageShortsidePx: null,
       mediaResolution: 'high'
-    }
+    },
+    supportsFilesApi: true
   },
   {
     provider: 'Google',
@@ -127,7 +130,8 @@ export const MODELS: Model[] = [
       thinkingBudget: 512,
       maxImageShortsidePx: null,
       mediaResolution: 'high'
-    }
+    },
+    supportsFilesApi: true
   }
 ];
 

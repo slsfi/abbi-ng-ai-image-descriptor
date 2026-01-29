@@ -35,6 +35,16 @@ export interface Model {
   url: string;
   description?: string;
   parameters?: ModelParameters;
+
+  /**
+   * Indicates whether the model/provider supports using a Files API
+   * (file URIs instead of inline image data) for multimodal requests.
+   *
+   * Optional: undefined means "not supported".
+   * 
+   * ! ONLY implemented for Google models currently!
+   */
+  supportsFilesApi?: boolean
 };
 
 export type Models = Model[];

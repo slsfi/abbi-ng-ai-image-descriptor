@@ -183,60 +183,6 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     this.setImageGenerating(imageObj, false);
   }
 
-  private async transcribeAndTeiEncode(imageObj: ImageData) {
-    this.setGlobalGenerating(true);
-    this.setImageGenerating(imageObj, true);
-
-    const settings: RequestSettings = this.settings.getSettings();
-    const promptTemplate = {
-      transcription: this.constructPromptTemplate(),
-      teiEncoding: this.getTeiEncodePromptTemplate()
-    }
-
-    let transcriptionDesc: DescriptionData | null = null;
-
-    // Loop over two passes:
-    // 1. transcribe text in image
-    // 2. TEI-encode transcription from previous pass
-    for (const teiEncodingPass of [false, true]) {
-      if (!this.generating) {
-        // Generation has been stopped by user
-        break;
-      }
-
-      this.teiEncoding.set(teiEncodingPass);
-
-      const prompt: string = (teiEncodingPass && transcriptionDesc)
-        ? this.getTeiEncodePromptForTranscription(promptTemplate.teiEncoding, transcriptionDesc.description)
-        : this.constructPrompt(promptTemplate.transcription, imageObj);
-      
-      const res = await this.runAiTask('image', settings, prompt, true, imageObj);
-
-      if (res) {
-        if (teiEncodingPass) {
-          // in the TEI encoding pass, store the transcribed and encoded data in a new
-          // description and add metrics from the transcription pass
-          const totalUsage = {
-            inputTokens: (transcriptionDesc?.inputTokens ?? 0) + (res.usage?.inputTokens ?? 0),
-            outputTokens: (transcriptionDesc?.outputTokens ?? 0) + (res.usage?.outputTokens ?? 0)
-          };
-          const totalCost = (transcriptionDesc?.cost ?? 0) + res.cost;
-          const desc = this.buildDescription(settings, res.text, totalUsage, totalCost, settings.language, true);
-          this.commitDescription(imageObj, desc);
-        } else {
-          // in the transcription pass, store the transcription data in a temporary variable
-          transcriptionDesc = this.buildDescription(settings, res.text, res.usage, res.cost, settings.language, false);
-        }
-      } else {
-        break;
-      }
-    }
-
-    this.setGlobalGenerating(false);
-    this.setImageGenerating(imageObj, false);
-    this.teiEncoding.set(false);
-  }
-
   private async generateImageDescriptionsAll() {
     this.setGlobalGenerating(true);
 
@@ -276,43 +222,63 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     this.setGlobalGenerating(false);
   }
 
-  private async transcribeAndTeiEncodeAll() {
+  /**
+   * Performs a two-pass workflow for a single image:
+   *
+   * 1. Transcription of the image text
+   * 2. TEI XML encoding of the transcription
+   *
+   * When the selected model supports the Files API, the image is uploaded once
+   * and referenced by URI in both passes, avoiding redundant inline image data.
+   * Otherwise, the image is sent inline in both requests, preserving existing
+   * behavior.
+   *
+   * Important invariants:
+   * - This method is only called when taskType is "transcription" and TEI
+   *   encoding is enabled.
+   * - Both passes are multimodal: the model always sees the image, because
+   *   layout and structure are relevant for TEI encoding.
+   * - Uploaded Files API images are deleted after both passes complete
+   *   (or on early exit).
+   *
+   * The resulting transcription and TEI-encoded description are committed
+   * to the image once both passes succeed.
+   *
+   * @param imageObj The image to transcribe and TEI-encode
+   */
+  private async transcribeAndTeiEncode(imageObj: ImageData) {
     this.setGlobalGenerating(true);
-    
-    let counter = 0;
-    let lastRequestAt: number | null = null;
+    this.setImageGenerating(imageObj, true);
+
     const settings: RequestSettings = this.settings.getSettings();
+    const useFilesApi = !!settings.model?.supportsFilesApi;
+
     const promptTemplate = {
       transcription: this.constructPromptTemplate(),
       teiEncoding: this.getTeiEncodePromptTemplate()
     }
 
-    loopImages: for (const imageObj of this.imageListService.imageList) {
-      counter++;
-      this.openProgressSnack(`Transcribing and TEI encoding ${counter}/${this.imageListService.imageList.length}`);
+    let transcriptionDesc: DescriptionData | null = null;
 
-      let transcriptionDesc: DescriptionData | null = null;
-
+    // Loop over two passes:
+    // 1. transcribe text in image
+    // 2. TEI-encode transcription from previous pass
+    try {
       for (const teiEncodingPass of [false, true]) {
         if (!this.generating) {
           // Generation has been stopped by user
-          break loopImages;
+          break;
         }
 
-        // Throttle (only when rpm < 100)
-        lastRequestAt = await this.enforceRpm(settings.model?.rpm, lastRequestAt);
-        if (!this.generating) {
-          break loopImages;
-        }
-
-        this.setImageGenerating(imageObj, true);
         this.teiEncoding.set(teiEncodingPass);
 
         const prompt: string = (teiEncodingPass && transcriptionDesc)
           ? this.getTeiEncodePromptForTranscription(promptTemplate.teiEncoding, transcriptionDesc.description)
           : this.constructPrompt(promptTemplate.transcription, imageObj);
-        
-        const res = await this.runAiTask('image', settings, prompt, true, imageObj);
+
+        const res = useFilesApi
+          ? await this.runAiTaskSingleImageFilesApi(settings, prompt, true, imageObj)
+          : await this.runAiTask('image', settings, prompt, true, imageObj);
 
         if (res) {
           if (teiEncodingPass) {
@@ -330,12 +296,115 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
             transcriptionDesc = this.buildDescription(settings, res.text, res.usage, res.cost, settings.language, false);
           }
         } else {
-          break loopImages;
+          break;
         }
-
-        this.setImageGenerating(imageObj, false);
       }
+    } finally {
+      if (useFilesApi) {
+        // Delete uploaded files after both passes (or early exit)
+        await this.aiService.deleteUploadedFile(imageObj);
+      }
+
+      this.setGlobalGenerating(false);
+      this.setImageGenerating(imageObj, false);
       this.teiEncoding.set(false);
+    }
+  }
+
+  /**
+   * Performs transcription followed by TEI XML encoding for all images
+   * in the image list, processing each image sequentially.
+   *
+   * For each image, this method runs the same two-pass workflow as
+   * `transcribeAndTeiEncode()`:
+   * - Pass 1: transcription
+   * - Pass 2: TEI encoding
+   *
+   * Files API–capable models upload each image once and reuse the file URI
+   * across both passes. Inline-image behavior is preserved for models that
+   * do not support the Files API.
+   *
+   * Additional responsibilities handled here:
+   * - Enforcing per-model rate limits (RPM)
+   * - Progress feedback to the user
+   * - Graceful early termination if generation is cancelled
+   * - Per-image cleanup of uploaded Files API images after both passes
+   *
+   * This method assumes that the current task type is transcription and
+   * that TEI encoding is enabled.
+   */
+  private async transcribeAndTeiEncodeAll() {
+    this.setGlobalGenerating(true);
+    
+    let counter = 0;
+    let lastRequestAt: number | null = null;
+    const settings: RequestSettings = this.settings.getSettings();
+    const useFilesApi = !!settings.model?.supportsFilesApi;
+
+    const promptTemplate = {
+      transcription: this.constructPromptTemplate(),
+      teiEncoding: this.getTeiEncodePromptTemplate()
+    }
+
+    loopImages: for (const imageObj of this.imageListService.imageList) {
+      counter++;
+      this.openProgressSnack(`Transcribing and TEI encoding ${counter}/${this.imageListService.imageList.length}`);
+
+      let transcriptionDesc: DescriptionData | null = null;
+
+      try {
+        for (const teiEncodingPass of [false, true]) {
+          if (!this.generating) {
+            // Generation has been stopped by user
+            break loopImages;
+          }
+
+          // Throttle (only when rpm < 100)
+          lastRequestAt = await this.enforceRpm(settings.model?.rpm, lastRequestAt);
+          if (!this.generating) {
+            break loopImages;
+          }
+
+          this.setImageGenerating(imageObj, true);
+          this.teiEncoding.set(teiEncodingPass);
+
+          const prompt: string = (teiEncodingPass && transcriptionDesc)
+            ? this.getTeiEncodePromptForTranscription(promptTemplate.teiEncoding, transcriptionDesc.description)
+            : this.constructPrompt(promptTemplate.transcription, imageObj);
+
+          const res = useFilesApi
+            ? await this.runAiTaskSingleImageFilesApi(settings, prompt, true, imageObj)
+            : await this.runAiTask('image', settings, prompt, true, imageObj);
+
+          if (res) {
+            if (teiEncodingPass) {
+              // in the TEI encoding pass, store the transcribed and encoded data in a new
+              // description and add metrics from the transcription pass
+              const totalUsage = {
+                inputTokens: (transcriptionDesc?.inputTokens ?? 0) + (res.usage?.inputTokens ?? 0),
+                outputTokens: (transcriptionDesc?.outputTokens ?? 0) + (res.usage?.outputTokens ?? 0)
+              };
+              const totalCost = (transcriptionDesc?.cost ?? 0) + res.cost;
+              const desc = this.buildDescription(settings, res.text, totalUsage, totalCost, settings.language, true);
+              this.commitDescription(imageObj, desc);
+            } else {
+              // in the transcription pass, store the transcription data in a temporary variable
+              transcriptionDesc = this.buildDescription(settings, res.text, res.usage, res.cost, settings.language, false);
+            }
+          } else {
+            break loopImages;
+          }
+
+          this.setImageGenerating(imageObj, false);
+        }
+      } finally {
+        if (useFilesApi) {
+          // per-image cleanup after both passes (or if we exit early)
+          await this.aiService.deleteUploadedFile(imageObj);
+        }
+        this.setImageGenerating(imageObj, false);
+        this.teiEncoding.set(false);
+      }
     }
 
     this.closeProgressSnack();
@@ -999,11 +1068,70 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       return { text, usage: result?.usage, cost };
     } catch (e) {
       console.error(e);
-      this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model?.provider} API: ${e}`);
+      this.showAPIErrorMessage(
+        `An unknown error occurred while communicating with the ${settings.model?.provider} API: ${e}`
+      );
 
       if (stopOnError) {
         this.setGlobalGenerating(false);
       }
+      return null;
+    }
+  }
+
+  /**
+   * Runs a single-image multimodal AI request using the provider's Files API.
+   *
+   * This is a thin convenience wrapper around the existing Files API–based
+   * multi-image pipeline, restricted to exactly one image.
+   *
+   * Key characteristics:
+   * - The image is uploaded (or reused if already uploaded) via the Files API
+   *   and referenced by URI in the request instead of being sent inline.
+   * - The uploaded file is intentionally NOT deleted here, so that the same
+   *   file URI can be reused across multiple requests (e.g. transcription pass
+   *   followed by TEI encoding pass).
+   * - Cleanup of uploaded files must be handled by the caller once all passes
+   *   for the image are complete.
+   *
+   * This helper is only meant to be used for models that explicitly support
+   * Files API–based image handling.
+   *
+   * @param settings Request settings including the selected model
+   * @param prompt   Fully constructed prompt text
+   * @param stopOnError Whether a failure should stop generation immediately
+   * @param imageObj The image to process
+   * @returns The AI response text, token usage and cost, or null on failure
+   */
+  private async runAiTaskSingleImageFilesApi(
+    settings: RequestSettings,
+    prompt: string,
+    stopOnError: boolean,
+    imageObj: ImageData
+  ): Promise<{ text: string; usage: any; cost: number } | null> {
+    try {
+      const result = await this.aiService.describeImagesFilesApi(settings, prompt, [imageObj]);
+      const text = result?.text ?? '';
+
+      if (!text && result?.error) {
+        this.handleApiFailure(settings, result, stopOnError, imageObj);
+        return null;
+      }
+
+      const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
+
+      return { text, usage: result?.usage, cost };
+    } catch (e) {
+      console.error(e);
+      this.showAPIErrorMessage(
+        `An unknown error occurred while communicating with the ${settings.model?.provider} API: ${e}`
+      );
+
+      if (stopOnError) {
+        this.setGlobalGenerating(false);
+        this.setImageGenerating(imageObj, false);
+      }
+
       return null;
     }
   }
