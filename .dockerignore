@@ -2,6 +2,8 @@
 
 dist
 node_modules
+server/node_modules
 .angular
 .vscode
 .idea
+.git

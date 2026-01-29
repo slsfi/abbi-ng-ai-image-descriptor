@@ -1,10 +1,7 @@
+# Dockerfile.web
 # This Dockerfile leverages multi-stage builds so
 # only necessary build artifacts and resources are
 # included in the final image.
-
-# Define Angular major version used by the app, used to install
-# corresponding Angular CLI globally.
-ARG ANGULAR_MAJOR_VERSION=20
 
 # Enable passing the tag of the Node.js image as a build argument,
 # and define a default tag in case the build argument is not passed.
@@ -18,26 +15,25 @@ ARG NODE_IMAGE_TAG=22-alpine
 # https://hub.docker.com/_/nginx.
 ARG NGINX_IMAGE_TAG=1.28.0-alpine
 
-# 1. Create intermediate build image from official Node.js image.
+# 1) Build Angular app
 FROM node:${NODE_IMAGE_TAG} AS build
-# Redeclare ARG-variable to make it available in this stage.
-ARG ANGULAR_MAJOR_VERSION
-# Change working directory.
-WORKDIR /abbi-ng-ai-image-descriptor
-# Copy all files to the working directory.
+WORKDIR /app
+
+# Install deps with caching
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copy sources and build
 COPY . .
-# Install the Angular CLI globally.
-RUN npm install -g @angular/cli@${ANGULAR_MAJOR_VERSION}
-# Install app dependencies.
-RUN npm install
-# Build the Angular app.
 RUN npm run build
 
-
-# 2. Create final image from official nginx image.
+# 2) Serve with nginx
 FROM nginx:${NGINX_IMAGE_TAG} AS final
+# Copy nginx conf file
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 # Copy the dist/browser folder from the build image to the final, runtime image.
-COPY --from=build /abbi-ng-ai-image-descriptor/dist/browser /usr/share/nginx/html
+COPY --from=build /app/dist/browser /usr/share/nginx/html
+
 # Expose port 80 to the outside world
 EXPOSE 80
 # Start nginx server

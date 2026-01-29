@@ -1,6 +1,15 @@
+# Image versions are pinned explicitly for clarity and reproducibility.
+# Update both image tags together when deploying a new release.
+
 services:
-  web:
-    image: ghcr.io/slsfi/abbi-ng-ai-image-descriptor:2.1.0
+  nginx:
+    image: ghcr.io/slsfi/abbi-ng-ai-image-descriptor-web:latest
     ports:
       - "8082:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  api:
+    image: ghcr.io/slsfi/abbi-ng-ai-image-descriptor-api:latest
     restart: unless-stopped
