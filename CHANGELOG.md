@@ -15,6 +15,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Preview with syntax highlighting of TEI-transcriptions in the edit description dialog.
 - Support for Files API image uploading in non-batched transcription and TEI-encoding.
 
+### Changed
+
+- Deps: update `openai` to 6.17.0.
+
 ### Fixed
 
 - Improve TEI encoding prompts.
