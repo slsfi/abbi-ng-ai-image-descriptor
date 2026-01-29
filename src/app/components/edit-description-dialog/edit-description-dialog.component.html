@@ -80,7 +80,7 @@
       </div>
     </div>
     <div class="textarea-container" [class.tei-encoding]="teiEncoding">
-      <h2>@if (!previewShownValue) { Edit } @else { View } {{ taskNoun.singular }}</h2>
+      <h2>Edit {{ taskNoun.singular }} @if (previewShownValue) { – preview mode }</h2>
       @if (previewShownValue) {
         <pre class="language-markup"><code
               class="language-markup"
