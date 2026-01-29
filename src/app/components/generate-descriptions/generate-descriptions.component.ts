@@ -1171,7 +1171,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
           // delete the uploaded files
           await Promise.allSettled(
             images
-              .filter(img => img.filesApiProvider === settings.model.provider && !!img.filesApiId)
+              .filter(img => !!img.filesApiId)
               .map(img => this.aiService.deleteUploadedFile(img))
           );
         }
