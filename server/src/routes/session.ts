@@ -19,6 +19,11 @@
  * Security notes:
  * - API keys are stored in process memory only and are lost on restart.
  * - This is a deliberate design choice for low-ops deployments.
+ * 
+ * API key validation strategy:
+ * - Provider API keys are validated exactly once, at session creation time.
+ * - Validation is performed server-to-server using the official SDK.
+ * - Subsequent API calls rely on the existence of a valid session.
  */
 
 import express, { type Request, type Response } from 'express';

@@ -15,6 +15,21 @@
  * - The OpenAI key is stored in memory only (sessionStore) and never persisted.
  * - Authentication is possession of a valid session cookie (HttpOnly).
  *
+ * Note on OpenAI client creation:
+ *
+ * A new OpenAI client instance is created per request.
+ * This is intentional and inexpensive:
+ * - client instances are lightweight
+ * - HTTP connections are pooled by the underlying runtime
+ * - avoids stale credentials or invalidation complexity
+ * 
+ * Note on API key validation:
+ *
+ * This endpoint does NOT re-validate API keys.
+ * Keys are validated when the session is created via POST /api/session/start.
+ * If a key becomes invalid later, the OpenAI SDK call will fail and the error
+ * is returned to the client.
+ * 
  * Non-goals (for now):
  * - Streaming responses
  * - Rate limiting
