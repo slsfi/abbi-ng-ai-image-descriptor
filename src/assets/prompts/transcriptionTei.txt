@@ -343,15 +343,13 @@ For HANDWRITTEN source material:
 
 ## MILESTONES (`<milestone/>`)
 
-Use `<milestone/>` ONLY to encode *marginal reference markers* that identify
-logical units in a running reference system (e.g. numbered riddles, examples,
-catalogue items).
+Use `<milestone/>` ONLY to encode *marginal reference markers* that identify logical units in a running reference system (e.g. numbered riddles, examples, catalogue items).
 
 ### Typical use cases
 
-- Running item numbers that continue across pages or divisions
+- Marginal running item numbers that continue across pages or divisions
 - Marginal reference markers that do NOT create textual divisions
-- Reference labels consisting of:
+- Marginal reference labels consisting of:
   - a number alone (e.g. `55.`), OR
   - a number plus a short label (e.g. `2. Motsats och likhet.`)
 
@@ -365,7 +363,25 @@ catalogue items).
 
 - Place the `<milestone/>` at the point where the referenced unit begins.
 
-### Example
+### Marginal ONLY (STRICT)
+
+- Use `<milestone/>` ONLY for markers printed in the margin and clearly functioning as marginal reference labels.
+- Do NOT use `<milestone/>` for inline numbers or markers that appear as part of the running text (e.g. paragraphs).
+
+### Distinction from notes
+
+- If the marginal content contains only a reference marker (number/label), use `<milestone/>`.
+- If the marginal content contains explanatory or linguistic text, use `<note place="margin">`.
+
+### FORBIDDEN
+
+- Do NOT use `<milestone/>` for:
+  - inline markers (for example part of paragraphs)
+  - blank lines or spacing
+  - decorative separators (asterisks, bars, ornaments)
+  - layout-only features
+
+### Examples
 
 ```
 <milestone unit="item" n="2. Motsats och likhet."/>
@@ -377,28 +393,6 @@ catalogue items).
 <p>4. Brandvakten i tornet.</p>
 <p>Vemm ji he, som ji høkst i stán? [...]</p>
 ```
-
-### Marginal ONLY (STRICT)
-
-- Use `<milestone/>` ONLY for markers printed in the margin or clearly functioning
-as marginal reference labels.
-- Do NOT use `<milestone/>` for inline numbers or markers that appear as part of
-the running text.
-
-### Distinction from notes
-
-- If the marginal content contains only a reference marker (number/label),
-use `<milestone/>`.
-- If the marginal content contains explanatory or linguistic text, use
-`<note place="margin">`.
-
-### FORBIDDEN
-
-- Do NOT use `<milestone/>` for:
-  - inline markers
-  - blank lines or spacing
-  - decorative separators (asterisks, bars, ornaments)
-  - layout-only features
 
 --------------------------------------------------
 
