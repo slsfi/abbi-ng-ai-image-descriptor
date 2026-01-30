@@ -24,6 +24,8 @@
 import express, { type Request, type Response } from 'express';
 import OpenAI from 'openai';
 
+import { withCsrfProtection } from '../middleware/csrfSync.js';
+
 /**
  * Express router for session operations.
  *
@@ -98,6 +100,18 @@ async function validateOpenAiKey(apiKey: string, orgKey?: string): Promise<void>
  * - This endpoint performs server-to-server validation to avoid CORS and to ensure
  *   the key works before storing it in memory.
  * - This endpoint is intentionally NOT CSRF-protected because it creates the session.
+ * 
+ * IMPORTANT CSRF NOTE:
+ * This endpoint is intentionally NOT protected by CSRF middleware.
+ *
+ * Rationale:
+ * - CSRF tokens are tied to a server-side session.
+ * - A session is established by this endpoint.
+ * - The client cannot obtain a CSRF token before the session exists.
+ *
+ * After a session is created, the frontend must fetch a CSRF token via
+ * GET /api/csrf/token and include it in `x-csrf-token` for all subsequent
+ * unsafe requests.
  */
 sessionRouter.post(
   '/start',
@@ -141,8 +155,12 @@ sessionRouter.post(
  *
  * Notes:
  * - If no session exists, this still returns ok=true to keep client logic simple.
+ * 
+ * CSRF:
+ * - This endpoint IS CSRF-protected, because it is state-changing and relies on
+ *   cookie-based authentication (session cookie).
  */
-sessionRouter.post('/clear', (req: Request, res: Response<SessionResponse>) => {
+sessionRouter.post('/clear', withCsrfProtection, (req: Request, res: Response<SessionResponse>) => {
   req.session.destroy((err) => {
     if (err) {
       // Do not leak internals; the client can retry.
