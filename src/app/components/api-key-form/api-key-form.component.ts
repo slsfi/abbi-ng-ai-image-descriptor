@@ -71,7 +71,7 @@ export class ApiKeyFormComponent implements OnInit, OnDestroy {
         } else if (status === 'VALID') {
           this.apiKeyValidationMessage = 'The API key is valid.';
           const key = (this.apiKeyFC.value ?? '').trim();
-          this.aiService.updateClient(key);
+          // this.aiService.updateClient(key);
           this.apiKeyValidated.emit(key);
         } else {
           this.apiKeyValidationMessage = null;

@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import { from, Observable } from 'rxjs';
-import OpenAI from 'openai';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { firstValueFrom, catchError, map, Observable, of } from 'rxjs';
 
 import { AiResult } from '../types/ai.types';
 import { RequestSettings } from '../types/settings.types';
@@ -9,43 +9,39 @@ import { RequestSettings } from '../types/settings.types';
   providedIn: 'root'
 })
 export class OpenAiService {
-  apiKey: string = '';
-  client: any = null;
-  modelList: any[] = [];
+  private readonly http = inject(HttpClient);
 
-  updateClient(apiKey: string, orgKey?: string): void {
-    if (apiKey !== this.apiKey) {
-      this.apiKey = apiKey;
-      this.client = new OpenAI({
-        apiKey: apiKey,
-        dangerouslyAllowBrowser: true,
-        ...(orgKey && { organization: orgKey })
-      });
-    }
-  }
-
+  /**
+   * Validates the API key by starting a backend session.
+   *
+   * Backend behavior (per your new architecture):
+   * - Validates the key once
+   * - Stores it only in the server-side session (memory)
+   * - Requires CSRF on POST (handled by your Angular interceptor)
+   *
+   * Return value:
+   * - `true` if the session was started successfully (key accepted)
+   * - `false` for any error (key invalid, network error, CSRF/session issue)
+   */
   isValidApiKey(apiKey: string): Observable<boolean> {
-    const client = new OpenAI({
-      apiKey: apiKey,
-      dangerouslyAllowBrowser: true
-    });
-
-    return from(
-      client.models.list().then(
-        (result: any) => {
-          this.modelList = result.data;
-          // console.log(this.modelList);
-          return true;
-        }
-      ).catch(() => false)
+    return this.http.post('/api/session/start', { provider: 'OpenAI', apiKey }).pipe(
+      map(() => true),
+      catchError(() => of(false))
     );
   }
 
+  /**
+   * Sends an image description request via the backend relay.
+   *
+   * Why:
+   * - Avoids calling OpenAI directly from the browser (CORS + API key exposure).
+   * - The backend stores the API key only in the server-side session.
+   *
+   * Requirements:
+   * - A valid OpenAI session must exist (created via POST /api/session/start).
+   * - Cookies + CSRF are handled by Angular interceptors.
+   */
   async describeImage(settings: RequestSettings, prompt: string, base64Image: string): Promise<AiResult> {
-    if (!this.client) {
-      return { text: '', error: { code: 401, message: 'OpenAI API key not set.' } };
-    }
-
     // console.log('Prompt:', prompt);
     if (!prompt) {
       return { text: '', error: { code: 400, message: 'Missing prompt' } };
@@ -83,18 +79,13 @@ export class OpenAiService {
     // console.log(payload);
 
     try {
-      const resp = await this.client.responses.create(payload);
-      return this.responseToAiResult(resp);
+      return this.postResponses(payload);
     } catch (e) {
       return this.toAiResultErrorOpenAi(e);
     }
   }
 
-  async responsesTextTask(settings: RequestSettings, prompt: string): Promise<AiResult> {
-    if (!this.client) {
-      return { text: '', error: { code: 401, message: 'OpenAI API key not set.' } };
-    }
-    
+  async responsesTextTask(settings: RequestSettings, prompt: string): Promise<AiResult> {   
     if (!prompt) {
       return { text: '', error: { code: 400, message: 'Missing prompt.' } };
     }
@@ -109,63 +100,35 @@ export class OpenAiService {
     // console.log(payload);
 
     try {
-      const resp = await this.client.responses.create(payload);
-      return this.responseToAiResult(resp);
+      return this.postResponses(payload);
     } catch (e) {
       return this.toAiResultErrorOpenAi(e);
     }
   }
 
-  private responseToAiResult(response?: any): AiResult {
-    return {
-      text: this.resolveResponseText(response),
-      usage: {
-        inputTokens: this.resolveinputTokenCount(response),
-        outputTokens: this.resolveOutputTokenCount(response)
-      },
-      raw: response
-    };
+  private async postResponses(payload: Record<string, unknown>): Promise<AiResult> {
+    try {
+      return await firstValueFrom(
+        this.http.post<AiResult>('/api/openai/responses', { payload })
+      );
+    } catch (e) {
+      return this.toAiResultErrorOpenAi(e);
+    }
   }
 
-  private resolveResponseText(response?: any): string {
-    return response?.output_text ?? '';
-  } 
-
-  private resolveinputTokenCount(response?: any): number {
-    return response?.usage?.input_tokens ?? 0;
-  }
-
-  private resolveOutputTokenCount(response?: any): number {
-    return response?.usage?.output_tokens ?? 0;
-  }
-
-  /**
-   * Normalizes any thrown error into a valid `AiResult` error response.
-   *
-   * This method guarantees that:
-   *  - The returned object always conforms to `AiResult`
-   *  - `text` is present (empty string) so downstream code can rely on it
-   *  - `OpenAI.APIError` instances are mapped to a clean `{ code, message }` shape
-   *  - Unexpected errors are safely converted to a generic 500 error
-   */
-  private toAiResultErrorOpenAi(e: any): AiResult {
-    if (e instanceof OpenAI.APIError) {
-      console.error('OpenAI API Error:', e);
-      return {
-        text: '',
-        error: {
-          code: e.code ?? e.status ?? 400,
-          message: String(e.message ?? 'OpenAI API error.')
-        },
-        raw: e
-      };
+  private toAiResultErrorOpenAi(e: unknown): AiResult {
+    if (e instanceof HttpErrorResponse) {
+      const msg =
+        typeof e.error?.error?.message === 'string' ? e.error.error.message :
+        typeof e.error?.message === 'string' ? e.error.message :
+        'Backend request failed.';
+      return { text: '', error: { code: e.status || 502, message: msg } };
     }
 
-    console.error('Unexpected Error:', e);
+    const anyErr = e as any;
     return {
       text: '',
-      error: { code: 500, message: 'Internal Server Error.' },
-      raw: e
+      error: { code: anyErr?.code ?? anyErr?.status ?? 500, message: anyErr?.message ?? 'OpenAI API error.' }
     };
   }
 

@@ -1,7 +1,15 @@
-name: "Build and push docker image"
+name: "Build and push docker images"
 
 # Run this workflow when a new commit in the "main" branch
 # or release/tag is pushed.
+#
+# This repository now produces TWO docker images:
+# 1) Web image (nginx) that serves the Angular SPA and reverse-proxies /api/* to the backend.
+# 2) API image (node) that runs the Express backend that talks to OpenAI/Google server-to-server.
+#
+# Both images must be pushed so production deployments can `docker compose pull`
+# and update to the new version on the server.
+
 on:
   push:
     branches:
@@ -15,19 +23,23 @@ on:
 
 # Allow job to read repository and write image/package to ghcr.io.
 permissions:
-    contents: read
-    packages: write
+  contents: read
+  packages: write
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+
     env:
       # Define tag of official Node.js image to be used as the base image
-      # for the build, this is passed as a build argument to Dockerfile
-      # https://hub.docker.com/_/node/.
+      # for builds. This is passed as a build argument to:
+      # - Dockerfile.web
+      # - server/Dockerfile
+      # https://hub.docker.com/_/node/
       NODE_IMAGE_TAG: 22-alpine
+
       # Define tag of official nginx image to be used as the final image
-      # for the build, this is passed as a build argument to Dockerfile
+      # for the web build. This is passed as a build argument to Dockerfile.web.
       # https://hub.docker.com/_/nginx
       NGINX_IMAGE_TAG: 1.28.0-alpine
 
@@ -45,6 +57,10 @@ jobs:
 
       # Pull latest Node image with tag defined above, otherwise an older
       # cached image might be used.
+      #
+      # Note: BuildKit would generally pull base images as needed, but explicitly
+      # pulling here keeps behavior consistent with the previous workflow and
+      # makes base image updates very explicit.
       - name: Pull latest Node.js image
         run: docker pull node:${{ env.NODE_IMAGE_TAG }}
 
@@ -53,25 +69,74 @@ jobs:
       - name: Pull latest nginx image
         run: docker pull nginx:${{ env.NGINX_IMAGE_TAG }}
 
-      # Pull metadata from GitHub events (so we can use release version
-      # number).
-      - name: Pull metadata from GitHub
-        id: meta
+      # Pull metadata from GitHub events (so we can use release version number).
+      #
+      # IMPORTANT:
+      # We now build TWO images, so we need TWO metadata-action steps,
+      # each with a different image name.
+      #
+      # Convention:
+      # - Web image: ghcr.io/<org>/<repo>-web
+      # - API image: ghcr.io/<org>/<repo>-api
+      #
+      # This matches the Compose setup where nginx and api are separate services.
+      - name: Pull metadata for web image from GitHub
+        id: meta_web
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ github.repository }}-web
 
-      # Build image, tagging with the release tag and "latest" on a release, 
-      # or with "main" if built against main (commit push) or built using
-      # workflow_dispatch.
-      - name: Build and push docker image
+      - name: Pull metadata for api image from GitHub
+        id: meta_api
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}-api
+
+      # Build and push WEB docker image (Angular build + nginx runtime).
+      #
+      # Dockerfile:
+      # - Dockerfile.web
+      #
+      # Tags:
+      # - On a pushed git tag (release): version tag (and typically "latest")
+      # - On main branch push: "main"
+      # - On workflow_dispatch: usually also "main" (depending on metadata-action defaults)
+      #
+      # Build args:
+      # - NODE_IMAGE_TAG and NGINX_IMAGE_TAG define the base images used in Dockerfile.web
+      - name: Build and push web docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          file: Dockerfile
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          file: Dockerfile.web
+          tags: ${{ steps.meta_web.outputs.tags }}
+          labels: ${{ steps.meta_web.outputs.labels }}
           build-args: |
             NODE_IMAGE_TAG=${{ env.NODE_IMAGE_TAG }}
             NGINX_IMAGE_TAG=${{ env.NGINX_IMAGE_TAG }}
+
+      # Build and push API docker image (Node/Express backend runtime).
+      #
+      # Dockerfile:
+      # - server/Dockerfile
+      #
+      # Tags:
+      # - Use the same tagging scheme as the web image so that deployments can
+      #   pull matching versions of both images.
+      #
+      # Build args:
+      # - NODE_IMAGE_TAG defines the base Node image used in server/Dockerfile
+      #
+      # Note:
+      # The API image does not use nginx, so NGINX_IMAGE_TAG is not needed here.
+      - name: Build and push api docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          file: server/Dockerfile
+          tags: ${{ steps.meta_api.outputs.tags }}
+          labels: ${{ steps.meta_api.outputs.labels }}
+          build-args: |
+            NODE_IMAGE_TAG=${{ env.NODE_IMAGE_TAG }}
