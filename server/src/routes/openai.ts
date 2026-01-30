@@ -70,8 +70,7 @@ function toAiResult(resp: any): AiResult {
     usage:
       typeof inputTokens === 'number' && typeof outputTokens === 'number'
         ? { inputTokens, outputTokens }
-        : undefined,
-    raw: resp
+        : undefined
   };
 }
 
@@ -95,8 +94,7 @@ function toErrorResult(e: unknown): AiResult {
 
   return {
     text: '',
-    error: { code, message },
-    raw: anyErr
+    error: { code, message }
   };
 }
 

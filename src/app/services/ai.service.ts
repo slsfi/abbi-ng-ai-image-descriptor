@@ -21,9 +21,7 @@ export class AiService {
 
   updateClient(apiKey: string, orgKey?: string): void {
     const provider = this.providerFromUI();
-    if (provider === 'OpenAI') {
-      this.openAi.updateClient(apiKey, orgKey);
-    } else if (provider === 'Google') {
+    if (provider === 'Google') {
       this.google.updateClient(apiKey);
     }
   }
