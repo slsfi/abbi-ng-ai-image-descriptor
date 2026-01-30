@@ -9,17 +9,21 @@
  * - Mount API routers under /api/*
  * - Start the HTTP server on the configured port
  *
- * CSRF strategy (Lusca only):
- * - Use `lusca.csrf()` immediately after session middleware (CodeQL-recognized).
- * - Exempt ONLY the session bootstrap endpoint (POST /api/session/start) by
- *   registering it BEFORE `lusca.csrf()` is mounted.
- * - Provide a CSRF token endpoint (GET /api/csrf/token) that returns
- *   `req.csrfToken()` (provided by lusca/csurf) to the SPA.
+ * CSRF strategy (Lusca-only, CodeQL-friendly):
+ * - Mount `lusca.csrf()` immediately after express-session.
+ * - Do NOT exempt any state-changing routes from CSRF.
  *
- * Client contract:
- * - Call POST /api/session/start (no CSRF token required)
- * - Call GET /api/csrf/token and store the returned token in memory
- * - Send the token in the `x-csrf-token` header for all unsafe requests
+ * Bootstrap flow for the SPA:
+ * 1) GET  /api/csrf/token
+ *    - Safe method (no CSRF required)
+ *    - Initializes session CSRF secret and returns a token
+ * 2) POST /api/session/start
+ *    - Requires `x-csrf-token` header
+ * 3) Subsequent unsafe requests also require `x-csrf-token`
+ *
+ * Rationale:
+ * - Avoids any CSRF-exempt POST route, which static analyzers typically flag
+ *   when cookie/session middleware is used.
  */
 
 import express from 'express';
@@ -28,7 +32,7 @@ import lusca from 'lusca';
 import crypto from 'node:crypto';
 
 import { healthRouter } from './routes/health.js';
-import { sessionRouter, startSessionHandler } from './routes/session.js';
+import { sessionRouter } from './routes/session.js';
 import { openaiRouter } from './routes/openai.js';
 import { csrfRouter } from './routes/csrf.js';
 
@@ -46,27 +50,16 @@ const JSON_BODY_LIMIT = '50mb';
  */
 const DEFAULT_PORT = 3000;
 
-/**
- * Create the Express app instance.
- */
 const app = express();
 
-/**
- * If nginx terminates TLS and forwards requests, this makes req.protocol accurate.
- */
 app.set('trust proxy', true);
 
-/**
- * Global middleware.
- *
- * - express.json() parses application/json bodies.
- */
 app.use(express.json({ limit: JSON_BODY_LIMIT }));
 
 /**
  * Require a strong session secret in production.
  *
- * - In production, SESSION_SECRET must be provided (e.g. via Jenkins env var).
+ * - In production, SESSION_SECRET must be provided (e.g. Jenkins credential binding).
  * - In development, generate a per-process secret (sessions reset on restart).
  */
 const isProd = process.env.NODE_ENV === 'production';
@@ -102,34 +95,26 @@ app.use(
       sameSite: isProd ? 'strict' : 'lax',
       secure: isProd,
       path: '/',
-      maxAge: 30 * 60_000,
-    },
+      maxAge: 30 * 60_000
+    }
   })
 );
 
 /**
- * Session bootstrap endpoint (CSRF-exempt).
- *
- * This MUST be registered before lusca.csrf(), because a CSRF token cannot
- * exist prior to session creation and the first token fetch.
- *
- * Route: POST /api/session/start
- */
-app.post('/api/session/start', startSessionHandler);
-
-/**
  * CSRF protection middleware (lusca.csrf).
  *
- * This must run after express-session and before any state-changing handlers
- * that rely on the session cookie.
+ * Must run after express-session and before any state-changing routes that rely on
+ * cookie-based authentication.
+ *
+ * The SPA supplies the token via the `x-csrf-token` header.
  */
 app.use(lusca.csrf());
 
 /**
  * CSRF token endpoint.
  *
- * This is a safe GET endpoint. The frontend should call it after session bootstrap
- * and then send `x-csrf-token` on unsafe requests.
+ * The SPA calls GET /api/csrf/token first to obtain a token. This also initializes
+ * the per-session CSRF secret and causes a session cookie to be issued.
  */
 app.use('/api/csrf', csrfRouter);
 
@@ -139,22 +124,15 @@ app.use('/api/csrf', csrfRouter);
 app.use('/api/health', healthRouter);
 
 /**
- * Session routes (other than /start).
- *
- * Note: routes/session.ts still defines POST /start for modularity, but it is
- * effectively shadowed by the explicit app.post('/api/session/start', ...) above.
- * You MAY remove the router's /start route later if you want stricter routing.
+ * Session routes (CSRF-protected by lusca.csrf()).
  */
 app.use('/api/session', sessionRouter);
 
 /**
- * Protected API routes (CSRF enforced by lusca.csrf).
+ * Protected API routes (CSRF-protected by lusca.csrf()).
  */
 app.use('/api/openai', openaiRouter);
 
-/**
- * Start the server.
- */
 const port = process.env.PORT ? Number(process.env.PORT) : DEFAULT_PORT;
 
 app.listen(port, () => {
