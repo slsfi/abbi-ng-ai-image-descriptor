@@ -5,18 +5,24 @@
  *
  * Responsibilities:
  * - Create and configure the Express application
- * - Configure global middleware (JSON body parsing, cookies)
+ * - Configure global middleware (JSON body parsing, cookie/sessions)
  * - Mount API routers under /api/*
  * - Start the HTTP server on the configured port
  *
- * Notes:
- * - This backend is intended to be deployed behind nginx in production.
- * - In development, it typically runs on http://localhost:3000 and Angular
- *   proxies /api requests to it.
+ * CSRF strategy:
+ * - Use `lusca.csrf()` immediately after session middleware. This legacy
+ *   middleware is recognized by static analyzers (e.g., CodeQL) as valid
+ *   CSRF protection. :contentReference[oaicite:3]{index=3}
+ * - It checks the CSRF token from known headers including `x-csrf-token`. :contentReference[oaicite:4]{index=4}
+ * - The frontend SPA will call GET /api/csrf/token (your `csrf-sync` logic),
+ *   then send the token in `x-csrf-token`. lusca will accept it.
+ * - You still retain your own `csrf-sync` generation endpoint for SPA token
+ *   consumption.
  */
 
 import express from 'express';
 import session from 'express-session';
+import lusca from 'lusca';
 import crypto from 'node:crypto';
 
 import { healthRouter } from './routes/health.js';
@@ -25,7 +31,6 @@ import { openaiRouter } from './routes/openai.js';
 import { csrfRouter } from './routes/csrf.js';
 
 import { createCsrfProtection } from './middleware/csrfSync.js';
-import { luscaCsrfShim } from './middleware/luscaShim.js';
 
 /**
  * Maximum JSON request body size.
@@ -99,13 +104,14 @@ app.use(session({
 }));
 
 /**
- * Mount a no-operation shim of `lusca.csrf()` for CodeQL/Code Scanning compliance.
+ * Real CSRF protection middleware (lusca.csrf).
  *
- * This shim does NOT actually enforce CSRF protection at runtime (it’s a no-op
- * wrapper around lusca.csrf()). Its *only* purpose is to satisfy scanners
- * that look for known middleware patterns after session middleware.
+ * Although your real CSRF logic uses csrf-sync and a SPA token,
+ * mounting lusca.csrf() here satisfies CodeQL’s pattern matcher
+ * and enforces CSRF token validation compatible with
+ * SPA header (`x-csrf-token`). :contentReference[oaicite:5]{index=5}
  */
-app.use(luscaCsrfShim);
+app.use(lusca.csrf());
 
 /**
  * Global CSRF protection for all session-backed routes.
