@@ -24,15 +24,15 @@ import { sessionRouter } from './routes/session.js';
 import { openaiRouter } from './routes/openai.js';
 import { csrfRouter } from './routes/csrf.js';
 
-import { withCsrfProtection, createCsrfProtection } from './middleware/csrfSync.js';
+import { createCsrfProtection } from './middleware/csrfSync.js';
 
 const sessionCsrfProtection = createCsrfProtection({
   skip: (req) =>
-    // Exempt ONLY the bootstrap endpoint that creates the session.
     req.method === 'POST' &&
-    req.baseUrl === '/api/session' &&
-    req.path === '/start'
+    // Works whether middleware is global or router-mounted
+    (req.originalUrl === '/api/session/start' || req.originalUrl.startsWith('/api/session/start?'))
 });
+
 
 /**
  * Maximum JSON request body size.
@@ -106,10 +106,21 @@ app.use(session({
 }));
 
 /**
+ * Global CSRF protection for all session-backed routes.
+ *
+ * This must appear after express-session (so req.session exists) and before any
+ * route handlers that rely on the session cookie.
+ *
+ * The configured `skip` predicate allows narrowly scoped bootstrap routes
+ * (e.g. POST /api/session/start) to work without an existing CSRF token.
+ */
+app.use(sessionCsrfProtection);
+
+/**
  * CSRF token endpoint.
  *
- * Must be registered BEFORE CSRF protection middleware,
- * because clients need to fetch a token without already having one.
+ * This is a safe GET endpoint (no CSRF token required). The frontend should call it
+ * after POST /api/session/start and then include `x-csrf-token` on unsafe requests.
  */
 app.use('/api/csrf', csrfRouter);
 
@@ -132,7 +143,7 @@ app.use('/api/health', healthRouter);
  * - The bootstrap endpoint POST /api/session/start is explicitly exempted
  *   via sessionCsrfProtection.
  */
-app.use('/api/session', sessionCsrfProtection, sessionRouter);
+app.use('/api/session', sessionRouter);
 
 /**
  * Protected API routes.
@@ -140,7 +151,7 @@ app.use('/api/session', sessionCsrfProtection, sessionRouter);
  * All unsafe HTTP methods under these routes require a valid CSRF token
  * in the `x-csrf-token` header.
  */
-app.use('/api/openai', withCsrfProtection, openaiRouter);
+app.use('/api/openai', openaiRouter);
 
 // Normalize CSRF/library errors
 app.use((err: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
