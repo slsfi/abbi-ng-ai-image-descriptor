@@ -24,7 +24,15 @@ import { sessionRouter } from './routes/session.js';
 import { openaiRouter } from './routes/openai.js';
 import { csrfRouter } from './routes/csrf.js';
 
-import { withCsrfProtection } from './middleware/csrfSync.js';
+import { withCsrfProtection, createCsrfProtection } from './middleware/csrfSync.js';
+
+const sessionCsrfProtection = createCsrfProtection({
+  skip: (req) =>
+    // Exempt ONLY the bootstrap endpoint that creates the session.
+    req.method === 'POST' &&
+    req.baseUrl === '/api/session' &&
+    req.path === '/start'
+});
 
 /**
  * Maximum JSON request body size.
@@ -119,16 +127,12 @@ app.use('/api/csrf', csrfRouter);
 app.use('/api/health', healthRouter);
 
 /**
- * Session routes.
- *
- * POST /api/session/start is state-changing and SHOULD be protected.
- * However, the frontend cannot obtain a CSRF token before a session exists.
- *
- * Strategy:
- * - Allow /session/start without CSRF
- * - All subsequent unsafe routes require CSRF
+ * Session routes:
+ * - Router is CSRF-protected by default.
+ * - The bootstrap endpoint POST /api/session/start is explicitly exempted
+ *   via sessionCsrfProtection.
  */
-app.use('/api/session', sessionRouter);
+app.use('/api/session', sessionCsrfProtection, sessionRouter);
 
 /**
  * Protected API routes.
