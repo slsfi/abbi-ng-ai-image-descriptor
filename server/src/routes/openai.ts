@@ -46,7 +46,7 @@ type Usage = {
   outputTokens: number;
 };
 
-type ApiError = {
+type AiError = {
   code: number;
   message: string;
 };
@@ -55,47 +55,39 @@ type AiResult = {
   text: string;
   usage?: Usage;
   raw?: unknown;
-  error?: ApiError;
+  error?: AiError;
 };
 
 /**
  * Convert an OpenAI Responses API response into the app-facing AiResult shape.
  */
 function toAiResult(resp: any): AiResult {
-  const inputTokens = resp?.usage?.input_tokens;
-  const outputTokens = resp?.usage?.output_tokens;
+  const inputTokens = resp?.usage?.input_tokens ?? 0;
+  const outputTokens = resp?.usage?.output_tokens ?? 0;
 
   return {
     text: resp?.output_text ?? '',
-    usage:
-      typeof inputTokens === 'number' && typeof outputTokens === 'number'
-        ? { inputTokens, outputTokens }
-        : undefined
+    usage: { inputTokens, outputTokens }
   };
 }
 
 /**
  * Convert an unknown error into a safe AiResult error payload.
  */
-function toErrorResult(e: unknown): AiResult {
-  const anyErr = e as any;
-
-  const code =
-    typeof anyErr?.status === 'number'
-      ? anyErr.status
-      : typeof anyErr?.code === 'number'
-        ? anyErr.code
-        : 500;
-
-  const message =
-    typeof anyErr?.message === 'string'
-      ? anyErr.message
-      : 'OpenAI request failed.';
-
+function toErrorResultOpenAI(e: unknown): AiResult {
+  if (e instanceof OpenAI.APIError) {
+    return {
+      text: '',
+      error: {
+        code: e.code ?? e.status ?? 400,
+        message: String(e.message ?? 'OpenAI API error.')
+      }
+    };
+  }
   return {
     text: '',
-    error: { code, message }
-  };
+    error: { code: 500, message: 'OpenAI API error.' }
+  }
 }
 
 /**
@@ -146,7 +138,7 @@ openaiRouter.post(
       const resp = await client.responses.create(payload as any);
       return res.json(toAiResult(resp));
     } catch (e: unknown) {
-      return res.json(toErrorResult(e));
+      return res.json(toErrorResultOpenAI(e));
     }
   }
 );

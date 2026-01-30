@@ -19,13 +19,6 @@ export class AiService {
   private readonly openAi = inject(OpenAiService);
   private readonly settings = inject(SettingsService);
 
-  updateClient(apiKey: string, orgKey?: string): void {
-    const provider = this.providerFromUI();
-    if (provider === 'Google') {
-      this.google.updateClient(apiKey);
-    }
-  }
-
   isValidApiKey(apiKey: string): Observable<boolean> {
     const provider = this.providerFromUI();
     if (provider === 'OpenAI') {

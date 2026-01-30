@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
-import { from, Observable } from 'rxjs';
-import { ApiError, File, GenerateContentResponse, GoogleGenAI, MediaResolution,
+import { inject, Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { firstValueFrom, catchError, map, Observable, of } from 'rxjs';
+import { ApiError, File, GenerateContentParameters, GenerateContentResponse, GoogleGenAI, MediaResolution,
          ThinkingLevel, createPartFromUri, createUserContent
         } from '@google/genai';
 
@@ -54,9 +55,8 @@ function parseDataUrl(dataUrl: string): ParsedDataUrl | null {
   providedIn: 'root'
 })
 export class GoogleService {
-  private apiKey = '';
+  private readonly http = inject(HttpClient);
   private client: GoogleGenAI | null = null;
-  private modelList: any[] = [];
 
   /**
    * Tracks in-flight uploads keyed by ImageData.id (not object
@@ -79,52 +79,25 @@ export class GoogleService {
   private readonly deleteByFileName = new Map<string, Promise<void>>();
 
   /**
-   * Updates (or initializes) the Google GenAI SDK client for the given API key.
+   * Validates the API key by starting a backend session.
    *
-   * The SDK client is recreated whenever the key changes.
-   * Note: we intentionally do not force an apiVersion because preview models may
-   * require v1beta for some config fields (thinkingConfig, mediaResolution).
-   */
-  updateClient(apiKey: string): void {
-    if (apiKey !== this.apiKey) {
-      this.apiKey = apiKey;
-      this.client = new GoogleGenAI({
-        apiKey: apiKey
-        // NOTE: Do not force apiVersion to 'v1'.
-        // Preview models (e.g. Gemini 3 Pro Preview) require v1beta
-        // for thinkingConfig and mediaResolution.
-      });
-    }
-  }
-
-  /**
-   * Performs a lightweight API call to validate an API key.
+   * Backend behavior (per your new architecture):
+   * - Validates the key once
+   * - Stores it only in the server-side session (memory)
+   * - Requires CSRF on POST (handled by your Angular interceptor)
    *
-   * Returns an Observable<boolean> which resolves to true if the key is accepted.
+   * Return value:
+   * - `true` if the session was started successfully (key accepted)
+   * - `false` for any error (key invalid, network error, CSRF/session issue)
    */
   isValidApiKey(apiKey: string): Observable<boolean> {
-    const client = new GoogleGenAI({
-      apiKey: apiKey,
-      apiVersion: 'v1'
-    });
-
-    return from(
-      client.models.list().then(
-        (result: any) => {
-          // console.log(result);
-          this.modelList = result?.pageInternal;
-          // console.log(this.modelList);
-          return true;
-        }
-      ).catch(() => false)
+    return this.http.post('/api/session/start', { provider: 'Google', apiKey }).pipe(
+      map(() => true),
+      catchError(() => of(false))
     );
   }
 
   async describeImage(settings: RequestSettings, prompt: string, base64Image: string): Promise<AiResult> {
-    if (!this.client) {
-      return { text: '', error: { code: 401, message: 'Google API key not set.' } };
-    }
-
     // console.log('Prompt:', prompt);
     if (!prompt) {
       return { text: '', error: { code: 400, message: 'Missing prompt.' } };
@@ -149,7 +122,7 @@ export class GoogleService {
         thinkingBudget = null;
       }
 
-      const payload = {
+      const payload: GenerateContentParameters = {
         model: settings.model.id,
         contents: [
           {
@@ -170,18 +143,13 @@ export class GoogleService {
       };
       // console.log(payload);
 
-      const resp = await this.client.models.generateContent(payload);
-      return this.responseToAiResult(resp);
+      return this.postGenerateContent(payload);
     } catch (e) {
       return this.toAiResultErrorGoogle(e);
     }
   }
 
   async describeImages(settings: RequestSettings, prompt: string, base64Images: string[]): Promise<AiResult> {
-    if (!this.client) {
-      return { text: '', error: { code: 401, message: 'Google API key not set.' } };
-    }
-
     if (!prompt) {
       return { text: '', error: { code: 400, message: 'Missing prompt.' } };
     }
@@ -223,7 +191,7 @@ export class GoogleService {
       }));
       contents.push({ text: prompt });
 
-      const payload = {
+      const payload: GenerateContentParameters = {
         model: settings.model.id,
         contents,
         config: {
@@ -235,8 +203,7 @@ export class GoogleService {
         }
       };
 
-      const resp = await this.client.models.generateContent(payload);
-      return this.responseToAiResult(resp);
+      return this.postGenerateContent(payload);
     } catch (e) {
       return this.toAiResultErrorGoogle(e);
     }
@@ -327,10 +294,6 @@ export class GoogleService {
   }
 
   async responsesTextTask(settings: RequestSettings, prompt: string): Promise<AiResult> {
-    if (!this.client) {
-      return { text: '', error: { code: 401, message: 'Google API key not set.' } };
-    }
-
     if (!prompt) {
       return { text: '', error: { code: 400, message: 'Missing prompt.' } };
     }
@@ -338,7 +301,7 @@ export class GoogleService {
     try {
       const thinkingLevel = this.thinkingLevelFromModel(settings);
 
-      const payload = {
+      const payload: GenerateContentParameters = {
         model: settings.model.id,
         contents: prompt,
         config: {
@@ -347,8 +310,7 @@ export class GoogleService {
       };
       // console.log(payload);
 
-      const resp = await this.client.models.generateContent(payload);
-      return this.responseToAiResult(resp);
+      return this.postGenerateContent(payload);
     } catch (e) {
       return this.toAiResultErrorGoogle(e);
     }
@@ -556,6 +518,32 @@ export class GoogleService {
     }
   }
 
+  private async postGenerateContent(payload: GenerateContentParameters): Promise<AiResult> {
+    try {
+      return await firstValueFrom(
+        this.http.post<AiResult>('/api/google/generate-content', { payload })
+      );
+    } catch (e) {
+      return this.toAiResultErrorGoogle(e);
+    }
+  }
+
+  private toAiResultErrorGoogle(e: unknown): AiResult {
+    if (e instanceof HttpErrorResponse) {
+      const msg =
+        typeof e.error?.error?.message === 'string' ? e.error.error.message :
+        typeof e.error?.message === 'string' ? e.error.message :
+        'Backend request failed.';
+      return { text: '', error: { code: e.status || 502, message: msg } };
+    }
+
+    const anyErr = e as any;
+    return {
+      text: '',
+      error: { code: anyErr?.code ?? anyErr?.status ?? 500, message: anyErr?.message ?? 'Google API error.' }
+    };
+  }
+
   /**
    * Maps the UI model parameter (low/medium/high) to the SDK MediaResolution enum.
    */
@@ -626,65 +614,6 @@ export class GoogleService {
     const candidatesTokens = response?.usageMetadata?.candidatesTokenCount ?? 0;
     const thoughtsTokens = response?.usageMetadata?.thoughtsTokenCount ?? 0;
     return candidatesTokens + thoughtsTokens;
-  }
-
-  /**
-   * Normalizes any thrown error into a valid `AiResult` error response.
-   *
-   * This method guarantees that:
-   *  - The returned object always conforms to `AiResult`
-   *  - `text` is present (empty string) so downstream code can rely on it
-   *  - Google `ApiError` instances are mapped to a clean `{ code, message }` shape
-   *  - Unexpected errors are safely converted to a generic 500 error
-   */
-  private toAiResultErrorGoogle(e: any): AiResult {
-    if (e instanceof ApiError) {
-      console.error('Google API Error:', e);
-      return {
-        text: '',
-        error: {
-          code: e.status ?? 400,
-          message: this.extractGoogleApiMessage(e)
-        },
-        raw: e
-      };
-    }
-
-    console.error('Unexpected Error:', e);
-    return {
-      text: '',
-      error: { code: 500, message: 'Internal Server Error.' },
-      raw: e
-    };
-  }
-
-  /**
-   * Extracts a clean, human-readable error message from a Google GenAI ApiError.
-   *
-   * The Google GenAI SDK frequently embeds the entire backend JSON error payload
-   * (sometimes prefixed with the HTTP status code) into `ApiError.message`, e.g.:
-   *
-   *   "400 {\"error\":{\"code\":400,\"message\":\"...\",\"status\":\"INVALID_ARGUMENT\"}}"
-   *
-   * This helper attempts to:
-   *  1) Detect and parse such embedded JSON payloads
-   *  2) Prefer the backend-provided `error.message` field
-   *  3) Fall back to the raw message if parsing fails
-   *
-   * This ensures that UI-facing error messages remain concise and readable,
-   * and prevents leaking raw JSON blobs into snackbars or logs.
-   */
-  private extractGoogleApiMessage(e: ApiError): string {
-    const raw = String(e.message ?? '').trim();
-    const jsonStart = raw.indexOf('{');
-    if (jsonStart >= 0) {
-      try {
-        const obj = JSON.parse(raw.slice(jsonStart));
-        const msg = obj?.error?.message;
-        if (typeof msg === 'string' && msg.trim()) return msg.trim();
-      } catch {}
-    }
-    return raw || 'Google API error.';
   }
 
   /**

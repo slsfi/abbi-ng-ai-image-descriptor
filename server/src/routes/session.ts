@@ -17,6 +17,7 @@
  */
 
 import express, { type Request, type Response } from 'express';
+import { GoogleGenAI } from '@google/genai';
 import OpenAI from 'openai';
 
 export const sessionRouter = express.Router();
@@ -32,6 +33,17 @@ type SessionResponse =
   | { ok: false; error: string };
 
 const DEFAULT_TTL_MS = 30 * 60_000; // 30 minutes
+
+async function validateGoogleKey(apiKey: string): Promise<void> {
+  const client = new GoogleGenAI({
+    apiKey: apiKey
+    // NOTE: Do not force apiVersion to 'v1'.
+    // Preview models (e.g. Gemini 3 Pro Preview) require v1beta
+    // for thinkingConfig and mediaResolution.
+  });
+
+  await client.models.list();
+}
 
 async function validateOpenAiKey(apiKey: string, orgKey?: string): Promise<void> {
   const client = new OpenAI({
@@ -64,7 +76,7 @@ sessionRouter.post(
       if (provider === 'OpenAI') {
         await validateOpenAiKey(apiKey, orgKey);
       } else if (provider === 'Google') {
-        // Placeholder: implement validation with Google GenAI SDK in Phase 5.
+        await validateGoogleKey(apiKey);
       } else {
         return res.status(400).json({ ok: false, error: `Unsupported provider: ${String(provider)}` });
       }

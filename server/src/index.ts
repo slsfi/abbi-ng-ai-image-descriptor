@@ -34,6 +34,7 @@ import crypto from 'node:crypto';
 import { healthRouter } from './routes/health.js';
 import { sessionRouter } from './routes/session.js';
 import { openaiRouter } from './routes/openai.js';
+import { googleRouter } from './routes/google.js';
 import { csrfRouter } from './routes/csrf.js';
 
 /**
@@ -132,6 +133,8 @@ app.use('/api/session', sessionRouter);
  * Protected API routes (CSRF-protected by lusca.csrf()).
  */
 app.use('/api/openai', openaiRouter);
+
+app.use('/api/google', googleRouter);
 
 const port = process.env.PORT ? Number(process.env.PORT) : DEFAULT_PORT;
 
