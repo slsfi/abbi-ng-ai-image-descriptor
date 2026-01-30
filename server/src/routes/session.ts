@@ -158,11 +158,11 @@ sessionRouter.post('/start', async (req: Request<unknown, unknown, StartSessionB
   //
   // Cookie settings:
   // - httpOnly: prevents JS access (reduces XSS impact)
-  // - sameSite=lax: good default for SPA on same origin
+  // - sameSite: 'lax' in dev (good default for SPA on same origin), 'strict' in production (frontend and API are same-origin)
   // - secure: should be true behind HTTPS; allow false for local dev without TLS
   res.cookie(SESSION_COOKIE_NAME, sid, {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
     secure: process.env.NODE_ENV === 'production',
     maxAge: ttlMs,
     path: '/'

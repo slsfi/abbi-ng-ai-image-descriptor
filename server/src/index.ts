@@ -18,6 +18,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 
+import { csrfGuard } from './middleware/csrfGuard.js';
 import { healthRouter } from './routes/health.js';
 import { sessionRouter } from './routes/session.js';
 import { openaiRouter } from './routes/openai.js';
@@ -47,6 +48,11 @@ const DEFAULT_PORT = 3000;
 const app = express();
 
 /**
+ * If nginx terminates TLS and forwards requests, this makes req.protocol accurate.
+ */
+app.set('trust proxy', true);
+
+/**
  * Global middleware.
  *
  * - express.json() parses application/json bodies.
@@ -54,6 +60,11 @@ const app = express();
  */
 app.use(express.json({ limit: JSON_BODY_LIMIT }));
 app.use(cookieParser());
+
+/**
+ * CSRF mitigation: must run after cookie parsing and before route handlers.
+ */
+app.use(csrfGuard);
 
 /**
  * Mount API routers.
