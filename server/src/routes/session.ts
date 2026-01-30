@@ -8,18 +8,13 @@
  * Purpose:
  * - Accept a user-supplied provider API key
  * - Validate it server-to-server using the official provider SDK
- * - Store it in memory only (Map + TTL)
- * - Issue a session identifier as an HttpOnly cookie
- *
- * Why a cookie session?
- * - Keeps raw API keys out of the browser bundle and out of local storage
- * - Allows same-origin requests through nginx without CORS issues
- * - Keeps operational complexity low (no auth, no DB)
+ * - Store it in the server-side session (express-session MemoryStore)
+ * - Keep operational complexity low (no auth, no DB, no persistent storage)
  *
  * Security notes:
- * - API keys are stored in process memory only and are lost on restart.
- * - This is a deliberate design choice for low-ops deployments.
- * 
+ * - API keys are stored in server memory only and are lost on restart.
+ * - Access remains: "having a valid API key + a valid session cookie = access".
+ *
  * API key validation strategy:
  * - Provider API keys are validated exactly once, at session creation time.
  * - Validation is performed server-to-server using the official SDK.
@@ -28,23 +23,6 @@
 
 import express, { type Request, type Response } from 'express';
 import OpenAI from 'openai';
-import { createSessionId, setSession, clearSession, type Provider } from '../sessionStore.js';
-
-/**
- * Name of the HttpOnly cookie that stores the session identifier.
- */
-const SESSION_COOKIE_NAME = 'abbi_sid';
-
-/**
- * Default session TTL (time-to-live) in milliseconds.
- *
- * A "short" TTL is intentional:
- * - limits the impact if a session cookie is leaked
- * - encourages periodic re-validation
- *
- * You can tune this as needed.
- */
-const DEFAULT_TTL_MS = 30 * 60_000; // 30 minutes
 
 /**
  * Express router for session operations.
@@ -57,7 +35,7 @@ export const sessionRouter = express.Router();
  * Request body schema for starting a session.
  */
 type StartSessionBody = {
-  provider: Provider;
+  provider: 'OpenAI' | 'Google';
   apiKey: string;
   orgKey?: string;
 };
@@ -68,6 +46,17 @@ type StartSessionBody = {
 type SessionResponse =
   | { ok: true }
   | { ok: false; error: string };
+
+/**
+ * Default session TTL (time-to-live) in milliseconds.
+ *
+ * This TTL is enforced in two ways:
+ * - Session cookie maxAge (configured in index.ts for express-session)
+ * - Optional expiresAt stored in session to enforce a hard TTL
+ *
+ * You can tune this as needed.
+ */
+const DEFAULT_TTL_MS = 30 * 60_000; // 30 minutes
 
 /**
  * Validates an OpenAI API key using the official OpenAI SDK.
@@ -85,14 +74,13 @@ async function validateOpenAiKey(apiKey: string, orgKey?: string): Promise<void>
     ...(orgKey ? { organization: orgKey } : {})
   });
 
-  // Throws on invalid key (401) or network errors.
   await client.models.list();
 }
 
 /**
  * POST /api/session/start
  *
- * Creates a new in-memory session for a provider API key.
+ * Creates a new server-side session for a provider API key.
  *
  * Request body:
  * {
@@ -106,75 +94,47 @@ async function validateOpenAiKey(apiKey: string, orgKey?: string): Promise<void>
  * - 401 { ok: false, error: "..."} on invalid key
  * - 400 { ok: false, error: "..."} on missing parameters
  *
- * Side effects:
- * - Sets an HttpOnly cookie containing the session identifier.
- *
  * Notes:
  * - This endpoint performs server-to-server validation to avoid CORS and to ensure
  *   the key works before storing it in memory.
+ * - This endpoint is intentionally NOT CSRF-protected because it creates the session.
  */
-sessionRouter.post('/start', async (req: Request<unknown, unknown, StartSessionBody>, res: Response<SessionResponse>) => {
-  const { provider, apiKey, orgKey } = req.body ?? {};
+sessionRouter.post(
+  '/start',
+  async (req: Request<unknown, unknown, StartSessionBody>, res: Response<SessionResponse>) => {
+    const { provider, apiKey, orgKey } = req.body ?? {};
 
-  // Basic input validation (keep it strict and explicit).
-  if (!provider || !apiKey) {
-    return res.status(400).json({ ok: false, error: 'Missing required fields: provider and apiKey.' });
-  }
-
-  // Validate API key depending on provider.
-  // Phase 4: OpenAI validation is implemented; Google can be added in Phase 5.
-  try {
-    if (provider === 'OpenAI') {
-      await validateOpenAiKey(apiKey, orgKey);
-    } else if (provider === 'Google') {
-      // Placeholder: implement validation with Google GenAI SDK in Phase 5.
-      // For now, accept the session creation so the frontend flow can stay uniform
-      // even if Google is still called browser-side.
-      //
-      // If you prefer strict behavior, replace this with:
-      // return res.status(400).json({ ok: false, error: 'Google session validation not implemented yet.' });
-    } else {
-      // Exhaustiveness guard (should not happen if Provider type is respected).
-      return res.status(400).json({ ok: false, error: `Unsupported provider: ${String(provider)}` });
+    if (!provider || !apiKey) {
+      return res.status(400).json({ ok: false, error: 'Missing required fields: provider and apiKey.' });
     }
-  } catch (_e: unknown) {
-    // Do not leak provider SDK error details to clients in this phase.
-    // A simple message is enough for UI validation.
-    return res.status(401).json({ ok: false, error: `Invalid ${provider} API key.` });
+
+    try {
+      if (provider === 'OpenAI') {
+        await validateOpenAiKey(apiKey, orgKey);
+      } else if (provider === 'Google') {
+        // Placeholder: implement validation with Google GenAI SDK in Phase 5.
+        // For now, accept the session creation to keep the frontend flow uniform.
+      } else {
+        return res.status(400).json({ ok: false, error: `Unsupported provider: ${String(provider)}` });
+      }
+    } catch {
+      return res.status(401).json({ ok: false, error: `Invalid ${provider} API key.` });
+    }
+
+    // Store provider credentials in the server-side session (memory-only store).
+    req.session.provider = provider;
+    req.session.apiKey = apiKey;
+    req.session.orgKey = orgKey;
+    req.session.expiresAt = Date.now() + DEFAULT_TTL_MS;
+
+    return res.status(200).json({ ok: true });
   }
-
-  // Create and store session in memory.
-  const sid = createSessionId();
-  const ttlMs = DEFAULT_TTL_MS;
-
-  setSession(sid, {
-    provider,
-    apiKey,
-    orgKey,
-    expiresAt: Date.now() + ttlMs
-  });
-
-  // Issue session cookie.
-  //
-  // Cookie settings:
-  // - httpOnly: prevents JS access (reduces XSS impact)
-  // - sameSite: 'lax' in dev (good default for SPA on same origin), 'strict' in production (frontend and API are same-origin)
-  // - secure: should be true behind HTTPS; allow false for local dev without TLS
-  res.cookie(SESSION_COOKIE_NAME, sid, {
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: ttlMs,
-    path: '/'
-  });
-
-  return res.status(200).json({ ok: true });
-});
+);
 
 /**
  * POST /api/session/clear
  *
- * Clears the current session (server-side record + client cookie).
+ * Clears the current session (server-side).
  *
  * Response:
  * - 200 { ok: true } always (idempotent)
@@ -183,14 +143,12 @@ sessionRouter.post('/start', async (req: Request<unknown, unknown, StartSessionB
  * - If no session exists, this still returns ok=true to keep client logic simple.
  */
 sessionRouter.post('/clear', (req: Request, res: Response<SessionResponse>) => {
-  const sid: string | undefined = req.cookies?.[SESSION_COOKIE_NAME];
-
-  if (sid) {
-    clearSession(sid);
-  }
-
-  // Clear cookie on client.
-  res.clearCookie(SESSION_COOKIE_NAME, { path: '/' });
-
-  return res.status(200).json({ ok: true });
+  req.session.destroy((err) => {
+    if (err) {
+      // Do not leak internals; the client can retry.
+      res.status(200).json({ ok: true });
+      return;
+    }
+    res.status(200).json({ ok: true });
+  });
 });

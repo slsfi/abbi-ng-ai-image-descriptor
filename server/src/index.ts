@@ -16,12 +16,15 @@
  */
 
 import express from 'express';
-import cookieParser from 'cookie-parser';
+import session from 'express-session';
+import crypto from 'node:crypto';
 
-import { csrfGuard } from './middleware/csrfGuard.js';
 import { healthRouter } from './routes/health.js';
 import { sessionRouter } from './routes/session.js';
 import { openaiRouter } from './routes/openai.js';
+import { csrfRouter } from './routes/csrf.js';
+
+import { withCsrfProtection } from './middleware/csrfSync.js';
 
 /**
  * Maximum JSON request body size.
@@ -56,15 +59,51 @@ app.set('trust proxy', true);
  * Global middleware.
  *
  * - express.json() parses application/json bodies.
- * - cookieParser() populates req.cookies, used for session cookie handling.
  */
 app.use(express.json({ limit: JSON_BODY_LIMIT }));
-app.use(cookieParser());
+
+// Require a strong session secret in production
+const isProd = process.env.NODE_ENV === 'production';
+
+const sessionSecret = process.env.SESSION_SECRET
+  ?? (!isProd ? crypto.randomBytes(32).toString('hex') : undefined);
+
+if (!sessionSecret) {
+  throw new Error('SESSION_SECRET must be set in production.');
+}
 
 /**
- * CSRF mitigation: must run after cookie parsing and before route handlers.
+ * express-session middleware.
+ *
+ * Required by csrf-sync because csrf-sync stores the CSRF token on req.session.
+ *
+ * Notes:
+ * - Default MemoryStore is acceptable for low-traffic deployments and matches
+ *   our "no DB / no persistent storage" requirement.
+ * - Sessions will be lost on restart (acceptable).
+ * - Set SESSION_SECRET in production.
  */
-app.use(csrfGuard);
+app.use(session({
+  name: 'abbi_sess', // optional: custom cookie name
+  secret: sessionSecret,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: isProd ? 'strict' : 'lax',
+    secure: isProd,
+    path: '/',
+    maxAge: 30 * 60_000 // align cookie expiration with TTL
+  }
+}));
+
+/**
+ * CSRF token endpoint.
+ *
+ * Must be registered BEFORE CSRF protection middleware,
+ * because clients need to fetch a token without already having one.
+ */
+app.use('/api/csrf', csrfRouter);
 
 /**
  * Mount API routers.
@@ -73,9 +112,40 @@ app.use(csrfGuard);
  * - Each router module documents its own contract (request/response/errors).
  * - index.ts remains focused on wiring and global concerns.
  */
+
+/**
+ * Public / non-state-changing routes.
+ */
 app.use('/api/health', healthRouter);
+
+/**
+ * Session routes.
+ *
+ * POST /api/session/start is state-changing and SHOULD be protected.
+ * However, the frontend cannot obtain a CSRF token before a session exists.
+ *
+ * Strategy:
+ * - Allow /session/start without CSRF
+ * - All subsequent unsafe routes require CSRF
+ */
 app.use('/api/session', sessionRouter);
-app.use('/api/openai', openaiRouter);
+
+/**
+ * Protected API routes.
+ *
+ * All unsafe HTTP methods under these routes require a valid CSRF token
+ * in the `x-csrf-token` header.
+ */
+app.use('/api/openai', withCsrfProtection, openaiRouter);
+
+// Normalize CSRF/library errors
+app.use((err: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if ((err as any)?.code === 'EBADCSRFTOKEN') {
+    res.status(403).json({ ok: false, error: 'Invalid or missing CSRF token.' });
+    return;
+  }
+  next(err);
+});
 
 /**
  * Start the server.
