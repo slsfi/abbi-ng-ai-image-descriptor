@@ -1,7 +1,7 @@
 /**
  * routes/csrf.ts
  *
- * CSRF token endpoint for the backend API.
+ * CSRF token endpoint for the backend API (Lusca-based).
  *
  * Base path: /api/csrf
  *
@@ -11,13 +11,16 @@
  *   for all state-changing requests (POST/PUT/PATCH/DELETE).
  *
  * Implementation:
- * - Uses csrf-sync (synchroniser token pattern).
- * - The token is generated per session and stored server-side.
- * - The token is NOT stored in a cookie.
+ * - Relies on lusca's CSRF middleware (which is based on csurf-style semantics).
+ * - `lusca.csrf()` must be mounted BEFORE this router in index.ts.
+ * - The token is generated per session and stored server-side (in the session).
+ *
+ * Important:
+ * - This endpoint is a GET and is considered "safe"; CSRF validation is not
+ *   required for this request.
  */
 
 import express, { type Request, type Response } from 'express';
-import { generateToken } from '../middleware/csrfSync.js';
 
 /**
  * Express router for CSRF-related endpoints.
@@ -25,6 +28,15 @@ import { generateToken } from '../middleware/csrfSync.js';
  * Mounted at: /api/csrf
  */
 export const csrfRouter = express.Router();
+
+/**
+ * A request that has a csurf-compatible `csrfToken()` function.
+ *
+ * Lusca's CSRF middleware decorates the request object with this method.
+ */
+type CsrfRequest = Request & {
+  csrfToken: () => string;
+};
 
 /**
  * GET /api/csrf/token
@@ -39,15 +51,20 @@ export const csrfRouter = express.Router();
  *
  * Response:
  * - 200 OK
- *   {
- *     "csrfToken": "<opaque token string>"
- *   }
+ *   { "csrfToken": "<opaque token string>" }
  *
  * Errors:
- * - None. If no session exists yet, csrf-sync will still generate a token,
- *   but it will only become meaningful once a session cookie is present.
+ * - 500 if lusca.csrf() was not mounted (csrfToken() missing)
  */
 csrfRouter.get('/token', (req: Request, res: Response) => {
-  const token = generateToken(req);
+  const csrfReq = req as Partial<CsrfRequest>;
+
+  if (typeof csrfReq.csrfToken !== 'function') {
+    // Misconfiguration guard: index.ts must mount lusca.csrf() before this router.
+    res.status(500).json({ ok: false, error: 'CSRF middleware not configured.' });
+    return;
+  }
+
+  const token = csrfReq.csrfToken();
   res.status(200).json({ csrfToken: token });
 });

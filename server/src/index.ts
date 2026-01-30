@@ -5,19 +5,21 @@
  *
  * Responsibilities:
  * - Create and configure the Express application
- * - Configure global middleware (JSON body parsing, cookie/sessions)
+ * - Configure global middleware (JSON body parsing, sessions)
  * - Mount API routers under /api/*
  * - Start the HTTP server on the configured port
  *
- * CSRF strategy:
- * - Use `lusca.csrf()` immediately after session middleware. This legacy
- *   middleware is recognized by static analyzers (e.g., CodeQL) as valid
- *   CSRF protection. :contentReference[oaicite:3]{index=3}
- * - It checks the CSRF token from known headers including `x-csrf-token`. :contentReference[oaicite:4]{index=4}
- * - The frontend SPA will call GET /api/csrf/token (your `csrf-sync` logic),
- *   then send the token in `x-csrf-token`. lusca will accept it.
- * - You still retain your own `csrf-sync` generation endpoint for SPA token
- *   consumption.
+ * CSRF strategy (Lusca only):
+ * - Use `lusca.csrf()` immediately after session middleware (CodeQL-recognized).
+ * - Exempt ONLY the session bootstrap endpoint (POST /api/session/start) by
+ *   registering it BEFORE `lusca.csrf()` is mounted.
+ * - Provide a CSRF token endpoint (GET /api/csrf/token) that returns
+ *   `req.csrfToken()` (provided by lusca/csurf) to the SPA.
+ *
+ * Client contract:
+ * - Call POST /api/session/start (no CSRF token required)
+ * - Call GET /api/csrf/token and store the returned token in memory
+ * - Send the token in the `x-csrf-token` header for all unsafe requests
  */
 
 import express from 'express';
@@ -26,11 +28,9 @@ import lusca from 'lusca';
 import crypto from 'node:crypto';
 
 import { healthRouter } from './routes/health.js';
-import { sessionRouter } from './routes/session.js';
+import { sessionRouter, startSessionHandler } from './routes/session.js';
 import { openaiRouter } from './routes/openai.js';
 import { csrfRouter } from './routes/csrf.js';
-
-import { createCsrfProtection } from './middleware/csrfSync.js';
 
 /**
  * Maximum JSON request body size.
@@ -38,16 +38,11 @@ import { createCsrfProtection } from './middleware/csrfSync.js';
  * Rationale:
  * - The app may send base64-encoded images (large payloads).
  * - This limit should be aligned with nginx's `client_max_body_size` in production.
- *
- * If you later switch to multipart/binary uploads, you can reduce this.
  */
 const JSON_BODY_LIMIT = '50mb';
 
 /**
  * Default TCP port for the backend HTTP server.
- *
- * In Docker Compose, this is typically exposed only on the internal network,
- * with nginx proxying external traffic to it.
  */
 const DEFAULT_PORT = 3000;
 
@@ -68,11 +63,17 @@ app.set('trust proxy', true);
  */
 app.use(express.json({ limit: JSON_BODY_LIMIT }));
 
-// Require a strong session secret in production
+/**
+ * Require a strong session secret in production.
+ *
+ * - In production, SESSION_SECRET must be provided (e.g. via Jenkins env var).
+ * - In development, generate a per-process secret (sessions reset on restart).
+ */
 const isProd = process.env.NODE_ENV === 'production';
 
-const sessionSecret = process.env.SESSION_SECRET
-  ?? (!isProd ? crypto.randomBytes(32).toString('hex') : undefined);
+const sessionSecret =
+  process.env.SESSION_SECRET ??
+  (!isProd ? crypto.randomBytes(32).toString('hex') : undefined);
 
 if (!sessionSecret) {
   throw new Error('SESSION_SECRET must be set in production.');
@@ -81,72 +82,56 @@ if (!sessionSecret) {
 /**
  * express-session middleware.
  *
- * Required by csrf-sync because csrf-sync stores the CSRF token on req.session.
+ * Required for:
+ * - session-based “bring your own key” storage
+ * - lusca CSRF protection (stores CSRF secret in the session)
  *
  * Notes:
  * - Default MemoryStore is acceptable for low-traffic deployments and matches
  *   our "no DB / no persistent storage" requirement.
  * - Sessions will be lost on restart (acceptable).
- * - Set SESSION_SECRET in production.
  */
-app.use(session({
-  name: 'abbi_sess', // optional: custom cookie name
-  secret: sessionSecret,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    sameSite: isProd ? 'strict' : 'lax',
-    secure: isProd,
-    path: '/',
-    maxAge: 30 * 60_000 // align cookie expiration with TTL
-  }
-}));
+app.use(
+  session({
+    name: 'abbi_sess',
+    secret: sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: isProd ? 'strict' : 'lax',
+      secure: isProd,
+      path: '/',
+      maxAge: 30 * 60_000,
+    },
+  })
+);
 
 /**
- * Real CSRF protection middleware (lusca.csrf).
+ * Session bootstrap endpoint (CSRF-exempt).
  *
- * Although your real CSRF logic uses csrf-sync and a SPA token,
- * mounting lusca.csrf() here satisfies CodeQL’s pattern matcher
- * and enforces CSRF token validation compatible with
- * SPA header (`x-csrf-token`). :contentReference[oaicite:5]{index=5}
+ * This MUST be registered before lusca.csrf(), because a CSRF token cannot
+ * exist prior to session creation and the first token fetch.
+ *
+ * Route: POST /api/session/start
+ */
+app.post('/api/session/start', startSessionHandler);
+
+/**
+ * CSRF protection middleware (lusca.csrf).
+ *
+ * This must run after express-session and before any state-changing handlers
+ * that rely on the session cookie.
  */
 app.use(lusca.csrf());
 
 /**
- * Global CSRF protection for all session-backed routes.
- *
- * This must appear after express-session (so req.session exists) and before any
- * route handlers that rely on the session cookie.
- *
- * The configured `skip` predicate allows narrowly scoped bootstrap routes
- * (e.g. POST /api/session/start) to work without an existing CSRF token.
- */
-const sessionCsrfProtection = createCsrfProtection({
-  skip: (req) =>
-    // Allow session bootstrap without a CSRF token
-    (req.method === 'POST' &&
-      (req.originalUrl === '/api/session/start' || req.originalUrl.startsWith('/api/session/start?')))
-    // Avoid CSRF interfering with CSRF-token plumbing
-    || req.originalUrl.startsWith('/api/csrf')
-});
-app.use(sessionCsrfProtection);
-
-/**
  * CSRF token endpoint.
  *
- * This is a safe GET endpoint (no CSRF token required). The frontend should call it
- * after POST /api/session/start and then include `x-csrf-token` on unsafe requests.
+ * This is a safe GET endpoint. The frontend should call it after session bootstrap
+ * and then send `x-csrf-token` on unsafe requests.
  */
 app.use('/api/csrf', csrfRouter);
-
-/**
- * Mount API routers.
- *
- * Keep routing modular:
- * - Each router module documents its own contract (request/response/errors).
- * - index.ts remains focused on wiring and global concerns.
- */
 
 /**
  * Public / non-state-changing routes.
@@ -154,25 +139,21 @@ app.use('/api/csrf', csrfRouter);
 app.use('/api/health', healthRouter);
 
 /**
- * Session routes:
- * - Router is CSRF-protected by default.
- * - The bootstrap endpoint POST /api/session/start is explicitly exempted
- *   via sessionCsrfProtection.
+ * Session routes (other than /start).
+ *
+ * Note: routes/session.ts still defines POST /start for modularity, but it is
+ * effectively shadowed by the explicit app.post('/api/session/start', ...) above.
+ * You MAY remove the router's /start route later if you want stricter routing.
  */
 app.use('/api/session', sessionRouter);
 
 /**
- * Protected API routes.
- *
- * All unsafe HTTP methods under these routes require a valid CSRF token
- * in the `x-csrf-token` header.
+ * Protected API routes (CSRF enforced by lusca.csrf).
  */
 app.use('/api/openai', openaiRouter);
 
 /**
  * Start the server.
- *
- * The server binds to 0.0.0.0 by default, which is appropriate for containers.
  */
 const port = process.env.PORT ? Number(process.env.PORT) : DEFAULT_PORT;
 

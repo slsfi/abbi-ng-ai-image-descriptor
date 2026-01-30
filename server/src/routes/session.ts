@@ -19,13 +19,19 @@
  * - Provider API keys are validated exactly once, at session creation time.
  * - Validation is performed server-to-server using the official SDK.
  * - Subsequent API calls rely on the existence of a valid session.
+ *
+ * CSRF notes (Lusca-based CSRF):
+ * - Lusca CSRF protection must be mounted globally after express-session.
+ * - The bootstrap route POST /api/session/start must be CSRF-exempt, because
+ *   a CSRF token is session-bound and cannot exist before session creation.
+ * - index.ts therefore mounts `startSessionHandler` before `lusca.csrf()`.
  */
 
-import express, { type Request, type Response } from 'express';
+import express, { type Request, type Response, type NextFunction } from 'express';
 import OpenAI from 'openai';
 
 /**
- * Express router for session operations.
+ * Express router for session operations (excluding the bootstrap start route).
  *
  * Mounted at: /api/session
  */
@@ -52,7 +58,7 @@ type SessionResponse =
  *
  * This TTL is enforced in two ways:
  * - Session cookie maxAge (configured in index.ts for express-session)
- * - Optional expiresAt stored in session to enforce a hard TTL
+ * - Optional expiresAt stored in session to enforce a hard TTL check in routes
  *
  * You can tune this as needed.
  */
@@ -82,6 +88,14 @@ async function validateOpenAiKey(apiKey: string, orgKey?: string): Promise<void>
  *
  * Creates a new server-side session for a provider API key.
  *
+ * IMPORTANT:
+ * This handler is exported so index.ts can mount it *before* lusca.csrf().
+ *
+ * CSRF:
+ * - This endpoint is intentionally CSRF-exempt (bootstrap route).
+ * - After success, the client must fetch a CSRF token via GET /api/csrf/token
+ *   and include it in the `x-csrf-token` header for all unsafe requests.
+ *
  * Request body:
  * {
  *   provider: "OpenAI" | "Google",
@@ -93,55 +107,42 @@ async function validateOpenAiKey(apiKey: string, orgKey?: string): Promise<void>
  * - 200 { ok: true } on success
  * - 401 { ok: false, error: "..."} on invalid key
  * - 400 { ok: false, error: "..."} on missing parameters
- *
- * Notes:
- * - This endpoint performs server-to-server validation to avoid CORS and to ensure
- *   the key works before storing it in memory.
- * - This endpoint is intentionally NOT CSRF-protected because it creates the session.
- * 
- * IMPORTANT CSRF NOTE:
- * This endpoint is intentionally NOT protected by CSRF middleware.
- *
- * Rationale:
- * - CSRF tokens are tied to a server-side session.
- * - A session is established by this endpoint.
- * - The client cannot obtain a CSRF token before the session exists.
- *
- * After a session is created, the frontend must fetch a CSRF token via
- * GET /api/csrf/token and include it in `x-csrf-token` for all subsequent
- * unsafe requests.
  */
-sessionRouter.post(
-  '/start',
-  async (req: Request<unknown, unknown, StartSessionBody>, res: Response<SessionResponse>) => {
-    const { provider, apiKey, orgKey } = req.body ?? {};
+export async function startSessionHandler(
+  req: Request<unknown, unknown, StartSessionBody>,
+  res: Response<SessionResponse>,
+  _next: NextFunction
+): Promise<void> {
+  const { provider, apiKey, orgKey } = req.body ?? {};
 
-    if (!provider || !apiKey) {
-      return res.status(400).json({ ok: false, error: 'Missing required fields: provider and apiKey.' });
-    }
-
-    try {
-      if (provider === 'OpenAI') {
-        await validateOpenAiKey(apiKey, orgKey);
-      } else if (provider === 'Google') {
-        // Placeholder: implement validation with Google GenAI SDK in Phase 5.
-        // For now, accept the session creation to keep the frontend flow uniform.
-      } else {
-        return res.status(400).json({ ok: false, error: `Unsupported provider: ${String(provider)}` });
-      }
-    } catch {
-      return res.status(401).json({ ok: false, error: `Invalid ${provider} API key.` });
-    }
-
-    // Store provider credentials in the server-side session (memory-only store).
-    req.session.provider = provider;
-    req.session.apiKey = apiKey;
-    req.session.orgKey = orgKey;
-    req.session.expiresAt = Date.now() + DEFAULT_TTL_MS;
-
-    return res.status(200).json({ ok: true });
+  if (!provider || !apiKey) {
+    res.status(400).json({ ok: false, error: 'Missing required fields: provider and apiKey.' });
+    return;
   }
-);
+
+  try {
+    if (provider === 'OpenAI') {
+      await validateOpenAiKey(apiKey, orgKey);
+    } else if (provider === 'Google') {
+      // Placeholder: implement validation with Google GenAI SDK in Phase 5.
+      // For now, accept session creation to keep frontend flow uniform.
+    } else {
+      res.status(400).json({ ok: false, error: `Unsupported provider: ${String(provider)}` });
+      return;
+    }
+  } catch {
+    res.status(401).json({ ok: false, error: `Invalid ${provider} API key.` });
+    return;
+  }
+
+  // Store provider credentials in the server-side session (memory-only store).
+  req.session.provider = provider;
+  req.session.apiKey = apiKey;
+  req.session.orgKey = orgKey;
+  req.session.expiresAt = Date.now() + DEFAULT_TTL_MS;
+
+  res.status(200).json({ ok: true });
+}
 
 /**
  * POST /api/session/clear
@@ -151,12 +152,9 @@ sessionRouter.post(
  * Response:
  * - 200 { ok: true } always (idempotent)
  *
- * Notes:
- * - If no session exists, this still returns ok=true to keep client logic simple.
- * 
  * CSRF:
- * - This endpoint IS CSRF-protected, because it is state-changing and relies on
- *   cookie-based authentication (session cookie).
+ * - This endpoint MUST be CSRF-protected by lusca.csrf() in index.ts, because
+ *   it is state-changing and relies on cookie-based authentication.
  */
 sessionRouter.post('/clear', (req: Request, res: Response<SessionResponse>) => {
   req.session.destroy((err) => {
