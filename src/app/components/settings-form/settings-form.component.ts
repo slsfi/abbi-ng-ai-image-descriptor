@@ -12,7 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { PricePerMTokensPipe } from '../../pipes/price-per-m-tokens.pipe';
 import { UpperFirstLetterPipe } from '../../pipes/upper-first-letter.pipe';
 import { SettingsService } from '../../services/settings.service';
-import { Model } from '../../types/model.types';
+import { GeminiThinkingLevel, Model, OpenAiReasoningEffort } from '../../types/model.types';
 import { TaskTypeId } from '../../../assets/config/prompts';
 
 @Component({
@@ -80,6 +80,14 @@ export class SettingsFormComponent {
 
   setTemperature(temperature: number): void {
     this.settings.updateSelectedTemperature(temperature);
+  }
+
+  setReasoningEffort(reasoningEffort: OpenAiReasoningEffort): void {
+    this.settings.updateSelectedReasoningEffort(reasoningEffort);
+  }
+
+  setThinkingLevel(thinkingLevel: GeminiThinkingLevel): void {
+    this.settings.updateSelectedThinkingLevel(thinkingLevel);
   }
 
   setBatchSize(size: number): void {

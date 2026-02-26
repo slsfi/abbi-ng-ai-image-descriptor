@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { from, Observable } from 'rxjs';
 import OpenAI from 'openai';
+import type { ReasoningEffort } from 'openai/resources/shared';
 
 import { AiResult } from '../types/ai.types';
 import { RequestSettings } from '../types/settings.types';
@@ -56,7 +57,7 @@ export class OpenAiService {
       maxOutputTokens = settings.descriptionLength ? settings.descriptionLength + 1000 : null;
     }
 
-    const reasoningEffort: string | null = settings.model.parameters?.reasoningEffort ?? null;
+    const reasoningEffort: ReasoningEffort = settings.reasoningEffort ?? settings.model.parameters?.reasoningEffort ?? null;
 
     const payload = {
       model: settings.model.id,
@@ -99,7 +100,7 @@ export class OpenAiService {
       return { text: '', error: { code: 400, message: 'Missing prompt.' } };
     }
 
-    const reasoningEffort: string | null = settings.model.parameters?.reasoningEffort ?? null;
+    const reasoningEffort: ReasoningEffort = settings.reasoningEffort ?? settings.model.parameters?.reasoningEffort ?? null;
 
     const payload = {
       model: settings.model.id,

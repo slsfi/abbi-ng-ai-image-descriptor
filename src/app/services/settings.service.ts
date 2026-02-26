@@ -4,7 +4,7 @@ import { MODELS, ModelId, getModelsForTaskType,
          isModelAllowedForTaskType
         } from '../../assets/config/models';
 import { LanguageCode, TaskTypeId, TASK_CONFIGS, TASK_TYPES_BY_ID } from '../../assets/config/prompts';
-import { Model } from '../types/model.types';
+import { GeminiThinkingLevel, Model, OpenAiReasoningEffort } from '../types/model.types';
 import { PromptVariant } from '../types/prompt.types';
 import { RequestSettings } from '../types/settings.types';
 
@@ -24,6 +24,8 @@ export class SettingsService {
   readonly includeFilename = signal<boolean>(true);
   readonly selectedDescLength = signal<number>(175);
   readonly selectedTemperature = signal<number>(1.0);
+  readonly selectedReasoningEffort = signal<OpenAiReasoningEffort | null>(null);
+  readonly selectedThinkingLevel = signal<GeminiThinkingLevel | null>(null);
   readonly teiEncode = signal<boolean>(false);
 
   readonly batchSizeMin = signal<number>(BATCH_SIZE_MIN);
@@ -42,6 +44,14 @@ export class SettingsService {
 
   readonly selectedModel = computed<Model>(() =>
     MODELS.find(m => m.id === this.selectedModelId()) ?? MODELS[0]
+  );
+
+  readonly availableReasoningEfforts = computed<OpenAiReasoningEffort[]>(
+    () => this.selectedModel().parameters?.reasoningEfforts ?? []
+  );
+
+  readonly availableThinkingLevels = computed<GeminiThinkingLevel[]>(
+    () => this.selectedModel().parameters?.thinkingLevels ?? []
   );
 
   readonly languages = computed(() => {
@@ -101,6 +111,26 @@ export class SettingsService {
       }
     });
 
+    // Apply reasoning/thinking defaults for the selected model
+    effect(() => {
+      const model = this.selectedModel();
+      const reasoningEfforts = model.parameters?.reasoningEfforts ?? [];
+      const thinkingLevels = model.parameters?.thinkingLevels ?? [];
+      const defaultReasoningEffort = model.parameters?.reasoningEffort ?? null;
+      const defaultThinkingLevel = model.parameters?.thinkingLevel ?? null;
+
+      const selectedReasoningEffort = defaultReasoningEffort && reasoningEfforts.includes(defaultReasoningEffort)
+        ? defaultReasoningEffort
+        : reasoningEfforts[0] ?? null;
+
+      const selectedThinkingLevel = defaultThinkingLevel && thinkingLevels.includes(defaultThinkingLevel)
+        ? defaultThinkingLevel
+        : thinkingLevels[0] ?? null;
+
+      this.selectedReasoningEffort.set(selectedReasoningEffort);
+      this.selectedThinkingLevel.set(selectedThinkingLevel);
+    });
+
     // Apply temperature defaults per task type
     effect(() => {
       const taskType = this.selectedTaskType();
@@ -138,6 +168,8 @@ export class SettingsService {
       language: this.selectedVariant().languageCode,
       taskType: this.selectedTaskType(),
       temperature: this.selectedTemperature(),
+      reasoningEffort: this.selectedReasoningEffort(),
+      thinkingLevel: this.selectedThinkingLevel(),
       descriptionLength: this.selectedDescLength(),
       promptVariant: this.selectedVariant(),
       includeFilename: this.includeFilename(),
@@ -172,6 +204,18 @@ export class SettingsService {
 
   updateSelectedTemperature(value: number) {
     this.selectedTemperature.set(value);
+  }
+
+  updateSelectedReasoningEffort(value: OpenAiReasoningEffort | null) {
+    if (value === null || this.availableReasoningEfforts().includes(value)) {
+      this.selectedReasoningEffort.set(value);
+    }
+  }
+
+  updateSelectedThinkingLevel(value: GeminiThinkingLevel | null) {
+    if (value === null || this.availableThinkingLevels().includes(value)) {
+      this.selectedThinkingLevel.set(value);
+    }
   }
 
   updateTeiEncode(value: boolean) {

@@ -142,7 +142,7 @@ export class GoogleService {
 
     try {
       const mediaResolution = this.mediaResolutionFromModel(settings);
-      const thinkingLevel = this.thinkingLevelFromModel(settings);
+      const thinkingLevel = this.thinkingLevelFromSettings(settings);
 
       let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
       if (thinkingLevel) {
@@ -207,7 +207,7 @@ export class GoogleService {
 
     try {
       const mediaResolution = this.mediaResolutionFromModel(settings);
-      const thinkingLevel = this.thinkingLevelFromModel(settings);
+      const thinkingLevel = this.thinkingLevelFromSettings(settings);
 
       let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
       if (thinkingLevel) {
@@ -276,7 +276,7 @@ export class GoogleService {
 
     try {
       const mediaResolution = this.mediaResolutionFromModel(settings);
-      const thinkingLevel = this.thinkingLevelFromModel(settings);
+      const thinkingLevel = this.thinkingLevelFromSettings(settings);
 
       let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
       if (thinkingLevel) {
@@ -336,7 +336,7 @@ export class GoogleService {
     }
 
     try {
-      const thinkingLevel = this.thinkingLevelFromModel(settings);
+      const thinkingLevel = this.thinkingLevelFromSettings(settings);
 
       const payload = {
         model: settings.model.id,
@@ -572,17 +572,18 @@ export class GoogleService {
   }
 
   /**
-   * Maps the UI model parameter (minimal/low/medium/high) to the SDK ThinkingLevel enum.
+   * Maps the selected UI thinking level (minimal/low/medium/high)
+   * to the SDK ThinkingLevel enum.
    */
-  private thinkingLevelFromModel(settings: RequestSettings): ThinkingLevel | null {
-    const modelThinkingLevel = settings.model.parameters?.thinkingLevel ?? null;
-    const thinkingLevel = modelThinkingLevel === 'minimal'
+  private thinkingLevelFromSettings(settings: RequestSettings): ThinkingLevel | null {
+    const selectedThinkingLevel = settings.thinkingLevel ?? settings.model.parameters?.thinkingLevel ?? null;
+    const thinkingLevel = selectedThinkingLevel === 'minimal'
       ? ThinkingLevel.MINIMAL
-      : modelThinkingLevel === 'low'
+      : selectedThinkingLevel === 'low'
       ? ThinkingLevel.LOW
-      : modelThinkingLevel === 'medium'
+      : selectedThinkingLevel === 'medium'
       ? ThinkingLevel.MEDIUM
-      : modelThinkingLevel === 'high'
+      : selectedThinkingLevel === 'high'
       ? ThinkingLevel.HIGH
       : null
     return thinkingLevel;

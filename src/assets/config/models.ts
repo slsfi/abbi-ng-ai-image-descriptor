@@ -21,9 +21,12 @@ export type ModelId = 'gpt-4.1-mini' | 'gpt-4.1' | 'gpt-5.2' | 'gemini-3-flash-p
 //     reasoningEffort = (optional, required for OpenAI reasoning models)
 //                       reasoning effort constraint for reasoning
 //                       models, supported values are `none`, `minimal`,
-//                       `low`, `medium` and `high` depending on the model
+//                       `low`, `medium`, `high` and `xhigh` depending on model
+//     reasoningEfforts = (optional) selectable list of supported reasoning
+//                        effort values
 //     thinkingBudget = (optional, Google Gemini only, required for 2.5)
 //     thinkingLevel = (optional, Google Gemini only, required for 3)
+//     thinkingLevels = (optional) selectable list of supported thinking levels
 
 // OpenAI Responses API reference: https://platform.openai.com/docs/api-reference/responses/create
 // Google GenAI SDK for TypeScript and JavaScript: https://googleapis.github.io/js-genai/release_docs/index.html
@@ -62,7 +65,8 @@ export const MODELS: Model[] = [
     supportedTaskTypes: ['altText', 'transcription'],
     url: 'https://platform.openai.com/docs/models/gpt-5.2',
     parameters: {
-      reasoningEffort: 'none'
+      reasoningEffort: 'none',
+      reasoningEfforts: ['none', 'minimal', 'low', 'medium', 'high', 'xhigh']
     }
   },
   {
@@ -77,6 +81,7 @@ export const MODELS: Model[] = [
     url: 'https://ai.google.dev/gemini-api/docs/models/gemini-3.1-pro-preview',
     parameters: {
       thinkingLevel: 'low',
+      thinkingLevels: ['low', 'medium', 'high'],
       maxImageShortsidePx: null,
       mediaResolution: 'high'
     },
@@ -94,6 +99,7 @@ export const MODELS: Model[] = [
     url: 'https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-preview',
     parameters: {
       thinkingLevel: 'low',
+      thinkingLevels: ['low', 'high'],
       maxImageShortsidePx: null,
       mediaResolution: 'high'
     },
@@ -111,6 +117,7 @@ export const MODELS: Model[] = [
     url: 'https://ai.google.dev/gemini-api/docs/models#gemini-3-flash',
     parameters: {
       thinkingLevel: 'low',
+      thinkingLevels: ['minimal', 'low', 'medium', 'high'],
       maxImageShortsidePx: null,
       mediaResolution: 'high'
     },

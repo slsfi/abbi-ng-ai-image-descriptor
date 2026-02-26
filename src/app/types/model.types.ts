@@ -1,5 +1,6 @@
 import { TaskTypeId } from "../../assets/config/prompts";
 import { ModelId, ModelProvider } from "../../assets/config/models";
+import type { ReasoningEffort } from 'openai/resources/shared';
 
 // provider = name of model creator
 // name = display name of the model
@@ -20,9 +21,12 @@ import { ModelId, ModelProvider } from "../../assets/config/models";
 //     reasoningEffort = (optional, required for OpenAI reasoning models)
 //                       reasoning effort constraint for reasoning
 //                       models, supported values are `none`, `minimal`,
-//                       `low`, `medium` and `high` depending on the model
+//                       `low`, `medium`, `high` and `xhigh` depending on model
+//     reasoningEfforts = (optional) selectable list of supported reasoning
+//                        effort values
 //     thinkingBudget = (optional, Google Gemini only, required for 2.5)
 //     thinkingLevel = (optional, Google Gemini only, required for 3)
+//     thinkingLevels = (optional) selectable list of supported thinking levels
 
 export interface Model {
   provider: ModelProvider;
@@ -49,11 +53,16 @@ export interface Model {
 
 export type Models = Model[];
 
+export type OpenAiReasoningEffort = Exclude<ReasoningEffort, null>;
+export type GeminiThinkingLevel = 'minimal' | 'low' | 'medium' | 'high';
+
 export interface ModelParameters {
   maxImageShortsidePx?: number | null;
   mediaResolution?: string;
-  reasoningEffort?: string;
-  thinkingLevel?: string;
+  reasoningEffort?: OpenAiReasoningEffort;
+  reasoningEfforts?: OpenAiReasoningEffort[];
+  thinkingLevel?: GeminiThinkingLevel;
+  thinkingLevels?: GeminiThinkingLevel[];
   thinkingBudget?: number;
 }
 

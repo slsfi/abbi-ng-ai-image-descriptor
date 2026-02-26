@@ -2,6 +2,8 @@
 @let selectedTaskConfigValue = settings.selectedTaskConfig();
 @let selectedTaskTypeValue = settings.selectedTaskType();
 @let selectedTaskVariants = settings.selectedTaskConfig().variants;
+@let reasoningEfforts = settings.availableReasoningEfforts();
+@let thinkingLevels = settings.availableThinkingLevels();
 
 <div class="settings-column-wrapper">
   <div class="parameters-wrapper">
@@ -172,6 +174,7 @@
           Advanced model settings
         </mat-panel-title>
       </mat-expansion-panel-header>
+
       <div class="form-field-wrapper">
         <div class="slider-wrapper">
           <div class="slider-label-wrapper">
@@ -193,6 +196,40 @@
           </mat-slider>
         </div>
       </div>
+
+      @if (reasoningEfforts.length > 0) {
+        <div class="form-field-wrapper select-form-field">
+          <mat-form-field appearance="outline">
+            <mat-label>Reasoning effort</mat-label>
+            <mat-select
+                  [value]="settings.selectedReasoningEffort()"
+                  (valueChange)="setReasoningEffort($event)"
+                  name="reasoningEffort"
+            >
+              @for (reasoningEffort of reasoningEfforts; track reasoningEffort) {
+                <mat-option [value]="reasoningEffort">{{ reasoningEffort | upperFirstLetter }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      }
+
+      @if (thinkingLevels.length > 0) {
+        <div class="form-field-wrapper select-form-field">
+          <mat-form-field appearance="outline">
+            <mat-label>Thinking level</mat-label>
+            <mat-select
+                  [value]="settings.selectedThinkingLevel()"
+                  (valueChange)="setThinkingLevel($event)"
+                  name="thinkingLevel"
+            >
+              @for (thinkingLevel of thinkingLevels; track thinkingLevel) {
+                <mat-option [value]="thinkingLevel">{{ thinkingLevel | upperFirstLetter }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      }
     </mat-expansion-panel>
 
     <mat-expansion-panel>

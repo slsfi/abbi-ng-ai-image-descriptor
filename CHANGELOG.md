@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Added
 
 - Support for the Google [`gemini-3.1-pro-preview`](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-pro-preview) model.
+- Option to adjust reasoning effort/thinking level in the UI for models that support it.
 
 ### Changed
 
