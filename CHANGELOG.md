@@ -8,28 +8,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [2.2.0] – 2026-02-26
+
 ### Added
 
-- Support for the Google [`gemini-3.1-pro-preview`](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-pro-preview) model.
-- Option to adjust reasoning effort/thinking level in the UI for models that support it.
+- Support for the Google [`gemini-3.1-pro-preview`](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-pro-preview) model. ([bc6e93f](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/bc6e93f288da7abb4e5e4010d2a3d78768c26559))
+- Option to adjust reasoning effort/thinking level in the UI for models that support it. ([cdcff07](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/cdcff07791a83bab52bd958852879e9b92767365))
 
 ### Changed
 
-- Update `.gitignore` and `.dockerignore`.
-- Deps: update `@angular/cli`, `@angular/core`, `@angular/cdk` and `@angular/material` to 21.2.0.
-- Deps: update `@google/genai` to 1.43.0.
-- Deps: update `docx` to 9.6.0.
-- Deps: update `openai` to 6.25.0.
-- Deps: update `zone.js` to 0.16.1.
-- Deps (dev): update `@types/jasmine` to 6.0.0.
-- Deps (dev): update `@types/prismjs` to 1.26.6.
-- Deps (dev): update `jasmine-core` to 6.1.0.
-- Deps (dev): update `karma-jasmine-html-reporter` to 2.2.0.
-- Deps: update transitive dependencies.
+- Update `.gitignore` and `.dockerignore`. ([04dd67e](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/04dd67e19c78db861d3581212671e792b4150778))
+- Deps: update `@angular/cli`, `@angular/core`, `@angular/cdk` and `@angular/material` to 21.2.0. ([d98089e](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/d98089e27d225970fe1479ceab8baf3072f8bfde))
+- Deps: update `@google/genai` to 1.43.0. ([08172a5](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/08172a5aaa069b5afaafa06c0895ae134cc95572))
+- Deps: update `docx` to 9.6.0. ([c777c21](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/c777c21cf7c5d24cbddaedbca7319a6fd92fb989))
+- Deps: update `openai` to 6.25.0. ([9fd57ca](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/9fd57caa01d010d5f9c33194c315b45bcd7b5b75))
+- Deps: update `zone.js` to 0.16.1. ([a6dd476](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/a6dd47622c269cbce6631f7b2296ba317c6651f2))
+- Deps (dev): update `@types/jasmine` to 6.0.0. ([9546a0c](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/9546a0c8a28c901a0df07b0762670039d1518a13))
+- Deps (dev): update `@types/prismjs` to 1.26.6. ([cf2b434](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/cf2b434f9fec596721885b24ea0c4935d5c45bc7))
+- Deps (dev): update `jasmine-core` to 6.1.0. ([185fc5a](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/185fc5a6dec0241c117a53febdc969f885b63768))
+- Deps (dev): update `karma-jasmine-html-reporter` to 2.2.0. ([b506e5a](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/b506e5a895cdb5a20d4e8a7ad84e036bba595737))
+- Deps: update transitive dependencies. ([030231e](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/030231ef471d4763881edc43fff9d7f01bace086))
 
 ### Removed
 
-- Deps: removed `buffer`.
+- Deps: removed `buffer`. ([05c48be](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/05c48be81c640399dc48d6a6278f0b1d626dc7c4))
 
 
 
@@ -308,7 +312,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.1.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.2.0...HEAD
+[2.2.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.1.0...2.2.0
 [2.1.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.5.0...2.0.0
 [1.5.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.4.0...1.5.0
