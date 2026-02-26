@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `zone.js` to 0.16.1.
 - Deps (dev): update `@types/jasmine` to 6.0.0.
 - Deps (dev): update `@types/prismjs` to 1.26.6.
+- Deps (dev): update `jasmine-core` to 6.1.0.
 - Deps (dev): update `karma-jasmine-html-reporter` to 2.2.0.
 
 ### Removed
