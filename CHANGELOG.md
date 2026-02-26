@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+
+- Update `.gitignore` and `.dockerignore`.
+
 
 
 ## [2.1.0] – 2026-01-29
