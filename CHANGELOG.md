@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `@angular/cli`, `@angular/core`, `@angular/cdk` and `@angular/material` to 21.2.0.
 - Deps: update `@google/genai` to 1.43.0.
 - Deps: update `zone.js` to 0.16.1.
+- Deps (dev): update `@types/prismjs` to 1.26.6.
 
 
 
