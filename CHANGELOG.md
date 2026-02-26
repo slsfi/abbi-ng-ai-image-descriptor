@@ -18,6 +18,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `zone.js` to 0.16.1.
 - Deps (dev): update `@types/prismjs` to 1.26.6.
 
+### Removed
+
+- Deps: removed `buffer`.
+
 
 
 ## [2.1.0] – 2026-01-29
