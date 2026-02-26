@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps (dev): update `@types/prismjs` to 1.26.6.
 - Deps (dev): update `jasmine-core` to 6.1.0.
 - Deps (dev): update `karma-jasmine-html-reporter` to 2.2.0.
+- Deps: update transitive dependencies.
 
 ### Removed
 
