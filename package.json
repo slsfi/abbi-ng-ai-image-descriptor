@@ -27,7 +27,7 @@
     "@angular/router": "^21.2.0",
     "@google/genai": "^1.43.0",
     "buffer": "^6.0.3",
-    "docx": "^9.5.1",
+    "docx": "^9.6.0",
     "fflate": "^0.8.2",
     "openai": "^6.25.0",
     "prismjs": "^1.30.0",
