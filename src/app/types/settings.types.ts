@@ -1,4 +1,4 @@
-import { Model } from "./model.types";
+import { GeminiThinkingLevel, Model, OpenAiReasoningEffort } from "./model.types";
 import { PromptVariant } from "./prompt.types";
 import { LanguageCode, TaskTypeId } from "../../assets/config/prompts";
 
@@ -7,6 +7,8 @@ export interface RequestSettings {
   language?: LanguageCode;
   taskType: TaskTypeId;
   temperature: number | null;
+  reasoningEffort: OpenAiReasoningEffort | null;
+  thinkingLevel: GeminiThinkingLevel | null;
   descriptionLength: number;
   promptVariant: PromptVariant;
   includeFilename: boolean;
