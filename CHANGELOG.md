@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Update `.gitignore` and `.dockerignore`.
 - Deps: update `@angular/cli`, `@angular/core`, `@angular/cdk` and `@angular/material` to 21.2.0.
+- Deps: update `@google/genai` to 1.43.0.
 - Deps: update `zone.js` to 0.16.1.
 
 
