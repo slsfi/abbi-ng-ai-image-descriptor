@@ -8,19 +8,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+
+- Update `.gitignore` and `.dockerignore`.
+- Deps: update `@angular/cli`, `@angular/core`, `@angular/cdk` and `@angular/material` to 21.2.0.
+- Deps: update `@google/genai` to 1.43.0.
+- Deps: update `docx` to 9.6.0.
+- Deps: update `openai` to 6.25.0.
+- Deps: update `zone.js` to 0.16.1.
+- Deps (dev): update `@types/prismjs` to 1.26.6.
+
+### Removed
+
+- Deps: removed `buffer`.
+
+
+
+## [2.1.0] – 2026-01-29
+
 ### Added
 
-- Option to cancel batch TEI-transcription requests in progress and pending.
-- Button for hiding TEI-transcription below preview.
-- Preview with syntax highlighting of TEI-transcriptions in the edit description dialog.
-- Support for Files API image uploading in non-batched transcription and TEI-encoding.
+- Option to cancel batch TEI-transcription requests in progress and pending. ([bae9fa8](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/bae9fa897d5a3c2ab4ff0e5803865e185b2a17c1))
+- Button for hiding TEI-transcription below preview. ([3c19030](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/3c1903074d9674baf1cf77b9b812c13f92c4bc5c))
+- Preview with syntax highlighting of TEI-transcriptions in the edit description dialog. ([c375c38](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/c375c38416654b14b36eb8d0a5df1f45e5b3bff0), [b124239](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/b12423901f4ed8408351a52d1593377a4b3bab5a))
+- Support for Files API image uploading in non-batched transcription and TEI-encoding. ([6639788](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/66397883adda63cac1c365876be47ded123e97f7))
+
+### Changed
+
+- Deps: update `@angular/cli`, `@angular/core`, `@angular/cdk` and `@angular/material` to 21.1.2. ([8a475a0](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/8a475a023c5f286709cd3b8cbfb7617f7772c345))
+- Deps: update `openai` to 6.17.0. ([e91f759](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/e91f759eea11818f7e782d95bf225fce2bd34d71))
+- Deps: update transitive dependencies. ([b9ac56b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/b9ac56b4fc8a7343da25d75ea30e4c2a718b29d5))
 
 ### Fixed
 
-- Improve TEI encoding prompts.
-- Include temperature setting in Google API requests.
-- Increase thinking level/budget of `gemini-3-flash-preview`, `gemini-2.5-flash` and `gemini-2.5-pro`.
-- Max-height of transcriptions.
+- Improve TEI encoding prompts. ([6498408](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/649840853ec26c72c9bcca8c79775e3976bab8de), [e9fcc33](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/e9fcc3313709a2bdeee6c6f6ef32d80ae614ea93), [a510f98](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/a510f984f624904c8e00762cee14d0af56152609))
+- Include temperature setting in Google API requests. ([9dd78dc](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/9dd78dc11f4d36aa6ea6014d44a5f637bd183dd8))
+- Increase thinking level/budget of `gemini-3-flash-preview`, `gemini-2.5-flash` and `gemini-2.5-pro`. ([496f622](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/496f6224d7a8092455bb7d8b86bb25201b5aeeb7))
+- Max-height of transcriptions. ([a6da097](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/a6da097e29ce57cac80fc4d695e073feddd11f6f))
 
 
 
@@ -275,7 +299,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.0.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.1.0...HEAD
+[2.1.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.5.0...2.0.0
 [1.5.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.4.0...1.5.0
 [1.4.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.3.0...1.4.0
