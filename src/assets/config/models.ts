@@ -2,7 +2,7 @@ import { Model } from '../../app/types/model.types'
 import { TaskTypeId } from './prompts';
 
 export type ModelProvider = 'OpenAI' | 'Google';
-export type ModelId = 'gpt-4.1-mini' | 'gpt-4.1' | 'gpt-5.2' | 'gemini-3-flash-preview' | 'gemini-3-pro-preview' | 'gemini-2.5-pro' | 'gemini-2.5-flash';
+export type ModelId = 'gpt-4.1-mini' | 'gpt-4.1' | 'gpt-5.2' | 'gemini-3-flash-preview' | 'gemini-3-pro-preview' | 'gemini-3.1-pro-preview' | 'gemini-2.5-pro' | 'gemini-2.5-flash';
 
 // provider = name of model creator
 // name = display name of the model
@@ -67,14 +67,31 @@ export const MODELS: Model[] = [
   },
   {
     provider: 'Google',
-    name: 'Gemini 3 Pro Preview',
-    id: 'gemini-3-pro-preview',
-    description: 'The most accurate model for transcription tasks, excelling at handwritten text, and the best choice when transcription quality is critical.',
+    name: 'Gemini 3.1 Pro Preview',
+    id: 'gemini-3.1-pro-preview',
+    description: 'A top-tier model with quality on par with Gemini 3 Pro Preview, but notably slower.',
     inputPrice: { tiers: [{ upToTokens: 200000, per1M: 2.00 }, { upToTokens: null, per1M: 4.00 }] },
     outputPrice: { tiers: [{ upToTokens: 200000, per1M: 12.00 }, { upToTokens: null, per1M: 18.00 }] },
     rpm: 25,
     supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
-    url: 'https://ai.google.dev/gemini-api/docs/models#gemini-3-pro',
+    url: 'https://ai.google.dev/gemini-api/docs/models/gemini-3.1-pro-preview',
+    parameters: {
+      thinkingLevel: 'low',
+      maxImageShortsidePx: null,
+      mediaResolution: 'high'
+    },
+    supportsFilesApi: true
+  },
+  {
+    provider: 'Google',
+    name: 'Gemini 3 Pro Preview',
+    id: 'gemini-3-pro-preview',
+    description: 'A high-accuracy model for transcription, especially of handwritten text, and TEI-encoding.',
+    inputPrice: { tiers: [{ upToTokens: 200000, per1M: 2.00 }, { upToTokens: null, per1M: 4.00 }] },
+    outputPrice: { tiers: [{ upToTokens: 200000, per1M: 12.00 }, { upToTokens: null, per1M: 18.00 }] },
+    rpm: 25,
+    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
+    url: 'https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-preview',
     parameters: {
       thinkingLevel: 'low',
       maxImageShortsidePx: null,
