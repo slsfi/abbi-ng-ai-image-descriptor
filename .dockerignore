@@ -7,3 +7,11 @@ server/node_modules
 .angular
 .vscode
 .idea
+.git
+.github
+coverage
+*.log
+.env
+.env.*
+!.env.example
+README*
