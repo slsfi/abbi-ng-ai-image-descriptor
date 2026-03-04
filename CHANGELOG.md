@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Update `nginx` to 1.28.2.
 
+### Fixed
+
+- Update global `@angular/cli` version in `Dockerfile`.
+
 ### Removed
 
 - The `gemini-3-pro-preview` model. It has been replaced by `gemini-3.1-pro-preview`.
