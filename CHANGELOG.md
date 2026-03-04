@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+
+- Update `nginx` to 1.28.2.
+
 ### Removed
 
 - The `gemini-3-pro-preview` model. It has been replaced by `gemini-3.1-pro-preview`.
