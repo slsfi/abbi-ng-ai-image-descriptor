@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 
+- CI: harden Docker image build pipeline.
 - Update `nginx` to 1.28.2.
 
 ### Fixed

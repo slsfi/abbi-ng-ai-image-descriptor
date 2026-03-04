@@ -1,4 +1,4 @@
-name: "Build and push docker image"
+name: "Build and push Docker image"
 
 # Run this workflow when a new commit in the "main" branch
 # or release/tag is pushed.
@@ -32,10 +32,11 @@ jobs:
       NGINX_IMAGE_TAG: 1.28.2-alpine
 
     steps:
-      # Check out repository.
-      - uses: actions/checkout@v4
+      # 1) Check out repository.
+      - name: Check out repository
+        uses: actions/checkout@v6
 
-      # Log in with GitHub token credentials.
+      # 2) Authenticate to GitHub Container Registry.
       - name: Log in to ghcr.io
         uses: docker/login-action@v3
         with:
@@ -43,17 +44,11 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Pull latest Node image with tag defined above, otherwise an older
-      # cached image might be used.
-      - name: Pull latest Node.js image
-        run: docker pull node:${{ env.NODE_IMAGE_TAG }}
+      # 3) Create a Buildx builder. Buildx uses BuildKit under the hood.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      # Pull latest nginx image with tag defined above, otherwise an older
-      # cached image might be used.
-      - name: Pull latest nginx image
-        run: docker pull nginx:${{ env.NGINX_IMAGE_TAG }}
-
-      # Pull metadata from GitHub events (so we can use release version
+      # 4) Pull metadata from GitHub events (so we can use release version
       # number).
       - name: Pull metadata from GitHub
         id: meta
@@ -61,14 +56,15 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
 
-      # Build image, tagging with the release tag and "latest" on a release, 
-      # or with "main" if built against main (commit push) or built using
-      # workflow_dispatch.
-      - name: Build and push docker image
-        uses: docker/build-push-action@v5
+      # 5) Build image, tagging with the release tag and "latest" on a
+      # release, or with "main" if built against main (commit push) or
+      # built using workflow_dispatch.
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
+          pull: true
           file: Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
