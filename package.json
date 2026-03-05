@@ -25,7 +25,7 @@
     "@angular/platform-browser": "^21.2.1",
     "@angular/platform-browser-dynamic": "^21.2.1",
     "@angular/router": "^21.2.1",
-    "@google/genai": "^1.43.0",
+    "@google/genai": "^1.44.0",
     "docx": "^9.6.0",
     "fflate": "^0.8.2",
     "openai": "^6.25.0",
