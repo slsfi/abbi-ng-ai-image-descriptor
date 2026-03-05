@@ -14,10 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Update `nginx` to 1.28.2.
 - Deps: update `@angular/cli`, `@angular/core`, `@angular/cdk` and `@angular/material` to 21.2.1.
 - Deps: update `@google/genai` to 1.44.0.
-
-### Fixed
-
-- Update global `@angular/cli` version in `Dockerfile`.
+- Deps: update transitive dependencies.
 
 ### Removed
 
