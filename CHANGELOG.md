@@ -8,17 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [2.2.1] – 2026-03-05
+
 ### Changed
 
-- CI: harden Docker image build pipeline.
-- Update `nginx` to 1.28.2.
-- Deps: update `@angular/cli`, `@angular/core`, `@angular/cdk` and `@angular/material` to 21.2.1.
-- Deps: update `@google/genai` to 1.44.0.
-- Deps: update transitive dependencies.
+- CI: harden Docker image build pipeline. ([cafa919](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/cafa91915fa659f1442b04819d34a431881609d1), [355c3ec](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/355c3ec15bc1059f1cc30f7dc4ad07da15ed395d))
+- Update `nginx` to 1.28.2. ([8214748](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/8214748ada615a7d4528cdc8540727167575a64b))
+- Deps: update `@angular/cli`, `@angular/core`, `@angular/cdk` and `@angular/material` to 21.2.1. ([5142691](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/51426919b992d581bd2567cf0ead8d3276865225))
+- Deps: update `@google/genai` to 1.44.0. ([57cdeed](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/57cdeed949da9b6ac6c5197706ca3abdc3cfe8b3))
+- Deps: update transitive dependencies. ([bb4227b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/bb4227bc6dd3bda563e14c69433020789a24745c))
 
 ### Removed
 
-- The `gemini-3-pro-preview` model. It has been replaced by `gemini-3.1-pro-preview`.
+- The `gemini-3-pro-preview` model. It has been replaced by `gemini-3.1-pro-preview`. ([1817ce2](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/1817ce2c8852a85dc24402e280c54730d259ac25))
 
 
 
@@ -324,7 +328,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.2.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.2.1...HEAD
+[2.2.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.2.0...2.2.1
 [2.2.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.1.0...2.2.0
 [2.1.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/1.5.0...2.0.0
