@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - CI: harden Docker image build pipeline.
 - Update `nginx` to 1.28.2.
+- Deps: update `@angular/cli`, `@angular/core`, `@angular/cdk` and `@angular/material` to 21.2.1.
 
 ### Fixed
 
