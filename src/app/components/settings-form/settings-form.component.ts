@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -36,9 +36,6 @@ import { TaskTypeId } from '../../../assets/config/prompts';
 export class SettingsFormComponent {
   settings = inject(SettingsService);
 
-  teiEncode = signal<boolean>(false);
-  transcribeHeaders = signal<boolean>(true);
-
   descLengthMax: number = 300;
   descLengthMin: number = 150;
   temperatureMax: number = 2.0;
@@ -56,13 +53,15 @@ export class SettingsFormComponent {
     this.settings.updateTeiEncode(event.checked);
   }
 
+  setSpellcheckTranscription(event: MatSlideToggleChange): void {
+    this.settings.updateSpellcheckTranscription(event.checked);
+  }
+
   setTranscribeHeaders(event: MatSlideToggleChange): void {
     if (event.checked) {
       this.settings.updateSelectedVariantId('default');
-      this.transcribeHeaders.set(true);
     } else {
       this.settings.updateSelectedVariantId('noHeaders');
-      this.transcribeHeaders.set(false);
     }
   }
 

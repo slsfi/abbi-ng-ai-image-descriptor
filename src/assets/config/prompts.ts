@@ -13,6 +13,7 @@ import transcriptionIncludeHeadersPrompt from '../prompts/transcriptionIncludeHe
 import transcriptionIgnoreHeadersPrompt from '../prompts/transcriptionIgnoreHeaders.txt?raw';
 import transcriptionTeiPrompt from '../prompts/transcriptionTei.txt?raw';
 import transcriptionBatchTeiPrompt from '../prompts/transcriptionBatchTei.txt?raw';
+import transcriptionBatchTeiSpellcheckPrompt from '../prompts/transcriptionBatchTeiSpellcheck.txt?raw';
 
 /*
 console.log(
@@ -106,7 +107,10 @@ export const TASK_CONFIGS: TaskTypeConfig[] = [
         label: 'TEI body (batched, no running headers)',
         prompt: transcriptionBatchTeiPrompt
       }
-    ]
+    ],
+    helpers: {
+      batchSpellcheckPrompt: transcriptionBatchTeiSpellcheckPrompt
+    }
   }
 ] as const;
 

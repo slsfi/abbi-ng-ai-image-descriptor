@@ -14,3 +14,9 @@ export type AiResult = {
   error?: AiError;    // normalized error
   raw?: unknown;      // optional raw provider response (debugging)
 };
+
+export type AiTaskSuccess = {
+  text: string;
+  usage: AiUsage;
+  cost: number;
+};

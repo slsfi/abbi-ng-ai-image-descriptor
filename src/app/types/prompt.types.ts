@@ -24,5 +24,6 @@ export type TaskTypeConfig = {
     filenamePrompt?: Record<LanguageCode, string>;
     translatePrompt?: Record<LanguageCode, string>;
     teiEncodePrompt?: string;
+    batchSpellcheckPrompt?: string;
   };
 };

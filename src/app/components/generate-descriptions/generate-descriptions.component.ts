@@ -37,7 +37,7 @@ import { SettingsService } from '../../services/settings.service';
 import { BatchResult } from '../../types/batch-result.types';
 import { DescriptionData } from '../../types/description-data.types';
 import { ImageData } from '../../types/image-data.types';
-import { AiResult } from '../../types/ai.types';
+import { AiResult, AiTaskSuccess, AiUsage } from '../../types/ai.types';
 import { RequestSettings } from '../../types/settings.types';
 import { LanguageCode } from '../../../assets/config/prompts';
 
@@ -490,7 +490,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     const batchSize = settings.batchSize || 10;
     const batches = this.chunkArray(images, batchSize);
 
-    let lastRequestAt: number | null = null;
+    const throttleState = { lastRequestAt: null as number | null };
 
     // Create batch results with pending status
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
@@ -521,12 +521,6 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         break;
       }
 
-      // Throttle per REQUEST (per batch)
-      lastRequestAt = await this.enforceRpm(settings.model?.rpm, lastRequestAt);
-      if (!this.generating) {
-        break;
-      }
-
       const batch = batches[batchIndex];
       const batchId = this.batchResults.results()[batchIndex].id;
 
@@ -534,8 +528,6 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       if (this.cancelledBatchIds.has(batchId)) {
         continue;
       }
-
-      this.openProgressSnack(`Generating TEI batch ${batchIndex + 1}/${batches.length} (${batch.length} ${batch.length === 1 ? 'image' : 'images'})`);
 
       // mark images generating (even if table hidden, keeps state consistent)
       for (const img of batch) {
@@ -553,13 +545,16 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       this.abortByBatchId.set(batchId, ctrl);
 
       try {
-        const res = await this.runAiTaskBatchImages(
-          'filesApiImages',
+        const res = await this.runBatchTeiWorkflow(
           settings,
           prompt,
-          undefined,
           batch,
-          ctrl.signal
+          ctrl.signal,
+          {
+            generation: `Generating TEI batch ${batchIndex + 1}/${batches.length} (${batch.length} ${batch.length === 1 ? 'image' : 'images'})`,
+            spellcheck: `Spellchecking TEI batch ${batchIndex + 1}/${batches.length} (${batch.length} ${batch.length === 1 ? 'image' : 'images'})`
+          },
+          throttleState
         );
 
         // If user cancelled while we were running, do NOT overwrite cancelled state
@@ -568,19 +563,18 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         }
 
         if (res) {
-          // normaliseCharacters already strips/normalizes; pass teiEncoded=true
           const teiBody = this.exportService.normaliseCharacters(res.text, true);
 
           this.batchResults.update(batchId, {
             status: 'success',
             updatedAt: new Date().toISOString(),
             teiBody,
-            inputTokens: res.usage?.inputTokens ?? 0,
-            outputTokens: res.usage?.outputTokens ?? 0,
+            inputTokens: res.usage.inputTokens,
+            outputTokens: res.usage.outputTokens,
             cost: res.cost,
           });
         } else {
-          // runAiTaskBatchImages already showed a snackbar; mark the batch as error
+          // The underlying AI helper already showed a snackbar if this was not cancellation.
           this.batchResults.update(batchId, {
             status: 'error',
             error: 'Batch request failed.',
@@ -590,8 +584,8 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
           // this.setGlobalGenerating(false);
         }
       } finally {
-        // Always clear controller + image flags
         this.abortByBatchId.delete(batchId);
+        await this.cleanupUploadedBatchImages(batch);
         for (const img of batch) {
           this.setImageGenerating(img, false);
         }
@@ -628,7 +622,6 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
    * token usage, and cost, or marked as error if the request fails.
    */
   async transcribeAndTeiEncodeBatch(batch: BatchResult) {
-    // regenerate single batch
     this.setGlobalGenerating(true);
 
     // clear previous cancelled state for this batch (optional but nice)
@@ -654,8 +647,6 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       this.setImageGenerating(img, true);
     }
 
-    this.openProgressSnack(`Regenerating TEI batch ${batch.batchIndex} (${batch.imageIds.length} ${batch.imageIds.length === 1 ? 'image' : 'images'})`);
-
     const generating: Partial<BatchResult> = {
         status: 'generating',
         modelId: settings.model.id,
@@ -664,13 +655,15 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     this.batchResults.update(batchId, generating);
 
     try {
-      const res = await this.runAiTaskBatchImages(
-        'filesApiImages',
+      const res = await this.runBatchTeiWorkflow(
         settings,
         prompt,
-        undefined,
         batchImages,
-        ctrl.signal
+        ctrl.signal,
+        {
+          generation: `Regenerating TEI batch ${batch.batchIndex} (${batch.imageIds.length} ${batch.imageIds.length === 1 ? 'image' : 'images'})`,
+          spellcheck: `Spellchecking TEI batch ${batch.batchIndex} (${batch.imageIds.length} ${batch.imageIds.length === 1 ? 'image' : 'images'})`
+        }
       );
 
       // Batch was cancelled while request was in flight; do not overwrite state.
@@ -679,19 +672,17 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       }
 
       if (res) {
-        // normaliseCharacters already strips/normalizes; pass teiEncoded=true
         const teiBody = this.exportService.normaliseCharacters(res.text, true);
 
         this.batchResults.update(batchId, {
           status: 'success',
           updatedAt: new Date().toISOString(),
           teiBody,
-          inputTokens: (batch.inputTokens ?? 0) + (res.usage?.inputTokens ?? 0),
-          outputTokens: (batch.outputTokens ?? 0) + (res.usage?.outputTokens ?? 0),
+          inputTokens: (batch.inputTokens ?? 0) + res.usage.inputTokens,
+          outputTokens: (batch.outputTokens ?? 0) + res.usage.outputTokens,
           cost: (batch.cost ?? 0) + (res.cost),
         });
       } else {
-        // runAiTaskBatchImages already showed a snackbar; mark the batch as error
         this.batchResults.update(batchId, {
           status: 'error',
           error: 'Batch request failed.',
@@ -699,6 +690,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       }
     } finally {
       this.abortByBatchId.delete(batch.id);
+      await this.cleanupUploadedBatchImages(batchImages);
 
       for (const img of batchImages) {
         this.setImageGenerating(img, false);
@@ -1070,6 +1062,22 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     );
   }
 
+  private getBatchSpellcheckPromptTemplate(): string {
+    const taskConfig = this.settings.selectedTaskConfig();
+    return taskConfig.helpers?.batchSpellcheckPrompt ?? '';
+  }
+
+  /**
+   * Injects the intermediate TEI body into the batch spellcheck prompt template.
+   *
+   * The intermediate TEI is passed through exactly as returned by the first pass;
+   * it is intentionally not normalized here because only the final stored result
+   * should be normalized.
+   */
+  private getBatchSpellcheckPrompt(promptTemplate: string, teiBody: string): string {
+    return promptTemplate.replaceAll('{{AI_TEI_BODY}}', teiBody);
+  }
+
   private setGlobalGenerating(isGenerating: boolean) {
     this.generating = isGenerating;
   }
@@ -1098,7 +1106,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     prompt: string,
     stopOnError: boolean,
     imageObj?: ImageData
-  ): Promise<{ text: string; usage: any; cost: number } | null> {
+  ): Promise<AiTaskSuccess | null> {
     try {
       if (mode === 'image' && !imageObj) {
         throw new Error('runAiTask called with mode="image" but no imageObj provided');
@@ -1115,9 +1123,13 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         return null;
       }
 
+      const usage: AiUsage = {
+        inputTokens: result?.usage?.inputTokens ?? 0,
+        outputTokens: result?.usage?.outputTokens ?? 0,
+      };
       const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
 
-      return { text, usage: result?.usage, cost };
+      return { text, usage, cost };
     } catch (e) {
       console.error(e);
       this.showAPIErrorMessage(
@@ -1174,7 +1186,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     stopOnError: boolean,
     imageObj: ImageData,
     signal?: AbortSignal
-  ): Promise<{ text: string; usage: any; cost: number } | null> {
+  ): Promise<AiTaskSuccess | null> {
     try {
       if (signal?.aborted) {
         return null;
@@ -1201,9 +1213,13 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         return null;
       }
 
+      const usage: AiUsage = {
+        inputTokens: result?.usage?.inputTokens ?? 0,
+        outputTokens: result?.usage?.outputTokens ?? 0,
+      };
       const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
 
-      return { text, usage: result?.usage, cost };
+      return { text, usage, cost };
     } catch (e) {
       // If the user cancelled, don’t show an error snackbar.
       if (!signal?.aborted) {
@@ -1219,6 +1235,173 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       }
       return null;
     }
+  }
+
+  /**
+   * Executes one batched multimodal request using Files API image references.
+   *
+   * Unlike the older batch helper below, this method does not delete uploaded
+   * images when the request finishes. The caller owns cleanup so that the same
+   * uploaded batch can be reused across multiple passes, such as TEI generation
+   * followed by spellchecking.
+   *
+   * Returns a success-only object containing normalized usage and calculated
+   * cost, or `null` on failure/cancellation.
+   */
+  private async runAiTaskBatchImagesFilesApi(
+    settings: RequestSettings,
+    prompt: string,
+    images: ImageData[],
+    signal?: AbortSignal
+  ): Promise<AiTaskSuccess | null> {
+    try {
+      if (signal?.aborted) {
+        return null;
+      }
+
+      const result = await this.aiService.describeImagesFilesApi(settings, prompt, images, { signal });
+
+      if (signal?.aborted) {
+        return null;
+      }
+
+      const text = result?.text ?? '';
+      if (!text && result?.error) {
+        if (!signal?.aborted) {
+          this.handleApiFailure(settings, result, false);
+        }
+        return null;
+      }
+
+      const usage: AiUsage = {
+        inputTokens: result?.usage?.inputTokens ?? 0,
+        outputTokens: result?.usage?.outputTokens ?? 0,
+      };
+      const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
+      return { text, usage, cost };
+    } catch (e) {
+      if (!signal?.aborted) {
+        console.error(e);
+        this.showAPIErrorMessage(`An unknown error occurred while communicating with the ${settings.model?.provider} API: ${e}`);
+      }
+      return null;
+    }
+  }
+
+  /**
+   * Runs the batched TEI workflow for one batch.
+   *
+   * Pass 1 always generates the batched TEI transcription. If
+   * `settings.spellcheckTranscription` is enabled, pass 2 sends the same images
+   * plus the raw TEI output from pass 1 back to the model for spellchecking.
+   *
+   * Uploaded Files API images are reused across both passes and are not cleaned
+   * up here; outer callers handle cleanup in `finally` so cancellation and
+   * regeneration flows stay consistent.
+   */
+  private async runBatchTeiWorkflow(
+    settings: RequestSettings,
+    promptTemplate: string,
+    images: ImageData[],
+    signal?: AbortSignal,
+    progressMessages?: { generation: string; spellcheck?: string },
+    throttleState?: { lastRequestAt: number | null }
+  ): Promise<AiTaskSuccess | null> {
+    if (progressMessages?.generation) {
+      this.openProgressSnack(progressMessages.generation);
+    }
+
+    const teiRun = await this.runBatchTeiPass(
+      settings,
+      promptTemplate,
+      images,
+      signal,
+      throttleState
+    );
+    if (!teiRun) {
+      return null;
+    }
+
+    if (!settings.spellcheckTranscription) {
+      return teiRun;
+    }
+
+    const spellcheckPromptTemplate = this.getBatchSpellcheckPromptTemplate();
+    const spellcheckPrompt = this.getBatchSpellcheckPrompt(spellcheckPromptTemplate, teiRun.text);
+
+    if (progressMessages?.spellcheck) {
+      this.openProgressSnack(progressMessages.spellcheck);
+    }
+
+    const spellcheckRun = await this.runBatchTeiPass(
+      settings,
+      spellcheckPrompt,
+      images,
+      signal,
+      throttleState
+    );
+    if (!spellcheckRun) {
+      return null;
+    }
+
+    return {
+      text: spellcheckRun.text,
+      usage: this.sumUsage(teiRun.usage, spellcheckRun.usage),
+      cost: teiRun.cost + spellcheckRun.cost,
+    };
+  }
+
+  /**
+   * Runs a single pass of the batched TEI workflow.
+   *
+   * When a shared throttle state is provided, the method enforces the model's
+   * RPM limit before issuing the request. This lets consecutive passes for the
+   * same batch share the same request pacing logic.
+   */
+  private async runBatchTeiPass(
+    settings: RequestSettings,
+    prompt: string,
+    images: ImageData[],
+    signal?: AbortSignal,
+    throttleState?: { lastRequestAt: number | null }
+  ): Promise<AiTaskSuccess | null> {
+    if (throttleState) {
+      throttleState.lastRequestAt = await this.enforceRpm(settings.model?.rpm, throttleState.lastRequestAt);
+      if (!this.generating || signal?.aborted) {
+        return null;
+      }
+    }
+
+    return this.runAiTaskBatchImagesFilesApi(settings, prompt, images, signal);
+  }
+
+  /**
+   * Sums token usage across multiple successful AI runs.
+   *
+   * This is used to combine the TEI-generation and spellcheck passes into the
+   * single usage total stored on a batch result.
+   */
+  private sumUsage(...usages: Array<AiUsage | undefined>): AiUsage {
+    return usages.reduce<AiUsage>(
+      (total, usage) => ({
+        inputTokens: total.inputTokens + (usage?.inputTokens ?? 0),
+        outputTokens: total.outputTokens + (usage?.outputTokens ?? 0),
+      }),
+      { inputTokens: 0, outputTokens: 0 }
+    );
+  }
+
+  /**
+   * Best-effort cleanup for a batch's uploaded Files API images.
+   *
+   * Cleanup is intentionally non-throwing at the call site via
+   * `Promise.allSettled(...)` so that UI state updates and cancellation handling
+   * are never blocked by provider-side file deletion failures.
+   */
+  private async cleanupUploadedBatchImages(images: ImageData[]): Promise<void> {
+    await Promise.allSettled(
+      images.map(img => this.aiService.deleteUploadedFile(img))
+    );
   }
 
   /**
@@ -1239,7 +1422,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     base64Images?: string[],
     images?: ImageData[],
     signal?: AbortSignal
-  ): Promise<{ text: string; usage: any; cost: number } | null> {
+  ): Promise<AiTaskSuccess | null> {
     try {
       let result: AiResult | null = null;
 
@@ -1277,8 +1460,12 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         return null;
       }
 
+      const usage: AiUsage = {
+        inputTokens: result?.usage?.inputTokens ?? 0,
+        outputTokens: result?.usage?.outputTokens ?? 0,
+      };
       const cost = this.costService.updateCostFromResponse(settings.model, result?.usage);
-      return { text, usage: result?.usage, cost };
+      return { text, usage, cost };
     } catch (e) {
       // If the user cancelled, don’t show an error snackbar.
       if (!signal?.aborted) {

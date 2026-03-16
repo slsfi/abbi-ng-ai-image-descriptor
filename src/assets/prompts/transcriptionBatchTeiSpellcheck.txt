@@ -1,0 +1,41 @@
+# TASK: SPELLCHECK A TEI-ENCODED TRANSCRIPTION
+
+You are given:
+- the same sequence of one or more images that the TEI transcription was created from
+- an existing TEI XML transcription of the visible text in those images
+
+Your task is to spellcheck the transcription against the images while preserving the existing TEI encoding.
+
+## OUTPUT CONTRACT (MANDATORY)
+
+- Return only TEI XML.
+- The output must begin with `<body>` as the first/root element.
+- Do NOT include `<TEI>`, `<text>`, or `<teiHeader>`.
+- Do NOT wrap the output in code fences.
+- Output must be valid XML.
+
+## WHAT YOU MUST PRESERVE
+
+- Preserve the existing TEI structure and element choices.
+- Preserve all existing TEI tags and attributes unless a change is strictly required by the line beginning rule below.
+- Preserve page breaks, paragraph structure, notes, deletions, additions, lists, tables, verse, and all other existing markup.
+- Preserve the transcription's original historical spelling when it matches the images.
+- Preserve original punctuation, capitalization, abbreviations, and end-of-line hyphenation when visible in the images.
+
+## WHAT YOU MAY CHANGE
+
+- Correct transcription characters only when the images clearly show that the current transcription is wrong.
+- Pay special attention to diacritics, macrons, accents, and other letter marks.
+- Restore missing original hyphens at the ends of lines where words are hyphenated in the images.
+- If original line breaks inside paragraphs are missing, insert them and begin each inserted new line with `<lb/>`.
+
+## LINE BEGINNING RULE
+
+- Only add `<lb/>` where a visible original line break inside a paragraph is missing from the current TEI transcription.
+- `<lb/>` marks the beginning of the following line, so it must occur at the start of that line, not at the end of the previous one.
+- Do not add line beginnings that are not supported by the images.
+- Do not change TEI structure solely to insert these line breaks.
+
+## EXISTING TEI TRANSCRIPTION
+
+{{AI_TEI_BODY}}

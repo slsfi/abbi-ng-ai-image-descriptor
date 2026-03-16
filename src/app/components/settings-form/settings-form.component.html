@@ -102,7 +102,7 @@
     @if (selectedTaskTypeValue === 'transcription') {
       <div class="form-field-wrapper">
         <mat-slide-toggle
-              [checked]="transcribeHeaders()"
+              [checked]="settings.selectedVariantId() === 'default'"
               (change)="setTranscribeHeaders($event)"
               matTooltip="Enable this to include headers, footers, and page numbers in the transcription output."
         >Transcribe headers, footers &amp; page numbers</mat-slide-toggle>
@@ -110,7 +110,7 @@
 
       <div class="form-field-wrapper">
         <mat-slide-toggle
-              [checked]="teiEncode()"
+              [checked]="settings.teiEncode()"
               (change)="setTeiEncode($event)"
               matTooltip="Enable this to TEI XML encode the transcribed text of each image separately."
         >TEI encode each image transcription separately</mat-slide-toggle>
@@ -137,6 +137,14 @@
                   #batchSizeSlider>
           </mat-slider>
         </div>
+      </div>
+
+      <div class="form-field-wrapper">
+        <mat-slide-toggle
+              [checked]="settings.spellcheckTranscription()"
+              (change)="setSpellcheckTranscription($event)"
+              matTooltip="Enable this to run a second AI pass that spellchecks each batched TEI transcription against the images while preserving the TEI markup."
+        >Spellcheck transcription</mat-slide-toggle>
       </div>
     }
   </div>
