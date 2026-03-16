@@ -28,6 +28,7 @@ export class SettingsService {
   readonly selectedThinkingLevel = signal<GeminiThinkingLevel | null>(null);
   readonly teiEncode = signal<boolean>(false);
   readonly spellcheckTranscription = signal<boolean>(false);
+  readonly showIntermediateBatchResults = signal<boolean>(false);
 
   readonly batchSizeMin = signal<number>(BATCH_SIZE_MIN);
   readonly batchSizeMax = signal<number>(BATCH_SIZE_MAX);
@@ -176,6 +177,7 @@ export class SettingsService {
       includeFilename: this.includeFilename(),
       teiEncode: this.teiEncode(),
       spellcheckTranscription: this.spellcheckTranscription(),
+      showIntermediateBatchResults: this.showIntermediateBatchResults(),
       batchSize: this.batchSize(),
     };
   }
@@ -226,6 +228,10 @@ export class SettingsService {
 
   updateSpellcheckTranscription(value: boolean) {
     this.spellcheckTranscription.set(value);
+  }
+
+  updateShowIntermediateBatchResults(value: boolean) {
+    this.showIntermediateBatchResults.set(value);
   }
 
   updateBatchSize(value: number) {

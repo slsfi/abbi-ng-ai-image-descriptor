@@ -13,6 +13,8 @@ export interface BatchResult {
 
   // The output (TEI <body>…</body>)
   teiBody?: string;
+  pass1TeiBody?: string;
+  pass2TeiBody?: string;
 
   // Execution meta
   status: BatchResultStatus;

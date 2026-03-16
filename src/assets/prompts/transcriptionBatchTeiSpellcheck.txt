@@ -26,7 +26,7 @@ Your task is to spellcheck the transcription against the images while preserving
 
 - Correct transcription characters only when the images clearly show that the current transcription is wrong.
 - Pay special attention to diacritics, macrons, accents, and other letter marks.
-- Restore missing original hyphens at the ends of lines where words are hyphenated in the images.
+- Ensure that lines that end in hyphenated words, because of line breaks within the words, end with hyphens.
 - If original line breaks inside paragraphs are missing, insert them and begin each inserted new line with `<lb/>`.
 
 ## LINE BEGINNING RULE

@@ -57,6 +57,10 @@ export class SettingsFormComponent {
     this.settings.updateSpellcheckTranscription(event.checked);
   }
 
+  setShowIntermediateBatchResults(event: MatSlideToggleChange): void {
+    this.settings.updateShowIntermediateBatchResults(event.checked);
+  }
+
   setTranscribeHeaders(event: MatSlideToggleChange): void {
     if (event.checked) {
       this.settings.updateSelectedVariantId('default');

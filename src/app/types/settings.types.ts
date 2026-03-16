@@ -14,5 +14,6 @@ export interface RequestSettings {
   includeFilename: boolean;
   teiEncode: boolean;
   spellcheckTranscription: boolean;
+  showIntermediateBatchResults: boolean;
   batchSize: number;
 };

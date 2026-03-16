@@ -94,6 +94,8 @@ describe('GenerateDescriptionsComponent', () => {
     expect(exportService.normaliseCharacters).toHaveBeenCalledTimes(1);
     expect(exportService.normaliseCharacters).toHaveBeenCalledWith('first-pass', true);
     expect(batchResults.results()[0].teiBody).toBe('normalized:first-pass');
+    expect(batchResults.results()[0].pass1TeiBody).toBe('normalized:first-pass');
+    expect(batchResults.results()[0].pass2TeiBody).toBeUndefined();
     expect(batchResults.results()[0].inputTokens).toBe(11);
     expect(batchResults.results()[0].outputTokens).toBe(7);
     expect(batchResults.results()[0].cost).toBe(0.5);
@@ -119,9 +121,12 @@ describe('GenerateDescriptionsComponent', () => {
 
     expect(aiService.describeImagesFilesApi).toHaveBeenCalledTimes(2);
     expect(aiService.describeImagesFilesApi.calls.argsFor(1)[1]).toContain('raw-tei');
-    expect(exportService.normaliseCharacters).toHaveBeenCalledTimes(1);
-    expect(exportService.normaliseCharacters).toHaveBeenCalledWith('spellchecked-tei', true);
+    expect(exportService.normaliseCharacters).toHaveBeenCalledTimes(2);
+    expect(exportService.normaliseCharacters.calls.argsFor(0)).toEqual(['raw-tei', true]);
+    expect(exportService.normaliseCharacters.calls.argsFor(1)).toEqual(['spellchecked-tei', true]);
     expect(batchResults.results()[0].teiBody).toBe('normalized:spellchecked-tei');
+    expect(batchResults.results()[0].pass1TeiBody).toBe('normalized:raw-tei');
+    expect(batchResults.results()[0].pass2TeiBody).toBe('normalized:spellchecked-tei');
     expect(batchResults.results()[0].inputTokens).toBe(14);
     expect(batchResults.results()[0].outputTokens).toBe(5);
     expect(batchResults.results()[0].cost).toBeCloseTo(0.4, 6);

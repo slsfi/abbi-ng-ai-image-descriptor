@@ -12,7 +12,10 @@ import Prism from '../../utils/prism';
 import { EditDescriptionDialogComponent } from '../edit-description-dialog/edit-description-dialog.component';
 import { BatchResultsService } from '../../services/batch-results.service';
 import { ExportService } from '../../services/export.service';
+import { SettingsService } from '../../services/settings.service';
 import { BatchResult } from '../../types/batch-result.types';
+
+type BatchPreviewMode = 'final' | 'pass1' | 'pass2';
 
 @Component({
   selector: 'batch-results',
@@ -30,6 +33,7 @@ export class BatchResultsComponent {
   private readonly dialog = inject(MatDialog);
   readonly batchResults = inject(BatchResultsService);
   readonly exportService = inject(ExportService);
+  readonly settings = inject(SettingsService);
   readonly snackBar = inject(MatSnackBar);
 
   /** Emitted when the user requests regeneration of a finished batch. */
@@ -45,6 +49,7 @@ export class BatchResultsComponent {
 
   private readonly lastSigById = new Map<string, string>();
   readonly teiOpenById = signal<Record<string, boolean>>({});
+  readonly previewModeById = signal<Record<string, BatchPreviewMode>>({});
 
   constructor() {
     afterRenderEffect(() => {
@@ -52,12 +57,16 @@ export class BatchResultsComponent {
       // changed AND Angular has finished updating the DOM.
       // Only code blocks whose teiBody has changed are updated.
       const results = this.batchResults.results();
+      this.previewModeById();
+      this.settings.showIntermediateBatchResults();
 
       // 1) Build a set of ids that changed
       const changedIds = new Set<string>();
 
       for (const r of results) {
-        const sig = `${r.updatedAt ?? r.createdAt}:${r.teiBody ? 1 : 0}`;
+        const previewMode = this.getActivePreviewMode(r);
+        const previewBody = this.getPreviewBodyByMode(r, previewMode);
+        const sig = `${r.updatedAt ?? r.createdAt}:${previewMode}:${previewBody ?? ''}`;
 
         const prev = this.lastSigById.get(r.id);
         if (prev !== sig) {
@@ -93,6 +102,53 @@ export class BatchResultsComponent {
     }));
   }
 
+  setPreviewMode(id: string, mode: BatchPreviewMode): void {
+    this.previewModeById.update(curr => ({
+      ...curr,
+      [id]: mode,
+    }));
+  }
+
+  getPreviewModes(result: BatchResult): BatchPreviewMode[] {
+    if (!this.settings.showIntermediateBatchResults() || !result.pass2TeiBody) {
+      return ['final'];
+    }
+
+    const modes: BatchPreviewMode[] = ['final'];
+    if (result.pass1TeiBody) {
+      modes.push('pass1');
+    }
+    if (result.pass2TeiBody) {
+      modes.push('pass2');
+    }
+    return modes;
+  }
+
+  getPreviewModeLabel(mode: BatchPreviewMode): string {
+    if (mode === 'pass1') return 'Pass 1';
+    if (mode === 'pass2') return 'Pass 2';
+    return 'Final';
+  }
+
+  getActivePreviewMode(result: BatchResult): BatchPreviewMode {
+    const selected = this.previewModeById()[result.id] ?? 'final';
+    return this.getPreviewModes(result).includes(selected) ? selected : 'final';
+  }
+
+  getPreviewBody(result: BatchResult): string {
+    return this.getPreviewBodyByMode(result, this.getActivePreviewMode(result));
+  }
+
+  private getPreviewBodyByMode(result: BatchResult, mode: BatchPreviewMode): string {
+    if (mode === 'pass1') {
+      return result.pass1TeiBody ?? result.teiBody ?? '';
+    }
+    if (mode === 'pass2') {
+      return result.pass2TeiBody ?? result.teiBody ?? '';
+    }
+    return result.teiBody ?? '';
+  }
+
   downloadTei(result: BatchResult): void {
     this.exportService.generateXMLFromSingleBatch(result);
   }
@@ -119,6 +175,10 @@ export class BatchResultsComponent {
 
   removeOne(id: string): void {
     this.teiOpenById.update(curr => {
+      const { [id]: _, ...rest } = curr;
+      return rest;
+    });
+    this.previewModeById.update(curr => {
       const { [id]: _, ...rest } = curr;
       return rest;
     });

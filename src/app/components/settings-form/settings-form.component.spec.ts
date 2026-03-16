@@ -29,14 +29,21 @@ describe('SettingsFormComponent', () => {
     settings.updateSelectedTaskType('altText');
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).not.toContain('Spellcheck transcription');
+    expect(fixture.nativeElement.textContent).not.toContain('Show intermediate spellcheck results');
 
     settings.updateSelectedTaskType('transcriptionBatchTei');
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Spellcheck transcription');
+    expect(fixture.nativeElement.textContent).toContain('Show intermediate spellcheck results');
   });
 
   it('updates the spellcheck transcription setting', () => {
     component.setSpellcheckTranscription({ checked: true } as MatSlideToggleChange);
     expect(settings.spellcheckTranscription()).toBeTrue();
+  });
+
+  it('updates the intermediate batch result visibility setting', () => {
+    component.setShowIntermediateBatchResults({ checked: true } as MatSlideToggleChange);
+    expect(settings.showIntermediateBatchResults()).toBeTrue();
   });
 });

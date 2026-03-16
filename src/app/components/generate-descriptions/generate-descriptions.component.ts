@@ -41,6 +41,13 @@ import { AiResult, AiTaskSuccess, AiUsage } from '../../types/ai.types';
 import { RequestSettings } from '../../types/settings.types';
 import { LanguageCode } from '../../../assets/config/prompts';
 
+type BatchTeiWorkflowSuccess = {
+  run: AiTaskSuccess;
+  pass1TeiBody: string;
+  pass2TeiBody?: string;
+  finalTeiBody: string;
+};
+
 @Component({
   selector: 'generate-descriptions',
   imports: [
@@ -563,15 +570,15 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         }
 
         if (res) {
-          const teiBody = this.exportService.normaliseCharacters(res.text, true);
-
           this.batchResults.update(batchId, {
             status: 'success',
             updatedAt: new Date().toISOString(),
-            teiBody,
-            inputTokens: res.usage.inputTokens,
-            outputTokens: res.usage.outputTokens,
-            cost: res.cost,
+            teiBody: res.finalTeiBody,
+            pass1TeiBody: res.pass1TeiBody,
+            pass2TeiBody: res.pass2TeiBody,
+            inputTokens: res.run.usage.inputTokens,
+            outputTokens: res.run.usage.outputTokens,
+            cost: res.run.cost,
           });
         } else {
           // The underlying AI helper already showed a snackbar if this was not cancellation.
@@ -672,15 +679,15 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       }
 
       if (res) {
-        const teiBody = this.exportService.normaliseCharacters(res.text, true);
-
         this.batchResults.update(batchId, {
           status: 'success',
           updatedAt: new Date().toISOString(),
-          teiBody,
-          inputTokens: (batch.inputTokens ?? 0) + res.usage.inputTokens,
-          outputTokens: (batch.outputTokens ?? 0) + res.usage.outputTokens,
-          cost: (batch.cost ?? 0) + (res.cost),
+          teiBody: res.finalTeiBody,
+          pass1TeiBody: res.pass1TeiBody,
+          pass2TeiBody: res.pass2TeiBody,
+          inputTokens: (batch.inputTokens ?? 0) + res.run.usage.inputTokens,
+          outputTokens: (batch.outputTokens ?? 0) + res.run.usage.outputTokens,
+          cost: (batch.cost ?? 0) + res.run.cost,
         });
       } else {
         this.batchResults.update(batchId, {
@@ -1298,6 +1305,10 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
    * Uploaded Files API images are reused across both passes and are not cleaned
    * up here; outer callers handle cleanup in `finally` so cancellation and
    * regeneration flows stay consistent.
+   *
+   * The spellcheck prompt always receives the raw pass-1 TEI text. Normalized
+   * pass-1 and pass-2 TEI bodies are produced only for storage/display after the
+   * spellcheck prompt has been assembled.
    */
   private async runBatchTeiWorkflow(
     settings: RequestSettings,
@@ -1306,7 +1317,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     signal?: AbortSignal,
     progressMessages?: { generation: string; spellcheck?: string },
     throttleState?: { lastRequestAt: number | null }
-  ): Promise<AiTaskSuccess | null> {
+  ): Promise<BatchTeiWorkflowSuccess | null> {
     if (progressMessages?.generation) {
       this.openProgressSnack(progressMessages.generation);
     }
@@ -1323,7 +1334,12 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     }
 
     if (!settings.spellcheckTranscription) {
-      return teiRun;
+      const pass1TeiBody = this.exportService.normaliseCharacters(teiRun.text, true);
+      return {
+        run: teiRun,
+        pass1TeiBody,
+        finalTeiBody: pass1TeiBody,
+      };
     }
 
     const spellcheckPromptTemplate = this.getBatchSpellcheckPromptTemplate();
@@ -1344,10 +1360,18 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       return null;
     }
 
+    const pass1TeiBody = this.exportService.normaliseCharacters(teiRun.text, true);
+    const pass2TeiBody = this.exportService.normaliseCharacters(spellcheckRun.text, true);
+
     return {
-      text: spellcheckRun.text,
-      usage: this.sumUsage(teiRun.usage, spellcheckRun.usage),
-      cost: teiRun.cost + spellcheckRun.cost,
+      run: {
+        text: spellcheckRun.text,
+        usage: this.sumUsage(teiRun.usage, spellcheckRun.usage),
+        cost: teiRun.cost + spellcheckRun.cost,
+      },
+      pass1TeiBody,
+      pass2TeiBody,
+      finalTeiBody: pass2TeiBody,
     };
   }
 

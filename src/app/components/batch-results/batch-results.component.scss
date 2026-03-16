@@ -63,6 +63,19 @@
 .batch-result-preview {
   width: 100%;
 
+  .preview-mode-switcher {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    margin: 0.75em 0 0.5em 0;
+  }
+
+  .preview-mode-button.active {
+    background-color: #e9eefb;
+    border-radius: 999px;
+    font-weight: 500;
+  }
+
   pre {
     background-color: #f7f7f9;
     border: 1px solid #dbdbdb;

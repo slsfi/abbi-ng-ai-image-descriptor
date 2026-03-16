@@ -146,6 +146,14 @@
               matTooltip="Enable this to run a second AI pass that spellchecks each batched TEI transcription against the images while preserving the TEI markup."
         >Spellcheck transcription</mat-slide-toggle>
       </div>
+
+      <div class="form-field-wrapper">
+        <mat-slide-toggle
+              [checked]="settings.showIntermediateBatchResults()"
+              (change)="setShowIntermediateBatchResults($event)"
+              matTooltip="Enable this to keep and display normalized pass 1 and pass 2 TEI results for testing and comparison."
+        >Show intermediate spellcheck results</mat-slide-toggle>
+      </div>
     }
   </div>
 

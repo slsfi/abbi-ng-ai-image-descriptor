@@ -64,7 +64,7 @@
                 <mat-icon>edit</mat-icon>
               </button>
               <button matIconButton
-                [cdkCopyToClipboard]="r.teiBody"
+                [cdkCopyToClipboard]="getPreviewBody(r)"
                 [attr.aria-label]="'Copy to clipboard'"
                 [matTooltip]="'Copy to clipboard'"
               >
@@ -112,11 +112,26 @@
 
       @if (r.status === 'success' && r.teiBody) {
         <div class="batch-result-preview">
+          @if (getPreviewModes(r).length > 1) {
+            <div class="preview-mode-switcher">
+              @for (mode of getPreviewModes(r); track mode) {
+                <button matButton
+                  type="button"
+                  class="preview-mode-button"
+                  [class.active]="getActivePreviewMode(r) === mode"
+                  (click)="setPreviewMode(r.id, mode)"
+                >
+                  {{ getPreviewModeLabel(mode) }}
+                </button>
+              }
+            </div>
+          }
+
           <pre class="language-markup" [hidden]="!previewShown"><code
                 class="language-markup"
                 #codeEl
                 [attr.data-result-id]="r.id"
-                [textContent]="r.teiBody"
+                [textContent]="getPreviewBody(r)"
           ></code></pre>
 
           @if (previewShown) {
