@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - Deps: update `@angular/cli`, `@angular/cdk`, and `@angular/material` to 21.2.3, and `@angular/core` to 21.2.5.
+- Deps: update `openai` to 6.32.0.
 
 
 
