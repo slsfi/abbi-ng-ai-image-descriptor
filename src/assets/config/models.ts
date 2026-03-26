@@ -17,6 +17,7 @@ export type ModelId = 'gpt-4.1-mini' | 'gpt-4.1' | 'gpt-5.4' | 'gemini-3-flash-p
 //     maxImageShortsidePx = (optional) max supported image short side
 //                           length in pixels, set to null for no limit,
 //                           defaults to 768 if undefined
+//     imageDetail = (optional, OpenAI only)
 //     mediaResolution = (optional, Google Gemini only)
 //     reasoningEffort = (optional, required for OpenAI reasoning models)
 //                       reasoning effort constraint for reasoning
@@ -45,7 +46,10 @@ export const MODELS: Model[] = [
     outputPrice: 8.0,
     rpm: 5000,
     supportedTaskTypes: ['altText', 'transcription'],
-    url: 'https://developers.openai.com/api/docs/models/gpt-4.1'
+    url: 'https://developers.openai.com/api/docs/models/gpt-4.1',
+    parameters: {
+      imageDetail: 'high'
+    }
   },
   {
     provider: 'OpenAI',
@@ -56,7 +60,10 @@ export const MODELS: Model[] = [
     outputPrice: 1.6,
     rpm: 5000,
     supportedTaskTypes: ['altText'],
-    url: 'https://developers.openai.com/api/docs/models/gpt-4.1-mini'
+    url: 'https://developers.openai.com/api/docs/models/gpt-4.1-mini',
+    parameters: {
+      imageDetail: 'high'
+    }
   },
   {
     provider: 'OpenAI',
@@ -69,6 +76,7 @@ export const MODELS: Model[] = [
     supportedTaskTypes: ['altText', 'transcription'],
     url: 'https://developers.openai.com/api/docs/models/gpt-5.4',
     parameters: {
+      imageDetail: 'original',
       maxImageShortsidePx: null,
       reasoningEffort: 'none',
       reasoningEfforts: ['none', 'low', 'medium', 'high', 'xhigh'],

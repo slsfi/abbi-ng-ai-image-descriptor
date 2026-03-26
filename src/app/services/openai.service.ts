@@ -59,6 +59,7 @@ export class OpenAiService {
     }
 
     const reasoningEffort: ReasoningEffort = settings.reasoningEffort ?? settings.model.parameters?.reasoningEffort ?? null;
+    const imageDetail = settings.model.parameters?.imageDetail ?? 'high';
     const supportsTemperature = isTemperatureSupportedForModel(
       settings.model,
       settings.reasoningEffort,
@@ -78,7 +79,7 @@ export class OpenAiService {
             {
               type: 'input_image',
               image_url: base64Image,
-              detail: 'high'
+              detail: imageDetail
             },
           ],
         }

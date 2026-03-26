@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - CI: update GitHub Actions in the Docker build-and-push workflow.
+- OpenAI image input detail is configured per model via `parameters.imageDetail` instead of being hard-coded in the service.
 - Deps: update `@angular/cli`, `@angular/cdk`, and `@angular/material` to 21.2.3, and `@angular/core` to 21.2.5.
 - Deps: update `@google/genai` to 1.46.0.
 - Deps: update `docx` to 9.6.1.

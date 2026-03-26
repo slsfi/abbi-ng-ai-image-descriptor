@@ -17,6 +17,7 @@ import type { ReasoningEffort } from 'openai/resources/shared';
 //     maxImageShortsidePx = (optional) max supported image short side
 //                           length in pixels, set to null for no limit,
 //                           defaults to 768 if undefined
+//     imageDetail = (optional, OpenAI only)
 //     mediaResolution = (optional, Google Gemini only)
 //     reasoningEffort = (optional, required for OpenAI reasoning models)
 //                       reasoning effort constraint for reasoning
@@ -58,10 +59,12 @@ export interface Model {
 export type Models = Model[];
 
 export type OpenAiReasoningEffort = Exclude<ReasoningEffort, null>;
+export type OpenAiImageDetail = 'low' | 'high' | 'original' | 'auto';
 export type GeminiThinkingLevel = 'minimal' | 'low' | 'medium' | 'high';
 
 export interface ModelParameters {
   maxImageShortsidePx?: number | null;
+  imageDetail?: OpenAiImageDetail;
   mediaResolution?: string;
   reasoningEffort?: OpenAiReasoningEffort;
   reasoningEfforts?: OpenAiReasoningEffort[];
