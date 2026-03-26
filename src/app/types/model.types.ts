@@ -50,8 +50,6 @@ export interface Model {
    * (file URIs instead of inline image data) for multimodal requests.
    *
    * Optional: undefined means "not supported".
-   * 
-   * ! ONLY implemented for Google models currently!
    */
   supportsFilesApi?: boolean
 };

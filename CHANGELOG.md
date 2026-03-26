@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Model-config aware temperature support rules: the temperature setting is disabled/omitted when unsupported with reasoning effort or thinking level enabled.
 - Support for the OpenAI [`gpt-5.4`](https://developers.openai.com/api/docs/models/gpt-5.4) model.
+- Support for batched transcription + TEI encoding with OpenAI models, including OpenAI Files API uploads with 48-hour expiry and cleanup.
 
 ### Changed
 

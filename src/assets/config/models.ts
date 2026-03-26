@@ -59,7 +59,7 @@ export const MODELS: Model[] = [
     inputPrice: { tiers: [{ upToTokens: 272000, per1M: 2.50 }, { upToTokens: null, per1M: 5.00 }] },
     outputPrice: { tiers: [{ upToTokens: 272000, per1M: 15.00 }, { upToTokens: null, per1M: 22.50 }] },
     rpm: 5000,
-    supportedTaskTypes: ['altText', 'transcription'],
+    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
     url: 'https://developers.openai.com/api/docs/models/gpt-5.4',
     parameters: {
       imageDetail: 'original',
@@ -67,7 +67,8 @@ export const MODELS: Model[] = [
       reasoningEffort: 'none',
       reasoningEfforts: ['none', 'low', 'medium', 'high', 'xhigh'],
       reasoningSupportsTemperature: false
-    }
+    },
+    supportsFilesApi: true
   },
   {
     provider: 'Google',
