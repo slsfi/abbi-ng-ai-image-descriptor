@@ -7,6 +7,7 @@ import { LanguageCode, TaskTypeId, TASK_CONFIGS, TASK_TYPES_BY_ID } from '../../
 import { GeminiThinkingLevel, Model, OpenAiReasoningEffort } from '../types/model.types';
 import { PromptVariant } from '../types/prompt.types';
 import { RequestSettings } from '../types/settings.types';
+import { isTemperatureSupportedForModel } from '../utils/model-parameters';
 
 const BATCH_SIZE_MIN = 1;
 const BATCH_SIZE_MAX = 30;
@@ -52,6 +53,14 @@ export class SettingsService {
 
   readonly availableThinkingLevels = computed<GeminiThinkingLevel[]>(
     () => this.selectedModel().parameters?.thinkingLevels ?? []
+  );
+
+  readonly isTemperatureSupported = computed<boolean>(() =>
+    isTemperatureSupportedForModel(
+      this.selectedModel(),
+      this.selectedReasoningEffort(),
+      this.selectedThinkingLevel()
+    )
   );
 
   readonly languages = computed(() => {

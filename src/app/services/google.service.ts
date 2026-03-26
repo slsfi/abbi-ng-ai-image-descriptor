@@ -7,6 +7,7 @@ import { ApiError, File, GenerateContentResponse, GoogleGenAI, MediaResolution,
 import { AiResult } from '../types/ai.types';
 import { ImageData } from '../types/image-data.types';
 import { RequestSettings } from '../types/settings.types';
+import { isTemperatureSupportedForModel } from '../utils/model-parameters';
 
 
 type DataUrlBlob = { mimeType: string; blob: Blob };
@@ -143,6 +144,11 @@ export class GoogleService {
     try {
       const mediaResolution = this.mediaResolutionFromModel(settings);
       const thinkingLevel = this.thinkingLevelFromSettings(settings);
+      const supportsTemperature = isTemperatureSupportedForModel(
+        settings.model,
+        settings.reasoningEffort,
+        settings.thinkingLevel
+      );
 
       let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
       if (thinkingLevel) {
@@ -163,7 +169,7 @@ export class GoogleService {
         config: {
           ...(maxOutputTokens ? { maxOutputTokens: maxOutputTokens } : {}),
           ...(mediaResolution ? { mediaResolution: mediaResolution } : {}),
-          ...(settings.temperature !== null ? { temperature: settings.temperature } : {}),
+          ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {}),
           ...(thinkingLevel ? { thinkingConfig: { thinkingLevel: thinkingLevel } } : {}),
           ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget: thinkingBudget } } : {})
         }
@@ -208,6 +214,11 @@ export class GoogleService {
     try {
       const mediaResolution = this.mediaResolutionFromModel(settings);
       const thinkingLevel = this.thinkingLevelFromSettings(settings);
+      const supportsTemperature = isTemperatureSupportedForModel(
+        settings.model,
+        settings.reasoningEffort,
+        settings.thinkingLevel
+      );
 
       let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
       if (thinkingLevel) {
@@ -229,7 +240,7 @@ export class GoogleService {
         config: {
           ...(maxOutputTokens ? { maxOutputTokens } : {}),
           ...(mediaResolution ? { mediaResolution } : {}),
-          ...(settings.temperature !== null ? { temperature: settings.temperature } : {}),
+          ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {}),
           ...(thinkingLevel ? { thinkingConfig: { thinkingLevel } } : {}),
           ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget } } : {})
         }
@@ -277,6 +288,11 @@ export class GoogleService {
     try {
       const mediaResolution = this.mediaResolutionFromModel(settings);
       const thinkingLevel = this.thinkingLevelFromSettings(settings);
+      const supportsTemperature = isTemperatureSupportedForModel(
+        settings.model,
+        settings.reasoningEffort,
+        settings.thinkingLevel
+      );
 
       let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
       if (thinkingLevel) {
@@ -306,7 +322,7 @@ export class GoogleService {
         contents: createUserContent(parts),
         config: {
           ...(mediaResolution ? { mediaResolution } : {}),
-          ...(settings.temperature !== null ? { temperature: settings.temperature } : {}),
+          ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {}),
           ...(thinkingLevel ? { thinkingConfig: { thinkingLevel } } : {}),
           ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget } } : {}),
         }

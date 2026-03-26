@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- Model-config aware temperature support rules: the temperature setting is disabled/omitted when unsupported with reasoning effort or thinking level enabled.
+
 ### Changed
 
 - CI: update GitHub Actions in the Docker build-and-push workflow.

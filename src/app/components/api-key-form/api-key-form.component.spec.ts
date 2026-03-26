@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ApiKeyFormComponentComponent } from './api-key-form-component.component';
+import { ApiKeyFormComponent } from './api-key-form.component';
 
-describe('ApiKeyFormComponentComponent', () => {
-  let component: ApiKeyFormComponentComponent;
-  let fixture: ComponentFixture<ApiKeyFormComponentComponent>;
+describe('ApiKeyFormComponent', () => {
+  let component: ApiKeyFormComponent;
+  let fixture: ComponentFixture<ApiKeyFormComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiKeyFormComponentComponent]
+      imports: [ApiKeyFormComponent]
     })
     .compileComponents();
     
-    fixture = TestBed.createComponent(ApiKeyFormComponentComponent);
+    fixture = TestBed.createComponent(ApiKeyFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

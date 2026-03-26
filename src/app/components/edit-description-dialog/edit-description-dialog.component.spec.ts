@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { EditDescriptionDialogComponent } from './edit-description-dialog.component';
 
@@ -8,7 +9,28 @@ describe('EditDescriptionDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EditDescriptionDialogComponent]
+      imports: [EditDescriptionDialogComponent],
+      providers: [
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            imageObj: {
+              id: 'img-1',
+              base64Image: 'data:image/png;base64,AAAA',
+              width: 100,
+              height: 100,
+              activeDescriptionIndex: 0,
+              descriptions: [
+                {
+                  description: 'Test description',
+                  teiEncoded: false,
+                },
+              ],
+            },
+          },
+        },
+        { provide: MatDialogRef, useValue: { close: jasmine.createSpy('close') } },
+      ],
     })
     .compileComponents();
     

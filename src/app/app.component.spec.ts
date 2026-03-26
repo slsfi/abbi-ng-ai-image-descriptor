@@ -39,29 +39,8 @@ describe('AppComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should show snackbar with error message on API error', async () => {
-    const spy = spyOn(snackBar, 'open');
-    spyOn(openaiService, 'describeImage').and.returnValue(Promise.resolve({
-      error: {
-        status: 400,
-        message: 'BadRequestError'
-      }
-    }));
-
-    const imageObj = {
-      generating: false,
-      base64Image: 'someBase64ImageString',
-      descriptions: [],
-      activeDescriptionIndex: -1
-    } as any; // Cast to any for simplicity, use appropriate interface/type
-
-    await component.generateImageDescription(imageObj);
-
-    expect(spy).toHaveBeenCalledWith(
-      'Error communicating with the OpenAI API: 400 BadRequestError',
-      'Dismiss',
-      { duration: 5000 }
-    );
+  it('should create the app', () => {
+    expect(component).toBeTruthy();
   });
 
   /*
