@@ -97,25 +97,7 @@ export class GoogleService {
       return { text: '', error: { code: 400, message: 'Invalid image data URL.' } };
     }
 
-    let maxOutputTokens = null;
-    if (settings.taskType === 'altText') {
-      maxOutputTokens = settings.descriptionLength ? settings.descriptionLength + 1000 : null;
-    }
-
     try {
-      const mediaResolution = this.mediaResolutionFromModel(settings);
-      const thinkingLevel = this.thinkingLevelFromSettings(settings);
-      const supportsTemperature = isTemperatureSupportedForModel(
-        settings.model,
-        settings.reasoningEffort,
-        settings.thinkingLevel
-      );
-
-      let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
-      if (thinkingLevel) {
-        thinkingBudget = null;
-      }
-
       const payload = {
         model: settings.model.id,
         contents: [
@@ -127,13 +109,9 @@ export class GoogleService {
           },
           { text: prompt },
         ],
-        config: {
-          ...(maxOutputTokens ? { maxOutputTokens: maxOutputTokens } : {}),
-          ...(mediaResolution ? { mediaResolution: mediaResolution } : {}),
-          ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {}),
-          ...(thinkingLevel ? { thinkingConfig: { thinkingLevel: thinkingLevel } } : {}),
-          ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget: thinkingBudget } } : {})
-        }
+        config: this.buildGenerateContentConfig(settings, {
+          maxOutputTokens: this.maxOutputTokensFromSettings(settings)
+        })
       };
       // console.log(payload);
 
@@ -167,25 +145,7 @@ export class GoogleService {
       parsedImages.push(parsed);
     }
 
-    let maxOutputTokens = null;
-    if (settings.taskType === 'altText') {
-      maxOutputTokens = settings.descriptionLength ? settings.descriptionLength + 1000 : null;
-    }
-
     try {
-      const mediaResolution = this.mediaResolutionFromModel(settings);
-      const thinkingLevel = this.thinkingLevelFromSettings(settings);
-      const supportsTemperature = isTemperatureSupportedForModel(
-        settings.model,
-        settings.reasoningEffort,
-        settings.thinkingLevel
-      );
-
-      let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
-      if (thinkingLevel) {
-        thinkingBudget = null;
-      }
-
       // Build contents as: [inlineData, inlineData, ..., {text: prompt}]
       const contents: any[] = parsedImages.map(p => ({
         inlineData: {
@@ -198,13 +158,9 @@ export class GoogleService {
       const payload = {
         model: settings.model.id,
         contents,
-        config: {
-          ...(maxOutputTokens ? { maxOutputTokens } : {}),
-          ...(mediaResolution ? { mediaResolution } : {}),
-          ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {}),
-          ...(thinkingLevel ? { thinkingConfig: { thinkingLevel } } : {}),
-          ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget } } : {})
-        }
+        config: this.buildGenerateContentConfig(settings, {
+          maxOutputTokens: this.maxOutputTokensFromSettings(settings)
+        })
       };
 
       const resp = await this.client.models.generateContent(payload);
@@ -247,19 +203,6 @@ export class GoogleService {
     }
 
     try {
-      const mediaResolution = this.mediaResolutionFromModel(settings);
-      const thinkingLevel = this.thinkingLevelFromSettings(settings);
-      const supportsTemperature = isTemperatureSupportedForModel(
-        settings.model,
-        settings.reasoningEffort,
-        settings.thinkingLevel
-      );
-
-      let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
-      if (thinkingLevel) {
-        thinkingBudget = null;
-      }
-
       // Upload/ensure uploaded in order
       const parts: any[] = [];
 
@@ -281,12 +224,7 @@ export class GoogleService {
       const payload = {
         model: settings.model.id,
         contents: createUserContent(parts),
-        config: {
-          ...(mediaResolution ? { mediaResolution } : {}),
-          ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {}),
-          ...(thinkingLevel ? { thinkingConfig: { thinkingLevel } } : {}),
-          ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget } } : {}),
-        }
+        config: this.buildGenerateContentConfig(settings)
       };
 
       const resp = await abortable<GenerateContentResponse>(
@@ -546,6 +484,46 @@ export class GoogleService {
       ? MediaResolution.MEDIA_RESOLUTION_HIGH
       : null
     return mediaResolution;
+  }
+
+  /**
+   * Resolves the effective max output token limit for UI tasks that use one.
+   */
+  private maxOutputTokensFromSettings(settings: RequestSettings): number | null {
+    if (settings.taskType !== 'altText') {
+      return null;
+    }
+    return settings.descriptionLength ? settings.descriptionLength + 1000 : null;
+  }
+
+  /**
+   * Builds the shared Google `generateContent` config object used by inline-image,
+   * multi-image, and Files API requests.
+   */
+  private buildGenerateContentConfig(
+    settings: RequestSettings,
+    options?: { maxOutputTokens?: number | null }
+  ) {
+    const mediaResolution = this.mediaResolutionFromModel(settings);
+    const thinkingLevel = this.thinkingLevelFromSettings(settings);
+    const supportsTemperature = isTemperatureSupportedForModel(
+      settings.model,
+      settings.reasoningEffort,
+      settings.thinkingLevel
+    );
+
+    let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
+    if (thinkingLevel) {
+      thinkingBudget = null;
+    }
+
+    return {
+      ...(options?.maxOutputTokens ? { maxOutputTokens: options.maxOutputTokens } : {}),
+      ...(mediaResolution ? { mediaResolution } : {}),
+      ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {}),
+      ...(thinkingLevel ? { thinkingConfig: { thinkingLevel } } : {}),
+      ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget } } : {})
+    };
   }
 
   /**
