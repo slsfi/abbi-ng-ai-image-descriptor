@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Added
 
 - Model-config aware temperature support rules: the temperature setting is disabled/omitted when unsupported with reasoning effort or thinking level enabled.
+- Support for the OpenAI [`gpt-5.4`](https://developers.openai.com/api/docs/models/gpt-5.4) model.
 
 ### Changed
 
@@ -20,6 +21,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `docx` to 9.6.1.
 - Deps: update `openai` to 6.32.0.
 - Deps: update transitive dependencies.
+
+### Removed
+
+- The `gpt-5.2` model. It has been replaced by `gpt-5.4`.
 
 
 

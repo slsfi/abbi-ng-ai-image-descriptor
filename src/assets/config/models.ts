@@ -2,7 +2,7 @@ import { Model } from '../../app/types/model.types'
 import { TaskTypeId } from './prompts';
 
 export type ModelProvider = 'OpenAI' | 'Google';
-export type ModelId = 'gpt-4.1-mini' | 'gpt-4.1' | 'gpt-5.2' | 'gemini-3-flash-preview' | 'gemini-3.1-pro-preview' | 'gemini-2.5-pro' | 'gemini-2.5-flash';
+export type ModelId = 'gpt-4.1-mini' | 'gpt-4.1' | 'gpt-5.4' | 'gemini-3-flash-preview' | 'gemini-3.1-pro-preview' | 'gemini-2.5-pro' | 'gemini-2.5-flash';
 
 // provider = name of model creator
 // name = display name of the model
@@ -45,7 +45,7 @@ export const MODELS: Model[] = [
     outputPrice: 8.0,
     rpm: 5000,
     supportedTaskTypes: ['altText', 'transcription'],
-    url: 'https://platform.openai.com/docs/models/gpt-4.1'
+    url: 'https://developers.openai.com/api/docs/models/gpt-4.1'
   },
   {
     provider: 'OpenAI',
@@ -56,21 +56,23 @@ export const MODELS: Model[] = [
     outputPrice: 1.6,
     rpm: 5000,
     supportedTaskTypes: ['altText'],
-    url: 'https://platform.openai.com/docs/models/gpt-4.1-mini'
+    url: 'https://developers.openai.com/api/docs/models/gpt-4.1-mini'
   },
   {
     provider: 'OpenAI',
-    name: 'GPT-5.2',
-    id: 'gpt-5.2',
+    name: 'GPT-5.4',
+    id: 'gpt-5.4',
     description: 'A powerful model optimized for high-quality outputs, well suited for complex images.',
-    inputPrice: 1.75,
-    outputPrice: 14.0,
+    inputPrice: { tiers: [{ upToTokens: 272000, per1M: 2.50 }, { upToTokens: null, per1M: 5.00 }] },
+    outputPrice: { tiers: [{ upToTokens: 272000, per1M: 15.00 }, { upToTokens: null, per1M: 22.50 }] },
     rpm: 5000,
     supportedTaskTypes: ['altText', 'transcription'],
-    url: 'https://platform.openai.com/docs/models/gpt-5.2',
+    url: 'https://developers.openai.com/api/docs/models/gpt-5.4',
     parameters: {
+      maxImageShortsidePx: null,
       reasoningEffort: 'none',
-      reasoningEfforts: ['none', 'minimal', 'low', 'medium', 'high', 'xhigh']
+      reasoningEfforts: ['none', 'low', 'medium', 'high', 'xhigh'],
+      reasoningSupportsTemperature: false
     }
   },
   {
