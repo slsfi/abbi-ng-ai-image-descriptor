@@ -2,7 +2,7 @@ import { Model } from '../../app/types/model.types'
 import { TaskTypeId } from './prompts';
 
 export type ModelProvider = 'OpenAI' | 'Google';
-export type ModelId = 'gpt-4.1-mini' | 'gpt-4.1' | 'gpt-5.4' | 'gemini-3-flash-preview' | 'gemini-3.1-pro-preview' | 'gemini-2.5-pro' | 'gemini-2.5-flash';
+export type ModelId = 'gpt-4.1' | 'gpt-5.4' | 'gemini-3-flash-preview' | 'gemini-3.1-pro-preview' | 'gemini-2.5-pro' | 'gemini-2.5-flash';
 
 // provider = name of model creator
 // name = display name of the model
@@ -47,20 +47,6 @@ export const MODELS: Model[] = [
     rpm: 5000,
     supportedTaskTypes: ['altText', 'transcription'],
     url: 'https://developers.openai.com/api/docs/models/gpt-4.1',
-    parameters: {
-      imageDetail: 'high'
-    }
-  },
-  {
-    provider: 'OpenAI',
-    name: 'GPT-4.1 mini',
-    id: 'gpt-4.1-mini',
-    description: 'A lightweight and inexpensive model for generating alt text quickly at scale when absolute precision is not critical.',
-    inputPrice: 0.4,
-    outputPrice: 1.6,
-    rpm: 5000,
-    supportedTaskTypes: ['altText'],
-    url: 'https://developers.openai.com/api/docs/models/gpt-4.1-mini',
     parameters: {
       imageDetail: 'high'
     }

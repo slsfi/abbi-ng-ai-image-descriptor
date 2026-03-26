@@ -26,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Removed
 
 - The `gpt-5.2` model. It has been replaced by `gpt-5.4`.
+- The `gpt-4.1-mini` model.
 
 
 
