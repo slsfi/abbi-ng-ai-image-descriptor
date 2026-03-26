@@ -59,7 +59,7 @@ describe('OpenAiService', () => {
       usage: { input_tokens: 1, output_tokens: 1 },
     });
 
-    service.client = {
+    (service as any).client = {
       responses: {
         create: createSpy,
       },
@@ -78,7 +78,7 @@ describe('OpenAiService', () => {
       usage: { input_tokens: 1, output_tokens: 1 },
     });
 
-    service.client = {
+    (service as any).client = {
       responses: {
         create: createSpy,
       },
@@ -107,7 +107,7 @@ describe('OpenAiService', () => {
       usage: { input_tokens: 1, output_tokens: 1 },
     });
 
-    service.client = {
+    (service as any).client = {
       responses: {
         create: createSpy,
       },
@@ -134,7 +134,7 @@ describe('OpenAiService', () => {
       usage: { input_tokens: 2, output_tokens: 1 },
     });
 
-    service.client = {
+    (service as any).client = {
       responses: {
         create: createSpy,
       },
@@ -164,7 +164,7 @@ describe('OpenAiService', () => {
       usage: { input_tokens: 2, output_tokens: 1 },
     });
 
-    service.client = {
+    (service as any).client = {
       files: {
         create: uploadSpy,
       },
@@ -209,7 +209,7 @@ describe('OpenAiService', () => {
       usage: { input_tokens: 2, output_tokens: 1 },
     });
 
-    service.client = {
+    (service as any).client = {
       files: {
         retrieve: retrieveSpy,
         create: uploadSpy,
@@ -242,7 +242,7 @@ describe('OpenAiService', () => {
     const service = new OpenAiService();
     const deleteSpy = jasmine.createSpy().and.resolveTo({ deleted: true });
 
-    service.client = {
+    (service as any).client = {
       files: {
         delete: deleteSpy,
       },
@@ -266,7 +266,7 @@ describe('OpenAiService', () => {
     const service = new OpenAiService();
     const ctrl = new AbortController();
 
-    service.client = {
+    (service as any).client = {
       files: {
         create: jasmine.createSpy().and.resolveTo({ id: 'file-123' }),
       },

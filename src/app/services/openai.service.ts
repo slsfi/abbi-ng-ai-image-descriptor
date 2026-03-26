@@ -5,56 +5,15 @@ import type { ResponseCreateParamsNonStreaming, ResponseInputMessageContentList 
 import type { ReasoningEffort } from 'openai/resources/shared';
 
 import { AiResult } from '../types/ai.types';
+import { OpenAiFilesApiUploadedFile } from '../types/files-api.types';
 import { ImageData } from '../types/image-data.types';
 import { RequestSettings } from '../types/settings.types';
+import { dataUrlToBlob } from '../utils/data-url';
+import { fileNameFromImage } from '../utils/file-name';
+import { abortable, scheduleUploadEntryCleanup, tryResolveInFlightUpload } from '../utils/files-api';
 import { isTemperatureSupportedForModel } from '../utils/model-parameters';
 
-type DataUrlBlob = { mimeType: string; blob: Blob };
-type FilesApiUploadedFile = {
-  id: string;
-  mimeType: string;
-};
-
 const OPENAI_FILES_API_EXPIRES_AFTER_SECONDS = 48 * 60 * 60;
-
-/**
- * Converts a base64 data URL (data:<mime>;base64,<...>) into a Blob.
- *
- * Used for OpenAI Files API uploads which expect binary file data.
- * Returns null if the input is not a valid base64 data URL.
- */
-function dataUrlToBlob(dataUrl: string): DataUrlBlob | null {
-  const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl ?? '');
-  if (!match) return null;
-
-  const mimeType = match[1];
-  const b64 = match[2];
-  const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-  return { mimeType, blob: new Blob([bytes], { type: mimeType }) };
-}
-
-function fileExtensionFromMimeType(mimeType: string): string {
-  switch (mimeType) {
-    case 'image/jpeg':
-      return 'jpg';
-    case 'image/png':
-      return 'png';
-    case 'image/webp':
-      return 'webp';
-    case 'image/gif':
-      return 'gif';
-    case 'image/tiff':
-      return 'tiff';
-    case 'image/bmp':
-      return 'bmp';
-    case 'image/heic':
-      return 'heic';
-    case 'image/heif':
-      return 'heif';
-    default:
-      return 'bin';
-  }
-}
 
 @Injectable({
   providedIn: 'root'
@@ -71,7 +30,7 @@ export class OpenAiService {
    * the request was aborted before `filesApiId` could be written back onto the
    * ImageData instance.
    */
-  private readonly uploadByImageId = new Map<string, Promise<FilesApiUploadedFile | null>>();
+  private readonly uploadByImageId = new Map<string, Promise<OpenAiFilesApiUploadedFile | null>>();
 
   /**
    * Tracks in-flight deletions by OpenAI file id.
@@ -224,6 +183,7 @@ export class OpenAiService {
 
     try {
       const imageInputs: ResponseInputMessageContentList = [];
+      const imageDetail = this.imageDetailFromSettings(settings);
 
       for (let i = 0; i < images.length; i++) {
         if (signal?.aborted) {
@@ -238,12 +198,12 @@ export class OpenAiService {
         imageInputs.push({
           type: 'input_image',
           file_id: uploaded.id,
-          detail: this.imageDetailFromSettings(settings)
+          detail: imageDetail
         });
       }
 
       const payload = this.buildImageResponsePayload(settings, prompt, imageInputs);
-      const resp = await this.abortable(this.client.responses.create(payload), signal);
+      const resp = await abortable(this.client.responses.create(payload), signal);
       return this.responseToAiResult(resp);
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') {
@@ -301,7 +261,7 @@ export class OpenAiService {
     if (!this.client) return;
 
     if (!image.filesApiId) {
-      const uploaded = await this.tryResolveInFlightUpload(image, 8000);
+      const uploaded = await tryResolveInFlightUpload(this.uploadByImageId, image.uploadKey, 8000);
       if (uploaded) {
         image.filesApiProvider = 'OpenAI';
         image.filesApiId = uploaded.id;
@@ -404,7 +364,7 @@ export class OpenAiService {
   private async ensureUploadedViaFilesApi(
     image: ImageData,
     options?: { signal?: AbortSignal }
-  ): Promise<FilesApiUploadedFile | null> {
+  ): Promise<OpenAiFilesApiUploadedFile | null> {
     const signal = options?.signal;
 
     if (signal?.aborted) {
@@ -419,7 +379,7 @@ export class OpenAiService {
       image.mimeType
     ) {
       try {
-        const fetched = await this.abortable(
+        const fetched = await abortable(
           this.client.files.retrieve(image.filesApiId),
           signal
         );
@@ -461,7 +421,7 @@ export class OpenAiService {
     try {
       const uploadFile = new File(
         [converted.blob],
-        this.fileNameFromImage(image, converted.mimeType),
+        fileNameFromImage(image, converted.mimeType),
         { type: converted.mimeType }
       );
 
@@ -474,7 +434,7 @@ export class OpenAiService {
         }
       });
 
-      const tracked: Promise<FilesApiUploadedFile | null> = rawUpload.then((u) => {
+      const tracked: Promise<OpenAiFilesApiUploadedFile | null> = rawUpload.then((u) => {
         if (!u?.id) return null;
         return {
           id: u.id,
@@ -486,9 +446,9 @@ export class OpenAiService {
       });
 
       this.uploadByImageId.set(image.uploadKey, tracked);
-      this.scheduleUploadEntryCleanup(image.uploadKey, tracked, 60_000);
+      scheduleUploadEntryCleanup(this.uploadByImageId, image.uploadKey, tracked, 60_000);
 
-      const uploaded = await this.abortable(tracked, signal);
+      const uploaded = await abortable(tracked, signal);
       if (!uploaded) return null;
 
       image.filesApiProvider = 'OpenAI';
@@ -578,86 +538,6 @@ export class OpenAiService {
   }
 
   /**
-   * Makes an existing promise abortable using an AbortSignal.
-   *
-   * Important:
-   * - This guarantees the *caller* stops waiting when aborted.
-   * - It may or may not cancel the underlying network request, depending on whether
-   *   the SDK uses fetch with AbortSignal internally. We do not rely on that.
-   * - If aborted, the returned promise rejects with AbortError, but the original
-   *   promise `p` is not cancelled unless the underlying SDK supports AbortSignal.
-   */
-  private abortable<T>(p: Promise<T>, signal?: AbortSignal): Promise<T> {
-    if (!signal) {
-      return p;
-    }
-    if (signal.aborted) {
-      return Promise.reject(new DOMException('Aborted', 'AbortError'));
-    }
-
-    return new Promise<T>((resolve, reject) => {
-      const onAbort = () => reject(new DOMException('Aborted', 'AbortError'));
-      signal.addEventListener('abort', onAbort, { once: true });
-
-      p.then(resolve, reject).finally(() => {
-        signal.removeEventListener('abort', onAbort);
-      });
-    });
-  }
-
-  /**
-   * Attempts to resolve an in-flight Files API upload for the given image.
-   *
-   * This is used during cancellation cleanup to handle the race where:
-   * - the upload request completed, but the app was aborted before caching
-   *   `filesApiId` onto the ImageData object.
-   *
-   * The wait is bounded by `timeoutMs` to keep cancellation responsive.
-   */
-  private async tryResolveInFlightUpload(
-    image: ImageData,
-    timeoutMs: number
-  ): Promise<FilesApiUploadedFile | null> {
-    const p = this.uploadByImageId.get(image.uploadKey);
-
-    if (!p) return null;
-
-    try {
-      return await Promise.race([
-        p,
-        new Promise<FilesApiUploadedFile | null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
-      ]);
-    } catch {
-      return null;
-    }
-  }
-
-  /**
-   * Schedules removal of a tracked upload promise after a TTL.
-   *
-   * We keep finished upload promises around briefly to handle the cancellation race where:
-   * - upload completes
-   * - caller aborts before caching filesApiId onto ImageData
-   * - cancellation cleanup needs to read the resolved upload id to delete it
-   *
-   * The "only delete if same promise" check ensures that a newer upload for the
-   * same image key is not accidentally removed.
-   */
-  private scheduleUploadEntryCleanup(
-    key: string,
-    p: Promise<FilesApiUploadedFile | null>,
-    ttlMs: number
-  ): void {
-    void p.finally(() => {
-      setTimeout(() => {
-        if (this.uploadByImageId.get(key) === p) {
-          this.uploadByImageId.delete(key);
-        }
-      }, ttlMs);
-    });
-  }
-
-  /**
    * Deletes an OpenAI Files API object with retries for transient failures.
    *
    * Notes on status handling:
@@ -693,21 +573,6 @@ export class OpenAiService {
         await new Promise<void>(resolve => setTimeout(resolve, delays[attempt] + jitter));
       }
     }
-  }
-
-  /**
-   * Resolves the uploaded file name sent to the OpenAI Files API.
-   *
-   * Prefers the original image filename when available, otherwise falls back to
-   * a deterministic name based on image id and mime type.
-   */
-  private fileNameFromImage(image: ImageData, mimeType: string): string {
-    const filename = image.filename?.trim();
-    if (filename) {
-      return filename;
-    }
-
-    return `image-${image.id}.${fileExtensionFromMimeType(mimeType)}`;
   }
 
 }
