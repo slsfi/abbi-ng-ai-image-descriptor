@@ -5,6 +5,7 @@ import type { ReasoningEffort } from 'openai/resources/shared';
 
 import { AiResult } from '../types/ai.types';
 import { RequestSettings } from '../types/settings.types';
+import { isTemperatureSupportedForModel } from '../utils/model-parameters';
 
 @Injectable({
   providedIn: 'root'
@@ -58,6 +59,11 @@ export class OpenAiService {
     }
 
     const reasoningEffort: ReasoningEffort = settings.reasoningEffort ?? settings.model.parameters?.reasoningEffort ?? null;
+    const supportsTemperature = isTemperatureSupportedForModel(
+      settings.model,
+      settings.reasoningEffort,
+      settings.thinkingLevel
+    );
 
     const payload = {
       model: settings.model.id,
@@ -78,7 +84,7 @@ export class OpenAiService {
         }
       ],
       ...(reasoningEffort ? { reasoning: { effort: reasoningEffort } } : {}),
-      ...((!reasoningEffort || reasoningEffort === 'none') ? { temperature: settings.temperature ?? null } : {}),
+      ...(supportsTemperature ? { temperature: settings.temperature ?? null } : {}),
       ...((!reasoningEffort || reasoningEffort === 'none') ? { max_output_tokens: maxOutputTokens } : {})
     };
     // console.log(payload);

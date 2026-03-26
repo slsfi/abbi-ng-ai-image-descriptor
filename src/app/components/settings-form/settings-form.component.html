@@ -4,6 +4,7 @@
 @let selectedTaskVariants = settings.selectedTaskConfig().variants;
 @let reasoningEfforts = settings.availableReasoningEfforts();
 @let thinkingLevels = settings.availableThinkingLevels();
+@let tempSupported = settings.isTemperatureSupported();
 
 <div class="settings-column-wrapper">
   <div class="parameters-wrapper">
@@ -176,25 +177,29 @@
       </mat-expansion-panel-header>
 
       <div class="form-field-wrapper">
-        <div class="slider-wrapper">
-          <div class="slider-label-wrapper">
-            <label id="temp-slider-label" class="slider-label">Temperature:</label>
-            <label class="slider-value-label">{{temperatureSlider.value}}</label>
-          </div>
-          <mat-slider
-              [max]="temperatureMax"
-              [min]="temperatureMin"
-              [step]="0.1"
-              [discrete]="true"
-              [showTickMarks]="true"
-          >
-            <input matSliderThumb
-                  [value]="settings.selectedTemperature()"
-                  (valueChange)="setTemperature($event)"
-                  #temperatureSlider
+        @if (tempSupported) {
+          <div class="slider-wrapper">
+            <div class="slider-label-wrapper">
+              <label id="temp-slider-label" class="slider-label">Temperature:</label>
+              <label class="slider-value-label">{{temperatureSlider.value}}</label>
+            </div>
+            <mat-slider
+                  [max]="temperatureMax"
+                  [min]="temperatureMin"
+                  [step]="0.1"
+                  [discrete]="true"
+                  [showTickMarks]="true"
             >
-          </mat-slider>
-        </div>
+              <input matSliderThumb
+                    [value]="settings.selectedTemperature()"
+                    (valueChange)="setTemperature($event)"
+                    #temperatureSlider
+              >
+            </mat-slider>
+          </div>
+        } @else {
+          <p class="slider-support-message">This model does not support the temperature setting when {{ model.provider === 'OpenAI' ? 'reasoning' : 'thinking' }} is enabled.</p>
+        }
       </div>
 
       @if (reasoningEfforts.length > 0) {

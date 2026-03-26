@@ -24,6 +24,10 @@ export type ModelId = 'gpt-4.1-mini' | 'gpt-4.1' | 'gpt-5.2' | 'gemini-3-flash-p
 //                       `low`, `medium`, `high` and `xhigh` depending on model
 //     reasoningEfforts = (optional) selectable list of supported reasoning
 //                        effort values
+//     reasoningSupportsTemperature = (optional) when false, temperature is
+//                                    only supported with provider-specific
+//                                    "no reasoning/thinking" settings;
+//                                    defaults to true if undefined
 //     thinkingBudget = (optional, Google Gemini only, required for 2.5)
 //     thinkingLevel = (optional, Google Gemini only, required for 3)
 //     thinkingLevels = (optional) selectable list of supported thinking levels
