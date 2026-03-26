@@ -52,10 +52,7 @@ export class AiService {
     if (settings.model.provider === 'Google') {
       return this.google.describeImages(settings, prompt, base64Images);
     } else if (settings.model.provider === 'OpenAI') {
-      return Promise.resolve({
-        text: '',
-        error: { code: 400, message: 'Batch transcription is currently supported only for Google models.' }
-      });
+      return this.openAi.describeImages(settings, prompt, base64Images);
     }
     return Promise.resolve({ text: '', error: { code: 400, message: `Unsupported provider: ${settings.model.provider}` } });
   }
@@ -74,6 +71,8 @@ export class AiService {
   ): Promise<AiResult> {
     if (settings.model.provider === 'Google') {
       return this.google.describeImagesWithFilesApi(settings, prompt, images, options);
+    } else if (settings.model.provider === 'OpenAI') {
+      return this.openAi.describeImagesWithFilesApi(settings, prompt, images, options);
     }
     return Promise.resolve({ text: '', error: { code: 400, message: 'Files API batching not supported for this provider yet.' } });
   }
@@ -94,9 +93,8 @@ export class AiService {
    * Routing rules:
    * - If `filesApiProvider` is known, delete via that provider only.
    * - If provider is not set yet (common during an in-flight upload), attempt
-   *   Google cleanup because Google Files API uploads are the only ones
-   *   currently used in this flow and GoogleService can resolve in-flight
-   *   uploads by image id.
+   *   cleanup via both providers because either service may still be tracking
+   *   a just-finished upload by image id.
    *
    * This method must never throw.
    */
@@ -107,14 +105,16 @@ export class AiService {
         return;
       }
 
-      // if (image.filesApiProvider === 'OpenAI') {
-      //   await this.openAi.deleteUploadedFile(image);
-      //   return;
-      // }
+      if (image.filesApiProvider === 'OpenAI') {
+        await this.openAi.deleteUploadedFile(image);
+        return;
+      }
 
       // Provider not set yet:
-      // Try Google because it can resolve just-finished uploads (cancel race).
+      // Try both providers because either may have a just-finished upload
+      // that has not yet been cached onto the ImageData object.
       await this.google.deleteUploadedFile(image);
+      await this.openAi.deleteUploadedFile(image);
     } catch {
       // best-effort: swallow
     }
