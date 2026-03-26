@@ -35,7 +35,7 @@ describe('isTemperatureSupportedForModel', () => {
     const settings = createSettings({
       model: {
         ...createSettings().model,
-        id: 'gpt-5.2',
+        id: 'gpt-5.4',
         parameters: {
           reasoningEffort: 'none',
           reasoningEfforts: ['none', 'low'],
@@ -53,7 +53,7 @@ describe('isTemperatureSupportedForModel', () => {
     const settings = createSettings({
       model: {
         ...createSettings().model,
-        id: 'gpt-5.2',
+        id: 'gpt-5.4',
         parameters: {
           reasoningSupportsTemperature: false,
           reasoningEffort: 'none',
