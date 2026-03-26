@@ -5,51 +5,12 @@ import { ApiError, File, GenerateContentResponse, GoogleGenAI, MediaResolution,
         } from '@google/genai';
 
 import { AiResult } from '../types/ai.types';
+import { GoogleFilesApiUploadedFile } from '../types/files-api.types';
 import { ImageData } from '../types/image-data.types';
 import { RequestSettings } from '../types/settings.types';
+import { ParsedDataUrl, dataUrlToBlob, parseDataUrl } from '../utils/data-url';
+import { abortable, scheduleUploadEntryCleanup, tryResolveInFlightUpload } from '../utils/files-api';
 import { isTemperatureSupportedForModel } from '../utils/model-parameters';
-
-
-type DataUrlBlob = { mimeType: string; blob: Blob };
-type ParsedDataUrl = { mimeType: string; dataBase64: string };
-type FilesApiUploadedFile = {
-  name: string;
-  uri: string;
-  mimeType: string;
-};
-
-
-/**
- * Converts a base64 data URL (data:<mime>;base64,<...>) into a Blob.
- *
- * Used for Google Files API uploads which expect binary data.
- * Returns null if the input is not a valid base64 data URL.
- */
-function dataUrlToBlob(dataUrl: string): DataUrlBlob | null {
-  const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl ?? '');
-  if (!match) return null;
-
-  const mimeType = match[1];
-  const b64 = match[2];
-
-  // Browser-safe base64 decode
-  const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-  return { mimeType, blob: new Blob([bytes], { type: mimeType }) };
-}
-
-/**
- * Parses a base64 image data URL into (mimeType, base64Payload).
- *
- * This is used for inlineData requests (non-Files-API) where the SDK expects
- * a base64 payload without the "data:<mime>;base64," prefix.
- */
-function parseDataUrl(dataUrl: string): ParsedDataUrl | null {
-  // Expected: data:image/png;base64,AAAA...
-  const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl ?? '');
-  if (!match) return null;
-  return { mimeType: match[1], dataBase64: match[2] };
-}
-
 
 @Injectable({
   providedIn: 'root'
@@ -67,7 +28,7 @@ export class GoogleService {
    * using the stable id avoids losing the in-flight handle and
    * makes cancellation cleanup reliable.
    */
-  private readonly uploadByImageId = new Map<string, Promise<FilesApiUploadedFile | null>>();
+  private readonly uploadByImageId = new Map<string, Promise<GoogleFilesApiUploadedFile | null>>();
 
   /**
    * Tracks in-flight deletions by Files API resource name (e.g. "files/abc123").
@@ -136,25 +97,7 @@ export class GoogleService {
       return { text: '', error: { code: 400, message: 'Invalid image data URL.' } };
     }
 
-    let maxOutputTokens = null;
-    if (settings.taskType === 'altText') {
-      maxOutputTokens = settings.descriptionLength ? settings.descriptionLength + 1000 : null;
-    }
-
     try {
-      const mediaResolution = this.mediaResolutionFromModel(settings);
-      const thinkingLevel = this.thinkingLevelFromSettings(settings);
-      const supportsTemperature = isTemperatureSupportedForModel(
-        settings.model,
-        settings.reasoningEffort,
-        settings.thinkingLevel
-      );
-
-      let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
-      if (thinkingLevel) {
-        thinkingBudget = null;
-      }
-
       const payload = {
         model: settings.model.id,
         contents: [
@@ -166,13 +109,9 @@ export class GoogleService {
           },
           { text: prompt },
         ],
-        config: {
-          ...(maxOutputTokens ? { maxOutputTokens: maxOutputTokens } : {}),
-          ...(mediaResolution ? { mediaResolution: mediaResolution } : {}),
-          ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {}),
-          ...(thinkingLevel ? { thinkingConfig: { thinkingLevel: thinkingLevel } } : {}),
-          ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget: thinkingBudget } } : {})
-        }
+        config: this.buildGenerateContentConfig(settings, {
+          maxOutputTokens: this.maxOutputTokensFromSettings(settings)
+        })
       };
       // console.log(payload);
 
@@ -206,25 +145,7 @@ export class GoogleService {
       parsedImages.push(parsed);
     }
 
-    let maxOutputTokens = null;
-    if (settings.taskType === 'altText') {
-      maxOutputTokens = settings.descriptionLength ? settings.descriptionLength + 1000 : null;
-    }
-
     try {
-      const mediaResolution = this.mediaResolutionFromModel(settings);
-      const thinkingLevel = this.thinkingLevelFromSettings(settings);
-      const supportsTemperature = isTemperatureSupportedForModel(
-        settings.model,
-        settings.reasoningEffort,
-        settings.thinkingLevel
-      );
-
-      let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
-      if (thinkingLevel) {
-        thinkingBudget = null;
-      }
-
       // Build contents as: [inlineData, inlineData, ..., {text: prompt}]
       const contents: any[] = parsedImages.map(p => ({
         inlineData: {
@@ -237,13 +158,9 @@ export class GoogleService {
       const payload = {
         model: settings.model.id,
         contents,
-        config: {
-          ...(maxOutputTokens ? { maxOutputTokens } : {}),
-          ...(mediaResolution ? { mediaResolution } : {}),
-          ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {}),
-          ...(thinkingLevel ? { thinkingConfig: { thinkingLevel } } : {}),
-          ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget } } : {})
-        }
+        config: this.buildGenerateContentConfig(settings, {
+          maxOutputTokens: this.maxOutputTokensFromSettings(settings)
+        })
       };
 
       const resp = await this.client.models.generateContent(payload);
@@ -286,19 +203,6 @@ export class GoogleService {
     }
 
     try {
-      const mediaResolution = this.mediaResolutionFromModel(settings);
-      const thinkingLevel = this.thinkingLevelFromSettings(settings);
-      const supportsTemperature = isTemperatureSupportedForModel(
-        settings.model,
-        settings.reasoningEffort,
-        settings.thinkingLevel
-      );
-
-      let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
-      if (thinkingLevel) {
-        thinkingBudget = null;
-      }
-
       // Upload/ensure uploaded in order
       const parts: any[] = [];
 
@@ -320,15 +224,10 @@ export class GoogleService {
       const payload = {
         model: settings.model.id,
         contents: createUserContent(parts),
-        config: {
-          ...(mediaResolution ? { mediaResolution } : {}),
-          ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {}),
-          ...(thinkingLevel ? { thinkingConfig: { thinkingLevel } } : {}),
-          ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget } } : {}),
-        }
+        config: this.buildGenerateContentConfig(settings)
       };
 
-      const resp = await this.abortable<GenerateContentResponse>(
+      const resp = await abortable<GenerateContentResponse>(
         this.client.models.generateContent(payload),
         signal
       );
@@ -391,7 +290,7 @@ export class GoogleService {
     // If we don't have an id yet, try to resolve a just-finished in-flight upload.
     // Do NOT require filesApiProvider here: during upload it may not be set yet.
     if (!image.filesApiId) {
-      const uploaded = await this.tryResolveInFlightUpload(image, 8000);
+      const uploaded = await tryResolveInFlightUpload(this.uploadByImageId, image.uploadKey, 8000);
       if (uploaded) {
         image.filesApiProvider = 'Google';
         image.filesApiId = uploaded.name;
@@ -448,7 +347,7 @@ export class GoogleService {
   private async ensureUploadedViaFilesApi(
     image: ImageData,
     options?: { signal?: AbortSignal }
-  ): Promise<FilesApiUploadedFile | null> {
+  ): Promise<GoogleFilesApiUploadedFile | null> {
     const signal = options?.signal;
 
     if (signal?.aborted) {
@@ -465,7 +364,7 @@ export class GoogleService {
       image.mimeType
     ) {
       try {
-        const fetched = await this.abortable<File>(
+        const fetched = await abortable<File>(
           this.client.files.get({ name: image.filesApiId }),
           signal
         );
@@ -527,7 +426,7 @@ export class GoogleService {
       }) as Promise<File>;
 
       // Normalize to the minimal shape we need and track it.
-      const tracked: Promise<FilesApiUploadedFile | null> = rawUpload.then((u) => {
+      const tracked: Promise<GoogleFilesApiUploadedFile | null> = rawUpload.then((u) => {
         if (!u?.name || !u?.uri) return null;
         return {
           name: u.name,
@@ -543,10 +442,10 @@ export class GoogleService {
 
       // IMPORTANT: do NOT delete immediately; keep for a short TTL
       // so cancel cleanup can use it.
-      this.scheduleUploadEntryCleanup(image.uploadKey, tracked, 60_000);
+      scheduleUploadEntryCleanup(this.uploadByImageId, image.uploadKey, tracked, 60_000);
 
       // For the normal generation flow, we still want to stop waiting immediately on cancel.
-      const uploaded = await this.abortable(tracked, signal);
+      const uploaded = await abortable(tracked, signal);
       if (!uploaded) return null;
 
       // Cache fields on ImageData
@@ -585,6 +484,46 @@ export class GoogleService {
       ? MediaResolution.MEDIA_RESOLUTION_HIGH
       : null
     return mediaResolution;
+  }
+
+  /**
+   * Resolves the effective max output token limit for UI tasks that use one.
+   */
+  private maxOutputTokensFromSettings(settings: RequestSettings): number | null {
+    if (settings.taskType !== 'altText') {
+      return null;
+    }
+    return settings.descriptionLength ? settings.descriptionLength + 1000 : null;
+  }
+
+  /**
+   * Builds the shared Google `generateContent` config object used by inline-image,
+   * multi-image, and Files API requests.
+   */
+  private buildGenerateContentConfig(
+    settings: RequestSettings,
+    options?: { maxOutputTokens?: number | null }
+  ) {
+    const mediaResolution = this.mediaResolutionFromModel(settings);
+    const thinkingLevel = this.thinkingLevelFromSettings(settings);
+    const supportsTemperature = isTemperatureSupportedForModel(
+      settings.model,
+      settings.reasoningEffort,
+      settings.thinkingLevel
+    );
+
+    let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
+    if (thinkingLevel) {
+      thinkingBudget = null;
+    }
+
+    return {
+      ...(options?.maxOutputTokens ? { maxOutputTokens: options.maxOutputTokens } : {}),
+      ...(mediaResolution ? { mediaResolution } : {}),
+      ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {}),
+      ...(thinkingLevel ? { thinkingConfig: { thinkingLevel } } : {}),
+      ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget } } : {})
+    };
   }
 
   /**
@@ -702,88 +641,6 @@ export class GoogleService {
       } catch {}
     }
     return raw || 'Google API error.';
-  }
-
-  /**
-   * Makes an existing promise abortable using an AbortSignal.
-   *
-   * Important:
-   * - This guarantees the *caller* stops waiting when aborted.
-   * - It may or may not cancel the underlying network request, depending on whether
-   *   the SDK uses fetch with AbortSignal internally. (We do not rely on that.)
-   * - If aborted, the returned promise rejects with AbortError, but the original promise `p`
-   *   is not cancelled unless the underlying SDK supports AbortSignal internally.
-   */
-  private abortable<T>(p: Promise<T>, signal?: AbortSignal): Promise<T> {
-    if (!signal) {
-      return p;
-    }
-    if (signal.aborted) {
-      return Promise.reject(new DOMException('Aborted', 'AbortError'));
-    }
-
-    return new Promise<T>((resolve, reject) => {
-      const onAbort = () => reject(new DOMException('Aborted', 'AbortError'));
-      signal.addEventListener('abort', onAbort, { once: true });
-
-      p.then(resolve, reject).finally(() => {
-        signal.removeEventListener('abort', onAbort);
-      });
-    });
-  }
-
-  /**
-   * Attempts to resolve an in-flight Files API upload for the given image.
-   *
-   * This is used during cancellation cleanup to handle the race where:
-   * - the upload HTTP request completed, but the app was aborted before caching
-   *   `filesApiId` onto the ImageData object.
-   *
-   * The wait is bounded by `timeoutMs` to keep cancellation responsive.
-   */
-  private async tryResolveInFlightUpload(
-    image: ImageData,
-    timeoutMs: number
-  ): Promise<FilesApiUploadedFile | null> {
-    const p = this.uploadByImageId.get(image.uploadKey);
-
-    if (!p) return null;
-
-    try {
-      return await Promise.race([
-        p,
-        new Promise<FilesApiUploadedFile | null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
-      ]);
-    } catch {
-      // Includes AbortError from abortable(upload, signal)
-      return null;
-    }
-  }
-
-  /**
-   * Schedules removal of a tracked upload promise after a TTL.
-   *
-   * We keep finished upload promises around briefly to handle the cancellation race where:
-   * - upload completes
-   * - caller aborts before caching filesApiId onto ImageData
-   * - cancellation cleanup needs to read the resolved upload (name/uri) to delete it
-   *
-   * The "only delete if same promise" check ensures that a newer upload for the same image id
-   * is not accidentally removed.
-   */
-  private scheduleUploadEntryCleanup(
-    key: string,
-    p: Promise<FilesApiUploadedFile | null>,
-    ttlMs: number
-  ): void {
-    void p.finally(() => {
-      setTimeout(() => {
-        // Only delete if nobody replaced the promise for this image id
-        if (this.uploadByImageId.get(key) === p) {
-          this.uploadByImageId.delete(key);
-        }
-      }, ttlMs);
-    });
   }
 
   /**
