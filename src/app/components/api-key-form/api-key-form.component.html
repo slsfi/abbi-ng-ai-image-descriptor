@@ -9,7 +9,7 @@
       <mat-icon>{{hideApiKey ? 'visibility_off' : 'visibility'}}</mat-icon>
     </button>
     @if (apiKeyFC?.hasError('required')) {
-      <mat-error>You must enter an API key</mat-error>
+      <mat-error>You must add an API key</mat-error>
     } @else if (apiKeyFC?.hasError('invalidApiKey')) {
       <mat-error>Invalid API key</mat-error>
     }

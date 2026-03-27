@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Refactor shared upload and payload helpers in AI services.
 - Improve prompts for transcribing and TEI-encoding.
 - Preserve the selected temperature when switching task type instead of resetting it to task-specific defaults.
+- Improve onboarding text and layout on the start page.
 - Deps: update `@angular/cli`, `@angular/cdk`, and `@angular/material` to 21.2.4, and `@angular/core` to 21.2.6.
 - Deps: update `@google/genai` to 1.46.0.
 - Deps: update `docx` to 9.6.1.
