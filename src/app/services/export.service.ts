@@ -648,6 +648,7 @@ export class ExportService {
       text = this.tightenPbLb(text);
       text = this.tightenFootnoteSpacing(text);
       text = this.fixMisplacedParagraphBreaksAroundPb(text);
+      text = this.stripShortPlainItalicHiTags(text);
       text = this.replaceStraightDoubleQuotesOutsideTags(text, '”');
 
       text = text.replaceAll('<lb/>', '<lb break="line"/>');
@@ -789,6 +790,23 @@ export class ExportService {
         }
 
         return `${precedingChar}\n${pbTag}<lb/>${firstChar}`;
+      }
+    );
+  }
+
+  /**
+   * Strips short plain-text <hi rend="italics">...</hi> spans, but leaves
+   * any highlighted content containing nested tags untouched.
+   */
+  private stripShortPlainItalicHiTags(input: string): string {
+    return input.replace(
+      /<hi\b(?=[^>]*\brend=(["'])italics\1)[^>]*>([^<]*)<\/hi>/gu,
+      (match, _quote: string, content: string) => {
+        if (content.length > 30) {
+          return match;
+        }
+
+        return content;
       }
     );
   }
