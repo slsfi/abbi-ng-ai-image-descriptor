@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Fixed
 
 - Repair misplaced TEI paragraph breaks around `<pb/>` elements so continued paragraphs are preserved across page breaks during export normalization.
+- Strip short plain-text `<hi rend="italics">...</hi>` tags during TEI export normalization while preserving cases with nested markup.
 
 ### Removed
 

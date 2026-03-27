@@ -66,4 +66,24 @@ describe('ExportService', () => {
 
     expect(service.normaliseCharacters(input, true)).toBe(input);
   });
+
+  it('strips short plain-text hi italics tags', () => {
+    const input = '<p>Det står <hi rend="italics">obs.</hi> i marginalen</p>';
+
+    expect(service.normaliseCharacters(input, true)).toBe(
+      '<p>Det står obs. i marginalen</p>'
+    );
+  });
+
+  it('keeps hi italics tags when they contain nested tags', () => {
+    const input = '<p><hi rend="italics">obs.<note place="foot">1</note></hi></p>';
+
+    expect(service.normaliseCharacters(input, true)).toBe(input);
+  });
+
+  it('keeps hi italics tags when the text content is longer than 30 characters', () => {
+    const input = '<p><hi rend="italics">detta är en ganska lång kursiv markering</hi></p>';
+
+    expect(service.normaliseCharacters(input, true)).toBe(input);
+  });
 });
