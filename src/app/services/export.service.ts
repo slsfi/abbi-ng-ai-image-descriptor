@@ -647,6 +647,7 @@ export class ExportService {
       text = this.normaliseTeiStructureBeforeLb(text);
       text = this.tightenPbLb(text);
       text = this.tightenFootnoteSpacing(text);
+      text = this.fixMisplacedParagraphBreaksAroundPb(text);
       text = this.replaceStraightDoubleQuotesOutsideTags(text, '”');
 
       text = text.replaceAll('<lb/>', '<lb break="line"/>');
@@ -761,6 +762,34 @@ export class ExportService {
     return input.replace(
       / (\<note\b[^>]*\bplace="foot"[^>]*>)/g,
       '$1'
+    );
+  }
+
+  /**
+   * Repairs a common model error where a page break is incorrectly wrapped
+   * between two paragraph tags even though the paragraph should continue.
+   * 
+   * For example, it changes this:
+   * 
+   * a paragraph that should</p>
+   * <pb n="32"/>
+   * <p rend="noIndent">not be broken because of a page break
+   * 
+   * into this:
+   * 
+   * a paragraph that should
+   * <pb n="32/><lb/>not be broken because of a page break
+   */
+  private fixMisplacedParagraphBreaksAroundPb(input: string): string {
+    return input.replace(
+      /([^\s.?!])\s*<\/p>\s*(<pb\b[^>]*\/>)(?:\s*<lb\b[^>]*\/>)?\s*<p\b[^>]*>\s*([^\s<])/gu,
+      (match, precedingChar: string, pbTag: string, firstChar: string) => {
+        if (/\p{Lu}/u.test(firstChar)) {
+          return match;
+        }
+
+        return `${precedingChar}\n${pbTag}<lb/>${firstChar}`;
+      }
     );
   }
 

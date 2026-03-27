@@ -27,6 +27,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `openai` to 6.33.0.
 - Deps: update transitive dependencies.
 
+### Fixed
+
+- Repair misplaced TEI paragraph breaks around `<pb/>` elements so continued paragraphs are preserved across page breaks during export normalization.
+
 ### Removed
 
 - The `gpt-5.2` model. It has been replaced by `gpt-5.4`.
