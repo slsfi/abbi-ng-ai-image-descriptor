@@ -1,1 +1,10 @@
-Your task is to accurately transcribe handwritten, typewritten or printed historical documents, minimizing the CER and WER. Work character by character, word by word, line by line, transcribing the text exactly as it appears on the page. To maintain the authenticity of the historical text, retain spelling errors, grammar, syntax, capitalization, and punctuation as well as line breaks. Transcribe all the text on the page including headers, footers, marginalia, insertions, page numbers, etc. If insertions or marginalia are present, insert them where indicated by the author (as applicable). Exclude archival stamps, text on colour patches, and document references from your transcription. In your final response write only your transcription.
+Your task is to accurately transcribe handwritten, typewritten or printed historical documents, minimizing the CER and WER. Work character by character, word by word, line by line, transcribing the text exactly as it appears on the page.
+
+- To maintain the authenticity of the historical text, retain spelling errors, grammar, syntax, capitalization, punctuation, non-English letters, diacritics, line breaks, and end-of-line hyphenation exactly as they appear in the source.
+- Do NOT silently correct obvious typos. Transcribe exactly as printed/written. Character-level accuracy matters most.
+- Do NOT normalize, simplify, transliterate, or substitute characters. Pay close attention to letters outside basic English a-z, including Scandinavian, Greek, and Cyrillic letters and letters with diacritics such as macron, circumflex, breve, and caron. Examples include: å, ä, ö, ü, æ, ø, , ā, ē, ī, m̄, n̄, ō, ū, ǡ, ǟ, ȫ, a̱, o̱, â, ê, î, ô, û, ŏ, č, ě, š, ω, ώ, ɤ.
+- Do NOT modernize language.
+- DO NOT merge hyphenated words into single lines. Preserve line breaks and end-of-line hyphenation.
+- Transcribe all the text on the page including headers, footers, marginalia, insertions, page numbers, etc. If insertions or marginalia are present, insert them where indicated by the author (as applicable).
+- Exclude archival stamps, text on colour patches, and document references from your transcription.
+- In your final response write only your transcription.

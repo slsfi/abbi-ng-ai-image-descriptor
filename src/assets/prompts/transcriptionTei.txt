@@ -16,8 +16,7 @@ The raw transcription and image may end:
 - at the end of a division, OR
 - mid-paragraph or mid-sentence.
 
-DO NOT assume completeness. Encode ONLY what is visible.
-Close all open XML elements at the end to ensure well-formed XML.
+DO NOT assume completeness. Encode ONLY what is visible. Ensure well-formed XML.
 
 --------------------------------------------------
 
@@ -33,10 +32,10 @@ Close all open XML elements at the end to ensure well-formed XML.
 
 The textual content of the transcription:
 
-- Do NOT alter the transcription. To maintain the authenticity of the historical text, retain spelling errors, grammar, syntax, capitalization, and punctuation, including line breaks.
+- Do NOT alter the transcription. To maintain the authenticity of the historical text, retain spelling errors, grammar, syntax, capitalization, and punctuation, including line breaks and end-of-line hyphenation exactly as they appear in the source.
 - Do NOT add text that is not in the transcription (running headers, footers, and marginalia might have been omitted on purpose).
 - Do NOT silently correct obvious typos.
-- Preserve end-of-line hyphenation exactly as it appears in the source and in the raw transcription.
+- DO NOT merge hyphenated words into single lines. Preserve line breaks and end-of-line hyphenation.
 - Do NOT modernize language.
 - Do NOT expand abbreviations.
 
@@ -45,9 +44,20 @@ The TEI encoding of the transcription:
 - The output must begin with `<body>` as the first/root element.
 - Inside `<body>`, the first child element must be `<pb/>` marking a page beginning.
 - Do NOT include `<TEI>`, `<text>`, or `<teiHeader>`.
+- Examples below may omit `<body>` for brevity; the actual output must still include a single `<body>` root with `<pb/>` as its first child.
 - Do NOT encode textual division, i.e. insert `<div>`.
 - Output must be valid XML.
 - Do NOT wrap the output in code fences.
+- Output ONLY the XML transcription; do NOT add explanations, comments, apologies, or any non-XML text.
+- Follow the XML and TEI rules in this prompt exactly; if uncertain, choose the valid encoding that uses ONLY the allowed elements and attributes.
+
+### Required output ordering
+
+1. Open `<body>`.
+2. Emit the first `<pb/>` or `<pb n="..."/>` for the first image/page.
+3. Encode all visible content in reading order, inserting exactly one `<pb>` for each subsequent page at the point where that page begins, adhering to the structural rules below.
+4. Close any still-open elements as needed for well-formed XML.
+5. Close `</body>`.
 
 --------------------------------------------------
 
@@ -104,54 +114,17 @@ DO NOT invent other attributes or other values.
 
 --------------------------------------------------
 
-## PAGE BREAKS (`<pb/>`)
+## TEXTUAL DIVISIONS AND HEADINGS (`<div>`, `<head>`)
 
-- Encode the start of the page with `<pb/>`. The element marks a *page beginning* and should appear where the text of the page begins.
-- If a printed page number is visible, use `<pb n="..."/>` exactly as shown.
-- If no number is visible, use `<pb/>` with no attributes.
-- The output must have exactly one `<pb/>` or `<pb n="..."/>` element.
+### What a textual division is
 
-`<pb/>` is a MILESTONE and MUST NOT create structural breaks.
+- Use `<div>` ONLY when a NEW textual division BEGINS in the visible text.
+- A textual division normally begins with a heading encoded as `<head>`.
+- A `<div>` may continue across page breaks.
+- A page break by itself does NOT end a `<div>`.
+- Do NOT close a `<div>` at a page break unless the source clearly ends the division there (for example, a new heading begins or the visible text ends).
 
-If a page break occurs inside running text:
-
-- Insert `<pb/>` INLINE
-- If mid-paragraph:
-  - Immediately follow with `<lb/>`
-  - Continue the SAME paragraph
-
-### Examples
-
-```
-<pb n="58"/>
-<head>Språkfrågan vid Universitetet.</head>
-<head type="subtitle">I.</head>
-<p rend="noIndent">Bland de finskatalande studenterna [...]</p>
-```
-
-```
-<pb/>
-<p>Altså: den sociala utvecklingen har [...]</p>
-```
-
-```
-<pb n="115"/><lb/>varligt försök att förklara vår västerländ-
-<lb/>ska civilisation [...]</p>
-```
-
-```
-<pb/>
-<lg>
-<l>Här hvilar Dreyse …</l>
-<l>– Dreyse? Hvem var han?</l>
-<l>Tändnålsgevärets store upphofsman,</l>
-[...]
-</lg>
-```
-
---------------------------------------------------
-
-## HEADINGS (`<head>`)
+DO NOT start a `<div>` if the first page begins mid-paragraph or mid-division.
 
 ### When to use `<head>`
 
@@ -165,24 +138,50 @@ DO NOT use `<head>` for:
 
 Numbered entries that begin a paragraph are PARAGRAPHS, not headings.
 
+### Nesting and hierarchy
+
+- When a new heading level appears, start a new `<div>`.
+- Nest `<div>` elements by heading level.
+- If heading hierarchy is unclear, infer cautiously and be consistent.
+
 ### Subtitles
 
 - Subtitles that belong to the SAME heading:
+  - stay in the same `<div>`
   - encode as `<head type="subtitle">`
   - place immediately after the main `<head>`
 
-### FORBIDDEN (hard rules)
+### FORBIDDEN
 
 - Using `<head>` for text that continues directly into a paragraph.
+- Starting a new `<div>` on a page that contains no heading.
 - Using `<head>` for entries that are part of a numbered list or catalogue.
 
-### Example
+### Examples
+
+```
+<pb n="142"/>
+<div>
+<head>Textens huvudtitel</head>
+<div>
+<head>Avdelningens rubrik</head>
+<p>Lorem ipsum dolores [...]</p>
+<div>
+<head>Underavdelningens rubrik</head>
+<p>Lorem ipsum dolores [...]</p>
+</div>
+</div>
+</div>
+```
 
 ```
 <pb n="VII"/>
+<div>
 <head>INLEDNING.</head>
-<head type="subtitle">En kort historik.</head>
-<p>…text…</p>
+<p>…text continues…</p>
+<pb n="VIII"/>
+<p>…same division continues, no new <head>…</p>
+</div>
 ```
 
 ### Example: numbered entries that are NOT headings
@@ -196,27 +195,53 @@ Correct:
 Incorrect (DO NOT DO THIS):
 
 ```
+<div>
 <head>373. Töjmo by.</head>
 <p>För omkring ett hundra år sedan [...]</p>
+</div>
 ```
 
 --------------------------------------------------
 
 ## PARAGRAPHS AND LINE BREAKS (`<p>`, `<lb/>`)
 
-- Use `<p>` for paragraphs. `<p>` (no `@rend`) implies the default: first line indented.
-  - Encode alignment and indentation of the first line using `@rend` with values `"noIndent"` (first line of the paragraph is NOT indented), `"center"` (center aligned paragraph) or `"right"` (right aligned paragraph).
-- Preserve original line breaks inside paragraphs using `<lb/>`. For readability, place the line starting with `<lb/>` on a new line in the XML, but remember `<lb/>` conceptually marks the line’s start.
-- Use `<lb/>` only inside elements that represent running text (e.g. `<p>`, `<head>`, `<dateline>`).
+### Prose paragraphs
 
-`<lb/>` RULES (STRICT):
-- `<lb/>` marks the BEGINNING of a new line.
-- `<lb/>` MUST appear immediately BEFORE the text of that line.
-- `<lb/>` MUST NOT appear at the end of a line.
-- The first line of a paragraph has NO `<lb/>`.
+- Use `<p>` for prose paragraphs.
+- `<p>` with no `@rend` means the paragraph has a first-line indent.
+- Use `<p rend="noIndent">` ONLY when the paragraph itself begins flush left.
+- Use `<p rend="center">` for centered paragraphs.
+- Use `<p rend="right">` for right-aligned paragraphs.
+- A paragraph may span page breaks.
+- A page break NEVER by itself ends a paragraph.
+- Start a new `<p>` after `<pb/>` ONLY if the source clearly begins a new paragraph there.
+- Do NOT infer a new paragraph from top-of-page layout alone. In particular, do NOT use `<p rend="noIndent">` merely because a continued paragraph begins at the top of a new page.
+- If successive short prose lines are visually separate paragraph units, encode each as a separate `<p>`, NOT as one `<p>` with multiple `<lb/>` elements. This applies especially to dialogue, question-and-answer exchanges, speech-like turns, short declarations, and other one-line prose paragraphs.
 
+### Line breaks
 
-### Example
+- Use `<lb/>` ONLY for line breaks within the SAME already-open running-text element.
+- This applies to `<p>` and also to other running-text elements such as `<head>`, `<dateline>`, `<addrLine>`, `<note>`, `<salute>`, `<signed>`, and similar cases where text continues across source lines.
+- `<lb/>` marks the BEGINNING of a new source line and must appear immediately before the text of that line.
+- For readability and consistency, each new source line must also begin on a new physical line in the XML output. That means that after the first line of a running-text element, each following source line is represented by:
+  - a newline character in the XML output, followed immediately by
+  - `<lb/>`, followed immediately by
+  - the text of that line.
+- The first line of a running-text element has no `<lb/>`.
+- Do NOT use `<lb/>` to connect separate structural elements.
+- If a running-text element continues across a page break and the text on the new page begins a new source line, use `<pb/><lb/>` inside that SAME already-open element.
+- Hyphenated line breaks: when a hyphen appears at the end of a line, preserve it exactly. The continuation must begin on a new physical line in the XML, starting with `<lb/>`.
+- No word joining: never merge a hyphenated word into a single line. The presence of the hyphen is a critical part of the transcription.
+
+### Strict check
+
+- `<lb/>` must never be followed immediately by the opening of a new structural element. Therefore, `<lb/>` may only be followed by text that continues the same already-open element.
+- If `<pb/><lb/>` occurs, the surrounding running-text element must already be open.
+- Patterns such as `<lb/><p>`, `<lb/><head>`, `<lb/><dateline>`, `<lb/><note>`, or `<pb/><lb/><p>` are always wrong.
+
+### Examples
+
+Normal prose paragraph with first-line indent and preserved end-of-line hyphenation:
 
 ```
 <p>My dear Westermarck, Your extremly kind &amp;
@@ -228,11 +253,171 @@ Incorrect (DO NOT DO THIS):
 <lb/>looking well after yourself.</p>
 ```
 
+Flush-left paragraph with no first-line indent:
+
+```
+<p rend="noIndent">Här börjar stycket utan indrag och alla rader står lika långt från vänstermarginalen.
+<lb/>Nästa rad hör fortfarande till samma stycke.</p>
+```
+
+Paragraph continuing across a page break:
+
+```
+<p>[...] Hon har icke gjort något all-
+<pb n="115"/><lb/>varligt försök att förklara vår västerländ-
+<lb/>ska civilisation [...]</p>
+```
+
+Line breaks in a dateline:
+
+```
+<dateline>Cannes 28 Nov. 1875.
+<lb/>Route de Frejus,
+<lb/>Villa Charbonney.</dateline>
+```
+
+Separate short prose lines, such as dialogue or question-and-answer exchange, are separate first-line-indented paragraphs:
+
+```
+<p>Så frågade han: »Vad är ett?»</p>
+<p>Så svarade tiggaren: »En sol på himlen.»</p>
+<p>Så frågade han: »Vad är två?»</p>
+<p>»Två fötter har jag», sade tiggaren.</p>
+```
+
+--------------------------------------------------
+
+## PAGE BREAKS (`<pb/>`)
+
+`<pb/>` marks where a new page begins. It is a milestone only: it is inserted into the structures defined above and does not by itself create or end structure.
+
+- Encode every page, including the first, with exactly one `<pb/>` element.
+- `<pb/>` marks the BEGINNING of a page and must be placed where the text of that page begins.
+- If a printed page number is visible, encode it as `<pb n="..."/>`, copying the page number exactly as shown.
+- If no page number is visible, use `<pb/>`.
+- If the sequence has N images/pages, the output must contain exactly N `<pb>` elements, one for each page, in the same order.
+- If a page number is visible only in a running header or footer area that is otherwise excluded from the transcription, still use that number in `@n`.
+- Do NOT transcribe the page number separately as text.
+
+### Structural rule
+
+- `<pb/>` is a milestone, not a container.
+- `<pb/>` NEVER by itself starts, ends, splits, closes, or reopens any structural element.
+- Do NOT close or reopen `<div>`, `<p>`, `<list>`, `<item>`, `<table>`, `<row>`, `<cell>`, `<lg>`, `<l>`, `<quote>`, `<opener>`, `<closer>`, `<note>`, or any similar element merely because a page break occurs.
+
+### Continuation rule
+
+- When a page break occurs, first decide whether the text after the break continues the same already-open element.
+- DEFAULT: if the text on the new page reads as a continuation of the same paragraph, heading, note, list item, or other open element, keep that element open across `<pb/>`.
+- Start a new structural element after `<pb/>` ONLY if the source clearly begins a new one there.
+- A new page, a flush-left top line, or changed indentation at the top of the page is NOT by itself enough to start a new paragraph or any other new element.
+
+### Continued line rule
+
+- If an already-open running-text element continues onto the new page and the text there begins a new source line, write `<pb/>` immediately followed by `<lb/>`, then the continued text.
+- In that case, `<pb/>` and `<lb/>` must appear consecutively on the same physical line in the XML.
+- DO NOT write `<pb/><lb/><p ...>` or `<pb/><lb/><head ...>` or any similar pattern. If `<lb/>` follows `<pb/>`, the surrounding running-text element must already be open.
+- In other words, `<pb/><lb/>` is used only when the page break falls inside a running-text element that is already open.
+
+### Examples
+
+Correct: Correct: a division continues across the page break, but a new paragraph begins on the new page:
+
+```
+<pb n="58"/>
+<div>
+<head>Språkfrågan vid Universitetet.</head>
+<head type="subtitle">I.</head>
+<p rend="noIndent">Bland de finskatalande studenterna [...] stycket tar slut vid sidans slut.</p>
+<pb n="59"/>
+<p>Här börjar ett nytt stycke på en ny sida med första raden indragen [...]</p>
+[...]
+</div>
+```
+
+Correct: The next page starts with a new paragraph (indented first line):
+
+```
+<p>[...] naturliga urvalet?</p>
+<pb/>
+<p>Altså: den sociala utvecklingen har [...]</p>
+```
+
+Correct: Paragraph continues across page break (DO NOT split `<p>`):
+
+```
+<p>[...] Hon har icke gjort något all-
+<pb n="115"/><lb/>varligt försök att förklara vår västerländ-
+<lb/>ska civilisation [...]</p>
+```
+
+Do NOT convert a continuing paragraph into two paragraphs just because the next page begins flush left:
+
+Correct:
+
+```
+<p rend="noIndent">[...]
+<lb/>av olika upptecknare. De högsvenska uppteckningarna har jag återgivit
+<pb n="IX"/><lb/>oförändrade så när som på ortografien och interpunktionen, som
+<lb/>[...]</p>
+```
+
+Incorrect: `<pb/>` cannot break a paragraph that continues across the page break.
+
+```
+<p rend="noIndent">[...]
+<lb/>av olika upptecknare. De högsvenska uppteckningarna har jag återgivit</p>
+<pb n="IX"/>
+<p rend="noIndent">oförändrade så när som på ortografien och interpunktionen, som
+<lb/>[...]</p>
+```
+
+Incorrect: `<pb/><lb/>` cannot be followed by opening a new paragraph:
+
+```
+<p rend="noIndent">[...]
+<lb/>av olika upptecknare. De högsvenska uppteckningarna har jag återgivit</p>
+<pb n="IX"/><lb/><p rend="noIndent">oförändrade så när som på ortografien och interpunktionen, som
+<lb/>[...]</p>
+```
+
+Correct: Stanza (line group) continues across page break (DO NOT split the stanza/line group):
+
+```
+<lg>
+<l>Här hvilar Dreyse …</l>
+<l>– Dreyse? Hvem var han?</l>
+<pb/>
+<l>Tändnålsgevärets store upphofsman,</l>
+[...]
+</lg>
+```
+
+Correct: List item continues across page break (DO NOT split the list):
+
+```
+<list>
+<item>Första punkten som fortsätter över sidbrytning
+<pb n="12"/><lb/>och fortsätter i samma punkt.</item>
+<item>Andra punkten.</item>
+</list>
+```
+
+Correct: List continues across page break (DO NOT split the list):
+
+```
+<list>
+<item>Första punkten på en sida.</item>
+<pb n="12"/>
+<item>Andra punkten på nästa sida.</item>
+</list>
+```
+
 --------------------------------------------------
 
 ## TEXTUAL HIGHLIGHTS (`<hi>`)
 
-Use `<hi>` ONLY for characters that are physically raised above or lowered below the baseline in the source.
+Unlike in full TEI, `<hi>` is restricted to characters that are physically raised above or lowered below the baseline in the source.
 
 ### Allowed uses
 
@@ -261,11 +446,6 @@ Dec. 19<hi rend="superscript">th</hi>
 ```
 
 Italics in the source, “Om svenskarnas invandring” (correct: NO `<hi>`):
-
-Source (italicized word shown for explanation only):
-    Om svenskarnas invandring
-
-Correct TEI (NO `<hi>` used):
 
 ```
 <p>Om svenskarnas invandring hade en spannmålstorpare Strömberg hört [...]</p>
@@ -616,10 +796,12 @@ Exclude:
 
 ## FINAL CHECK (MANDATORY)
 
-- Exact character-level transcription, retaining spelling errors, grammar, syntax, capitalization, and punctuation, as well as line breaks.
+- Exact character-level transcription, retaining spelling errors, grammar, syntax, capitalization, punctuation, non-English letters, diacritics, line breaks, and end-of-line hyphenation.
 - Include running headers and footers ONLY if clearly included in the raw transcription.
 - Exactly ONE `<body>` root element.
-- `<pb/>` marks the start of the page.
-- `<lb/>` appears ONLY at the start of lines.
 - Well-formed XML.
-- All opened elements are properly closed.
+- Count check: the number of `<pb>` elements MUST equal the number of input images/pages.
+- `<pb/>` does NOT force paragraph breaks.
+- Never start a new `<div>` unless a new `<head>` begins in the visible text.
+- `<lb/>` appears ONLY at the start of lines.
+- Use ONLY the allowed TEI elements and allowed attributes listed above.
