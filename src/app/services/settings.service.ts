@@ -140,13 +140,6 @@ export class SettingsService {
       this.selectedThinkingLevel.set(selectedThinkingLevel);
     });
 
-    // Apply temperature defaults per task type
-    effect(() => {
-      const taskType = this.selectedTaskType();
-      const isTranscription = taskType === 'transcription' || taskType === 'transcriptionBatchTei';
-      this.selectedTemperature.set(isTranscription ? 0.0 : 1.0);
-    });
-
     // Ensure selectedVariantId is sane when task type changes
     effect(() => {
       const cfg = this.selectedTaskConfig();
