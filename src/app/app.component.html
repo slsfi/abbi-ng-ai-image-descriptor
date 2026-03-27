@@ -4,14 +4,38 @@
   <app-header></app-header>
 
   <div class="main-wrapper">
-    <div class="intro-wrapper">
-      <p>aBBi (“AI-bildbeskrivningar”) is a web app for generating textual descriptions of images using AI. Currently, the tool can be used to:</p>
-      <ul>
-        <li>generate <a href="https://webaim.org/techniques/alttext/">alternative text</a> (“alt text”) in Swedish, Finnish and English (recommended models: OpenAI GPT-4.1 or Google Gemini 2.5 Pro/Flash).</li>
-        <li>transcribe the text, including handwritten text, in images (recommended models: Google Gemini 3 Pro/Flash Preview).</li>
-      </ul>
-      <p>Start by defining your settings for the process and providing your API key, then select image files from your computer, and finally generate descriptions of them. You can download the descriptions in different formats or copy them to the clipboard individually.</p>
-    </div>
+    <section class="abbi-intro" aria-label="About aBBi">
+      <div class="intro-grid">
+        <div class="intro-card">
+          <h2>What you can do</h2>
+          <ul>
+            <li>Generate alt text</li>
+            <li>Extract text from images</li>
+            <li>Encode image text in TEI XML</li>
+          </ul>
+        </div>
+
+        <div class="intro-card">
+          <h2>How it works</h2>
+          <ol>
+            <li>Choose task and model</li>
+            <li>Add API key</li>
+            <li>Add images</li>
+            <li>Generate and review results</li>
+          </ol>
+        </div>
+
+        <div class="intro-card intro-card--tips">
+          <h2>Model tips</h2>
+          <ul>
+            <li><strong>Alt text:</strong> GPT-4.1 or Gemini 2.5</li>
+            <li><strong>Printed text:</strong> Gemini 3.1 Flash</li>
+            <li><strong>Handwriting:</strong> Gemini 3.1 Pro</li>
+            <li><strong>TEI-encoding:</strong> Gemini 3.1 Pro</li>
+          </ul>
+        </div>
+      </div>
+    </section>
 
     <mat-stepper [orientation]="(stepperOrientation | async)!" [linear]="true" #stepper>
       <!-- Step 1: Configure settings -->
@@ -23,9 +47,9 @@
         </div>
       </mat-step>
 
-      <!-- Step 2: Enter API key -->
-      <mat-step [stepControl]="apiKeyFormGroup" label="Enter API key">
-        <h2>Enter your {{ settings.selectedModel().provider }} API key</h2>
+      <!-- Step 2: Add API key -->
+      <mat-step [stepControl]="apiKeyFormGroup" label="Add API key">
+        <h2>Add your {{ settings.selectedModel().provider }} API key</h2>
         <api-key-form
           (apiKeyValidated)="onApiKeyValidated($event)"
           (formGroupOutput)="setApiKeyFormGroup($event)"

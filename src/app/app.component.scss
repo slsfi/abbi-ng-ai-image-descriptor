@@ -5,17 +5,64 @@
   width: calc(100% - 3rem);
 }
 
-.intro-wrapper {
-  margin-bottom: 3rem;
-  max-width: 1000px;
+.abbi-intro {
+  margin: 1.5rem 0 2rem;
+}
 
-  p, ul {
-    font-size: 1rem;
-    line-height: 1.5;
+.intro-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.intro-card {
+  background: var(--mat-stepper-container-color, var(--mat-sys-surface));
+  border: 1px solid #d9dbe3;
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  min-height: 160px;
+  box-sizing: border-box;
+
+  strong {
+    font-weight: 500;
+  }
+}
+
+.intro-card h2 {
+  margin: 0 0 0.75rem;
+  line-height: 1.3;
+}
+
+.intro-card ul,
+.intro-card ol {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.intro-card li {
+  margin: 0 0 0.45rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.intro-card li:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .intro-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .intro-card {
+    min-height: auto;
   }
 }
 
 mat-stepper {
+  border: 1px solid #d9dbe3;
+  border-radius: 10px;
+
   .stepper-nav {
     border-top: 1px solid #dbdbdb;
     margin-top: 1.5rem;
