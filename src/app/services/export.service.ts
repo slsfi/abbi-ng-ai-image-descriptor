@@ -767,23 +767,33 @@ export class ExportService {
   }
 
   /**
-   * Repairs a common model error where a page break is incorrectly wrapped
-   * between two paragraph tags even though the paragraph should continue.
-   * 
-   * For example, it changes this:
-   * 
+   * Repairs a common model error where a page break is wrapped between two
+   * paragraph tags even though the text appears to continue as the same
+   * paragraph.
+   *
+   * It merges only conservative cases:
+   * - the character immediately before </p> is not whitespace, . ? ! or >
+   * - the next paragraph starts with a non-whitespace text character
+   * - that first text character is not uppercase
+   *
+   * The explicit exclusion of > means we skip cases like </note></p>, where
+   * the paragraph ends with a closing tag and we cannot safely infer the last
+   * visible text character before </p>.
+   *
+   * Example:
+   *
    * a paragraph that should</p>
    * <pb n="32"/>
    * <p rend="noIndent">not be broken because of a page break
-   * 
-   * into this:
-   * 
+   *
+   * becomes:
+   *
    * a paragraph that should
-   * <pb n="32/><lb/>not be broken because of a page break
+   * <pb n="32"/><lb/>not be broken because of a page break
    */
   private fixMisplacedParagraphBreaksAroundPb(input: string): string {
     return input.replace(
-      /([^\s.?!])\s*<\/p>\s*(<pb\b[^>]*\/>)(?:\s*<lb\b[^>]*\/>)?\s*<p\b[^>]*>\s*([^\s<])/gu,
+      /([^\s.?!>])\s*<\/p>\s*(<pb\b[^>]*\/>)(?:\s*<lb\b[^>]*\/>)?\s*<p\b[^>]*>\s*([^\s<])/gu,
       (match, precedingChar: string, pbTag: string, firstChar: string) => {
         if (/\p{Lu}/u.test(firstChar)) {
           return match;

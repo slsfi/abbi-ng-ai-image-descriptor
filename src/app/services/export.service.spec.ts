@@ -86,4 +86,12 @@ describe('ExportService', () => {
 
     expect(service.normaliseCharacters(input, true)).toBe(input);
   });
+
+  it('keeps the paragraph break when the paragraph ends with a closing tag', () => {
+    const input = `<p>Detta slutar med en fotnot<note place="foot">1</note></p>
+<pb n="32"/>
+<p rend="noIndent">fortsÃ¤ttning pÃ¥ nÃ¤sta sida</p>`;
+
+    expect(service.normaliseCharacters(input, true)).toBe(input);
+  });
 });
