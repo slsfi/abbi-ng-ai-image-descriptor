@@ -89,6 +89,7 @@
               [step]="25"
               [discrete]="true"
               [showTickMarks]="true"
+              matTooltip="Desired approximate length of the generated alt texts."
           >
             <input matSliderThumb
                   [value]="settings.selectedDescLength()"
@@ -131,6 +132,7 @@
               [step]="1"
               [discrete]="true"
               [showTickMarks]="true"
+              matTooltip="Batch size controls how many images are processed by the model at once. If the number of images exceeds the batch size, the images are divided into batches of this size. Each batch is processed as a single ”unit”."
           >
             <input matSliderThumb
                   [value]="settings.batchSize()"
@@ -223,6 +225,7 @@
                   [step]="0.1"
                   [discrete]="true"
                   [showTickMarks]="true"
+                  matTooltip="Temperature controls how predictable versus varied a model’s output is, with lower values making responses more consistent and higher values making them more creative but less deterministic. Transcription tasks can benefit from a temperature of 0.0, however, many models are optimized for a value of 1.0."
             >
               <input matSliderThumb
                     [value]="settings.selectedTemperature()"
