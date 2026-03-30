@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+
+- Update `nginx` to 1.28.3.
+
 
 
 ## [2.3.0] – 2026-03-30
