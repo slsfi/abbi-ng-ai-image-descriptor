@@ -8,9 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [2.3.1] – 2026-03-30
+
 ### Changed
 
-- Update `nginx` to 1.28.3.
+- Update `nginx` to 1.28.3. ([54e3273](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/54e327310ea8edbe84d239fe31e2c631b92c7885))
 
 
 
@@ -368,7 +372,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.3.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.3.1...HEAD
+[2.3.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.3.0...2.3.1
 [2.3.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.2.1...2.3.0
 [2.2.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.2.0...2.2.1
 [2.2.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.1.0...2.2.0
