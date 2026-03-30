@@ -8,37 +8,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [2.3.0] – 2026-03-30
+
 ### Added
 
-- Model-config aware temperature support rules: the temperature setting is disabled/omitted when unsupported with reasoning effort or thinking level enabled.
-- Support for the OpenAI [`gpt-5.4`](https://developers.openai.com/api/docs/models/gpt-5.4) model.
-- Support for batched transcription + TEI encoding with OpenAI models, including OpenAI Files API uploads with 48-hour expiry and cleanup.
-- Tooltips to slider settings.
+- Model-config aware temperature support rules: the temperature setting is disabled/omitted when unsupported with reasoning effort or thinking level enabled. ([51c2d5e](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/51c2d5ea00df9b85a638802049e555d5ebe6ce9e))
+- Support for the OpenAI [`gpt-5.4`](https://developers.openai.com/api/docs/models/gpt-5.4) model. ([971b73f](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/971b73f4f739ca617e9b4dda8be87f9f38f6dd66))
+- Support for batched transcription + TEI encoding with OpenAI models, including OpenAI Files API uploads with 48-hour expiry and cleanup. ([be06988](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/be06988d6b3af0487a8eed3fe0891d43ef07c25d))
+- Tooltips to slider settings. ([6bed796](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/6bed796a27454ab15a0f9c64f606938014144297))
 
 ### Changed
 
-- CI: update GitHub Actions in the Docker build-and-push workflow.
-- OpenAI image input detail is configured per model via `parameters.imageDetail` instead of being hard-coded in the service.
-- Refactor shared upload and payload helpers in AI services.
-- Improve prompts for transcribing and TEI-encoding.
-- Preserve the selected temperature when switching task type instead of resetting it to task-specific defaults.
-- Improve onboarding text and layout on the start page.
-- Switch order of temperature and reasoning/thinking level setting.
-- Deps: update `@angular/cli` to 21.2.5, `@angular/cdk`, and `@angular/material` to 21.2.4, and `@angular/core` to 21.2.6.
-- Deps: update `@google/genai` to 1.47.0.
-- Deps: update `docx` to 9.6.1.
-- Deps: update `openai` to 6.33.0.
-- Deps: update transitive dependencies.
+- CI: update GitHub Actions in the Docker build-and-push workflow. ([2131aa9](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/2131aa9d3147c7969c10fdc699bb310e5ab3101a))
+- OpenAI image input detail is configured per model via `parameters.imageDetail` instead of being hard-coded in the service. ([6508f75](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/6508f75b95ab9262ac8c251714656248923a498d))
+- Refactor shared upload and payload helpers in AI services. ([16a4616](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/16a4616615c7002143e610c655c8ab76eca1548b))
+- Improve prompts for transcribing and TEI-encoding. ([28ef882](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/28ef8821aefcb3ae1b6fc1524f958fc8c4b318ca))
+- Preserve the selected temperature when switching task type instead of resetting it to task-specific defaults. ([398eb79](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/398eb7928ae1793c9b57cdc367a908f78dc81e3f))
+- Improve onboarding text and layout on the start page. ([5652c78](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/5652c78c912cb2ff43f772e27357a2ce8b9da214), [dc4b61b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/dc4b61bd801d456a7a55b207613bce0abf4e9b00))
+- Switch order of temperature and reasoning/thinking level setting. ([466ac0d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/466ac0d9684d821f864d87251a2dc33b5639aefb))
+- Deps: update `@angular/cli` to 21.2.5, `@angular/cdk`, and `@angular/material` to 21.2.4, and `@angular/core` to 21.2.6. ([ed4f228](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/ed4f22848c0255da791c81f0292bc32c5041ece4), [67c52bc](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/67c52bc0fa79a22da35a5197b8e43e244446063c), [730507d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/730507d16eaba0e73340700c4b59a1b56e7ba7e2))
+- Deps: update `@google/genai` to 1.47.0. ([15a010a](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/15a010af4153e20508a1d946e6760cabb379ecf9), [5007e95](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/5007e95383d1f24dc3bfddebc0d02dd6ccdbfbc7))
+- Deps: update `docx` to 9.6.1. ([3d6e91c](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/3d6e91c07d80c07778e8d1e1999438fda655934c))
+- Deps: update `openai` to 6.33.0. ([613b719](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/613b719a3e11c1d0b484e79eea7c8f6f30a816fd), [56cb997](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/56cb9975bda48a723f0861fe8ca5c23448bd038f))
+- Deps: update transitive dependencies. ([7cc85d0](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/7cc85d0ab5c3f3395c03ab33664c4367658d43cb), [5fdb180](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/5fdb18032aaef2e489913941c457bbd9334ec50f), [484e011](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/484e011c2ae6d665d561028e9f068e094577c907))
 
 ### Fixed
 
-- Repair misplaced TEI paragraph breaks around `<pb/>` elements so continued paragraphs are preserved across page breaks during export normalization.
-- Strip short plain-text `<hi rend="italics">...</hi>` tags during TEI export normalization while preserving cases with nested markup.
+- Repair misplaced TEI paragraph breaks around `<pb/>` elements so continued paragraphs are preserved across page breaks during export normalization. ([e014c17](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/e014c177419f735546221e25c8c01af5e33c9999), [0049a37](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/0049a3751e569827640cd2ad1cd0ef353b816089))
+- Strip short plain-text `<hi rend="italics">...</hi>` tags during TEI export normalization while preserving cases with nested markup. ([ac31f93](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/ac31f9340807ae1b6b7de77c73996ce8a1805b9d))
 
 ### Removed
 
-- The `gpt-5.2` model. It has been replaced by `gpt-5.4`.
-- The `gpt-4.1-mini` model.
+- The `gpt-5.2` model. It has been replaced by `gpt-5.4`. ([971b73f](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/971b73f4f739ca617e9b4dda8be87f9f38f6dd66))
+- The `gpt-4.1-mini` model. ([260dc35](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/260dc3587b5820ac3bf1fbe10baa27fac82d8bac))
 
 
 
@@ -360,7 +364,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.2.1...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.3.0...HEAD
+[2.3.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.2.1...2.3.0
 [2.2.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.2.0...2.2.1
 [2.2.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.1.0...2.2.0
 [2.1.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.0.0...2.1.0
