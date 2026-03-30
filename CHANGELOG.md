@@ -23,7 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Preserve the selected temperature when switching task type instead of resetting it to task-specific defaults.
 - Improve onboarding text and layout on the start page.
 - Deps: update `@angular/cli` to 21.2.5, `@angular/cdk`, and `@angular/material` to 21.2.4, and `@angular/core` to 21.2.6.
-- Deps: update `@google/genai` to 1.46.0.
+- Deps: update `@google/genai` to 1.47.0.
 - Deps: update `docx` to 9.6.1.
 - Deps: update `openai` to 6.33.0.
 - Deps: update transitive dependencies.
