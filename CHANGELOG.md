@@ -8,28 +8,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [2.4.0] – 2026-05-21
+
 ### Added
 
-- Support for the `gemini-3.5-flash` model. It replaces `gemini-3-flash-preview`.
+- Support for the `gemini-3.5-flash` model. It replaces `gemini-3-flash-preview`. ([927cbcc](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/927cbccbd4bcabcee6c3b4da62d521874f0a9ba8))
 
 ### Changed
 
-- Update `nginx` to 1.30.1.
-- Deps: update `@angular/core` to 21.2.14, and `@angular/cli` `@angular/cdk`, and `@angular/material` to 21.2.12.
-- Deps: update `@google/genai` to 2.5.0.
-- Deps: update `fflate` to 0.8.3.
-- Deps: update `openai` to 6.38.0.
-- Deps: update `zone.js` to 0.16.2.
-- Deps (dev): update `jasmine-core` to 6.2.0.
-- Deps: update transitive dependencies.
+- Update `nginx` to 1.30.1. ([73dc471](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/73dc471d94bb083740d6637724699c322a4d232b))
+- Deps: update `@angular/core` to 21.2.14, and `@angular/cli` `@angular/cdk`, and `@angular/material` to 21.2.12. ([c5b14f0](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/c5b14f06a8673394482d1c62422e62481bfce1e3))
+- Deps: update `@google/genai` to 2.5.0. ([ca54adb](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/ca54adb2a50ab6936f32961ad4c9f2feeb245262))
+- Deps: update `fflate` to 0.8.3. ([ef18e9e](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/ef18e9e7f9fff1e007f8d485350beece18c3f712))
+- Deps: update `openai` to 6.38.0. ([3501913](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/350191378dd0bf8ad5b2f25b1be229ca04465393))
+- Deps: update `zone.js` to 0.16.2. ([972b795](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/972b7951730ef268cfa394cebc9ecf14bbeb6942))
+- Deps (dev): update `jasmine-core` to 6.2.0. ([faba9be](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/faba9bed4084126b30ec03210e6a99732b66a54c))
+- Deps: update transitive dependencies. ([cee70b1](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/cee70b13d63a00b42479492ecd1d785c0c101d3f))
 
 ### Fixed
 
-- Transcription prompts: remove superfluous comma.
+- Transcription prompts: remove superfluous comma. ([bfe6c1d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/bfe6c1d3b96b6a74018f20174044b2fe8be74860))
 
 ### Removed
 
-- The `gemini-3-flash-preview` model.
+- The `gemini-3-flash-preview` model. ([927cbcc](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/927cbccbd4bcabcee6c3b4da62d521874f0a9ba8))
 
 
 
@@ -395,7 +399,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.3.1...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.4.0...HEAD
+[2.4.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.3.1...2.4.0
 [2.3.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.3.0...2.3.1
 [2.3.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.2.1...2.3.0
 [2.2.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.2.0...2.2.1
