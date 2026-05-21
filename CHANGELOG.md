@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 
+- Update `nginx` to 1.30.1.
 - Deps: update `@angular/core` to 21.2.14, and `@angular/cli` `@angular/cdk`, and `@angular/material` to 21.2.12.
 - Deps: update `@google/genai` to 2.5.0.
 - Deps: update `fflate` to 0.8.3.
