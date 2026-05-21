@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - Deps: update `@angular/core` to 21.2.14, and `@angular/cli` `@angular/cdk`, and `@angular/material` to 21.2.12.
+- Deps: update `fflate` to 0.8.3.
 - Deps: update `openai` to 6.38.0.
 - Deps: update `zone.js` to 0.16.2.
 - Deps (dev): update `jasmine-core` to 6.2.0.
