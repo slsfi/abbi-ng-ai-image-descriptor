@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+
+- Deps: update `openai` to 6.38.0.
+
 ### Fixed
 
 - Transcription prompts: remove superfluous comma.
