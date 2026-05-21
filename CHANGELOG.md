@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `openai` to 6.38.0.
 - Deps: update `zone.js` to 0.16.2.
 - Deps (dev): update `jasmine-core` to 6.2.0.
+- Deps: update transitive dependencies.
 
 ### Fixed
 
