@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- Support for the `gemini-3.5-flash` model. It replaces `gemini-3-flash-preview`.
+
 ### Changed
 
 - Update `nginx` to 1.30.1.
@@ -22,6 +26,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Fixed
 
 - Transcription prompts: remove superfluous comma.
+
+### Removed
+
+- The `gemini-3-flash-preview` model.
 
 
 

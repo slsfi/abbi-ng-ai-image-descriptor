@@ -2,7 +2,7 @@ import { Model } from '../../app/types/model.types'
 import { TaskTypeId } from './prompts';
 
 export type ModelProvider = 'OpenAI' | 'Google';
-export type ModelId = 'gpt-4.1' | 'gpt-5.4' | 'gemini-3-flash-preview' | 'gemini-3.1-pro-preview' | 'gemini-2.5-pro' | 'gemini-2.5-flash';
+export type ModelId = 'gpt-4.1' | 'gpt-5.4' | 'gemini-3.1-pro-preview' | 'gemini-3.5-flash' | 'gemini-2.5-pro' | 'gemini-2.5-flash';
 
 // provider = name of model creator
 // name = display name of the model
@@ -72,6 +72,24 @@ export const MODELS: Model[] = [
   },
   {
     provider: 'Google',
+    name: 'Gemini 3.5 Flash',
+    id: 'gemini-3.5-flash',
+    description: 'A fast and cost-efficient alternative to Gemini 3.1 Pro that delivers near-pro transcription quality, including handwritten text, with much higher throughput.',
+    inputPrice: 1.5,
+    outputPrice: 9.0,
+    rpm: 1000,
+    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
+    url: 'https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash',
+    parameters: {
+      thinkingLevel: 'low',
+      thinkingLevels: ['minimal', 'low', 'medium', 'high'],
+      maxImageShortsidePx: null,
+      mediaResolution: 'high'
+    },
+    supportsFilesApi: true
+  },
+  {
+    provider: 'Google',
     name: 'Gemini 3.1 Pro Preview',
     id: 'gemini-3.1-pro-preview',
     description: 'The most accurate model for transcription tasks, excelling at handwritten text, and the best choice when transcription quality is critical.',
@@ -83,24 +101,6 @@ export const MODELS: Model[] = [
     parameters: {
       thinkingLevel: 'low',
       thinkingLevels: ['low', 'medium', 'high'],
-      maxImageShortsidePx: null,
-      mediaResolution: 'high'
-    },
-    supportsFilesApi: true
-  },
-  {
-    provider: 'Google',
-    name: 'Gemini 3 Flash Preview',
-    id: 'gemini-3-flash-preview',
-    description: 'A fast and cost-efficient alternative to Gemini 3 Pro that delivers near-pro transcription quality, including handwritten text, with much higher throughput.',
-    inputPrice: 0.5,
-    outputPrice: 3.0,
-    rpm: 1000,
-    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
-    url: 'https://ai.google.dev/gemini-api/docs/models#gemini-3-flash',
-    parameters: {
-      thinkingLevel: 'low',
-      thinkingLevels: ['minimal', 'low', 'medium', 'high'],
       maxImageShortsidePx: null,
       mediaResolution: 'high'
     },
