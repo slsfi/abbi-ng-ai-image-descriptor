@@ -55,6 +55,9 @@
         @if (temperatureSupported && selectedTemperature !== null) {
           <span class="run-context-detail">Temperature: {{ selectedTemperature | number:'1.1-1' }}</span>
         }
+        @if (prompts.hasCustomPrompt(settings.selectedTaskType(), settings.selectedVariantId())) {
+          <span class="run-context-detail">Customised prompt</span>
+        }
       </div>
       <div class="run-context-cost" matTooltip="Estimated API cost (US dollars) since this app page was opened. Resets when you refresh the page.">
         <span class="run-context-label">Session API cost</span>
