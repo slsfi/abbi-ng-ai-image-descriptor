@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Refine header and footer layout.
 - Increase Angular build budgets to remove build size warnings.
 - Update description of batched transcription and TEI-encoding task.
+- Use "Cascade Mono" as the default font for prompt and batch result views for improved glyph support.
 - Update `nginx` to 1.30.3.
 - Deps: update `@angular/core` to 21.2.17, `@angular/cli` to 21.2.16, and `@angular/cdk` and `@angular/material` to 21.2.14.
 - Deps: update `@google/genai` to 2.9.0.

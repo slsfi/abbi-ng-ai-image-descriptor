@@ -136,7 +136,7 @@ mat-dialog-content.mat-mdc-dialog-content {
       max-width: 700px;
 
       code {
-        font-family: "Fira Code", monospace !important;
+        font-family: "Cascadia Mono", "Fira Code", monospace !important;
         font-weight: 400;
         font-size: 0.9375em;
         font-style: normal;
@@ -153,7 +153,7 @@ mat-dialog-content.mat-mdc-dialog-content {
     }
 
     textarea {
-      font-family: "Fira Code", monospace;
+      font-family: "Cascadia Mono", "Fira Code", monospace;
       font-optical-sizing: auto;
       font-weight: 400;
       font-size: 0.9375em;
