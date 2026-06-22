@@ -164,8 +164,12 @@
               (valueChange)="setModel($event)"
               name="model"
         >
-          @for (model of settings.availableModels(); track model.id) {
-            <mat-option [value]="model">{{model.provider}} {{model.name}}</mat-option>
+          @for (modelGroup of modelGroups(); track modelGroup.provider) {
+            <mat-optgroup [label]="modelGroup.provider">
+              @for (modelOption of modelGroup.models; track modelOption.id) {
+                <mat-option [value]="modelOption">{{ modelOption.name }}</mat-option>
+              }
+            </mat-optgroup>
           }
         </mat-select>
       </mat-form-field>
