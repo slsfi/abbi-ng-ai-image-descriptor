@@ -2,7 +2,7 @@ import { AfterViewInit, Component, DestroyRef, ElementRef, OnInit, ViewChild,
          afterRenderEffect, inject, signal, viewChildren
         } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AsyncPipe, DecimalPipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
@@ -45,7 +45,6 @@ import { LanguageCode } from '../../../assets/config/prompts';
   selector: 'generate-descriptions',
   imports: [
     AsyncPipe,
-    DecimalPipe,
     FormsModule,
     ClipboardModule,
     MatButtonModule,

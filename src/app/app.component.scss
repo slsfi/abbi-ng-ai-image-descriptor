@@ -1,3 +1,8 @@
+:host {
+  --card-border-radius: var(--mat-sys-corner-medium, 10px);
+  --card-border-color: #d9dbe3;
+}
+
 .main-wrapper {
   margin: 0 auto;
   max-width: 1200px;
@@ -6,7 +11,7 @@
 }
 
 .abbi-intro {
-  margin: 1.5rem 0 2rem;
+  margin: 1.5rem 0 1rem;
 }
 
 .intro-grid {
@@ -17,8 +22,8 @@
 
 .intro-card {
   background: #f6f3ff;
-  border: 1px solid #d9dbe3;
-  border-radius: 10px;
+  border: 1px solid var(--card-border-color);
+  border-radius: var(--card-border-radius);
   padding: 1rem 1.1rem;
   min-height: 160px;
   box-sizing: border-box;
@@ -49,6 +54,42 @@
   margin-bottom: 0;
 }
 
+.run-context {
+  align-items: center;
+  background: #f9fffa;
+  border: 1px solid var(--card-border-color);
+  border-radius: var(--card-border-radius);
+  box-sizing: border-box;
+  color: #000;
+  display: flex;
+  font-size: 0.95rem;
+  gap: 1rem 2rem;
+  justify-content: space-between;
+  margin: 0 0 1rem 0;
+  padding: 0.8rem 1rem;
+}
+
+.run-context-model,
+.run-context-cost {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.8rem;
+}
+
+.run-context-cost {
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+.run-context-detail {
+  color: #474747;
+}
+
+.run-context-value {
+  font-weight: 500;
+}
+
 @media (max-width: 900px) {
   .intro-grid {
     grid-template-columns: 1fr;
@@ -57,11 +98,22 @@
   .intro-card {
     min-height: auto;
   }
+
+  .run-context {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .run-context-cost {
+    justify-content: flex-start;
+  }
 }
 
 mat-stepper {
-  border: 1px solid #d9dbe3;
-  border-radius: 10px;
+  border: 1px solid var(--card-border-color);
+  border-radius: var(--card-border-radius);
+
+  --mat-sys-surface: #ffffff;
 
   .stepper-nav {
     border-top: 1px solid #dbdbdb;
