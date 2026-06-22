@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -14,6 +14,11 @@ import { UpperFirstLetterPipe } from '../../pipes/upper-first-letter.pipe';
 import { SettingsService } from '../../services/settings.service';
 import { GeminiThinkingLevel, Model, OpenAiReasoningEffort } from '../../types/model.types';
 import { TaskTypeId } from '../../../assets/config/prompts';
+
+type ModelGroup = {
+  provider: Model['provider'];
+  models: Model[];
+};
 
 @Component({
   selector: 'settings-form',
@@ -35,6 +40,18 @@ import { TaskTypeId } from '../../../assets/config/prompts';
 })
 export class SettingsFormComponent {
   settings = inject(SettingsService);
+
+  readonly modelGroups = computed<ModelGroup[]>(() => {
+    const groups = new Map<Model['provider'], Model[]>();
+
+    for (const model of this.settings.availableModels()) {
+      const group = groups.get(model.provider) ?? [];
+      group.push(model);
+      groups.set(model.provider, group);
+    }
+
+    return Array.from(groups, ([provider, models]) => ({ provider, models }));
+  });
 
   teiEncode = signal<boolean>(false);
   transcribeHeaders = signal<boolean>(true);
