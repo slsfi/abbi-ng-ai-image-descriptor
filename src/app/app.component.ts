@@ -6,6 +6,7 @@ import { BreakpointObserver } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconRegistry } from '@angular/material/icon';
 import { MatStepperModule, StepperOrientation } from '@angular/material/stepper';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { map, Observable } from 'rxjs';
 
 import { APP_VERSION } from '../assets/config/app-version';
@@ -28,6 +29,7 @@ import { ModelProvider } from '../assets/config/models';
     DecimalPipe,
     MatButtonModule,
     MatStepperModule,
+    MatTooltipModule,
     AddImagesComponent,
     ApiKeyFormComponent,
     GenerateDescriptionsComponent,

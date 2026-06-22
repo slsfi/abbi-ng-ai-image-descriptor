@@ -56,7 +56,7 @@
 
 .run-context {
   align-items: center;
-  background: #f9fffa;
+  background: #f9fcff;
   border: 1px solid var(--card-border-color);
   border-radius: var(--card-border-radius);
   box-sizing: border-box;
@@ -78,12 +78,14 @@
 }
 
 .run-context-cost {
+  cursor: help;
   flex-shrink: 0;
   justify-content: flex-end;
 }
 
 .run-context-detail {
   color: #474747;
+  font-size: 0.85rem;
 }
 
 .run-context-value {
