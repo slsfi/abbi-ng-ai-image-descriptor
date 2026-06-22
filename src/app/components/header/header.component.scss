@@ -4,19 +4,18 @@
   display: flex;
   height: auto;
   padding: 0;
-  margin: 0 0 3rem 0;
+  margin: 0 0 2rem 0;
   width: 100%;
 
   h1 {
-    font-size: 5rem;
+    font-size: 2.5rem;
     font-weight: bold;
-    margin: 0 0 2.5rem 0;
-    position: relative;
-    top: 1rem;
+    line-height: 1;
+    margin: 0;
   }
 
   p {
-    font-size: 2rem;
+    font-size: 1.5rem;
     line-height: 1.25;
     margin: 0;
   }
@@ -25,9 +24,29 @@
 .banner-content-wrapper {
   align-items: center;
   display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.5rem;
+  row-gap: 0.5rem;
   justify-content: space-between;
   margin: 0 auto;
   max-width: 1200px;
-  padding: 3rem 1.5rem 3rem 1.5rem;
+  min-height: 5rem;
+  padding: 1rem 1.5rem;
   width: calc(100% - 3rem);
+
+  p[role="doc-subtitle"] {
+    white-space: pre;
+  }
+}
+
+@media (max-width: 640px) {
+  .banner {
+    h1 {
+      font-size: 2.25rem;
+    }
+
+    p {
+      font-size: 1.125rem;
+    }
+  }
 }
