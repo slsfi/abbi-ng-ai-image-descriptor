@@ -56,7 +56,7 @@
           <span class="run-context-detail">Temperature: {{ selectedTemperature | number:'1.1-1' }}</span>
         }
       </div>
-      <div class="run-context-cost" matTooltip="Estimated API cost in US dollars since this app page was opened. Resets when you refresh the page.">
+      <div class="run-context-cost" matTooltip="Estimated API cost (US dollars) since this app page was opened. Resets when you refresh the page.">
         <span class="run-context-label">Session API cost</span>
         <span class="run-context-value">${{ costService.cumulativeCost() | number:'1.2-3' }}</span>
       </div>
