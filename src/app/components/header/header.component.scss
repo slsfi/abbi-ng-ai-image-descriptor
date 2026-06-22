@@ -39,6 +39,14 @@
   }
 }
 
+@media (max-width: 900px) {
+  .banner-content-wrapper {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    width: calc(100% - 1.5rem);
+  }
+}
+
 @media (max-width: 640px) {
   .banner {
     h1 {
