@@ -33,6 +33,7 @@ import { BatchResultsService } from '../../services/batch-results.service';
 import { CostService } from '../../services/cost.service';
 import { ExportService } from '../../services/export.service';
 import { ImageListService } from '../../services/image-list.service';
+import { PromptService } from '../../services/prompt.service';
 import { SettingsService } from '../../services/settings.service';
 import { BatchResult } from '../../types/batch-result.types';
 import { DescriptionData } from '../../types/description-data.types';
@@ -71,6 +72,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   public readonly imageListService = inject(ImageListService);
   private readonly aiService = inject(AiService);
   readonly batchResults = inject(BatchResultsService);
+  private readonly promptService = inject(PromptService);
   readonly settings = inject(SettingsService);
   private readonly snackBar = inject(MatSnackBar);
 
@@ -949,7 +951,9 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     const taskConfig = this.settings.selectedTaskConfig();
     const promptVariant = this.settings.selectedVariant();
 
-    let promptTemplate = promptVariant.prompt;
+    let promptTemplate = taskConfig.taskType === 'transcriptionBatchTei'
+      ? this.promptService.getPrompt(taskConfig.taskType, promptVariant.id)
+      : promptVariant.prompt;
     if (taskConfig.taskType === 'altText' && this.settings.includeFilename() && promptVariant.languageCode) {
       const filenamePrompt = taskConfig.helpers?.filenamePrompt?.[promptVariant.languageCode] ?? '';
       promptTemplate = promptTemplate + '\n\n' + filenamePrompt;

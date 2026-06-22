@@ -1,0 +1,39 @@
+<h2 mat-dialog-title>Edit prompt</h2>
+
+<mat-dialog-content>
+  <p class="session-hint">
+    Custom prompts are kept only for this browser session. Reloading the app restores the original prompt.
+  </p>
+
+  <mat-form-field appearance="outline" class="prompt-field">
+    <mat-label>Prompt for {{ data.taskLabel }}</mat-label>
+    <textarea matInput
+          [(ngModel)]="editedPrompt"
+          cdkTextareaAutosize
+          cdkAutosizeMinRows="18"
+          cdkAutosizeMaxRows="28"
+    ></textarea>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <div class="left-action-buttons">
+    <button matButton="outlined"
+          (click)="restoreOriginal()"
+          [disabled]="isOriginalPrompt"
+          matTooltip="Restore the original prompt text"
+    >
+      <mat-icon>settings_backup_restore</mat-icon>
+      <span>Restore original</span>
+    </button>
+  </div>
+
+  <div class="right-action-buttons">
+    <button matButton [mat-dialog-close]="null">Cancel</button>
+    <button matButton="filled"
+          [disabled]="isPromptEmpty"
+          [mat-dialog-close]="editedPrompt"
+          cdkFocusInitial
+    >Save</button>
+  </div>
+</mat-dialog-actions>
