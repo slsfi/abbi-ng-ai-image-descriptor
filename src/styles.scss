@@ -9,6 +9,7 @@ html, body {
 
 html {
   background-color: #f2f3fc;
+  --footer-background-color: #ead9ed;
 }
 
 body {
@@ -40,20 +41,6 @@ app-root {
 
 .content-wrapper {
   flex-grow: 1;
-}
-
-.footer-wrapper {
-  flex-grow: 0;
-  flex-shrink: 0;
-}
-
-footer {
-  color: #313131;
-  font-size: 0.875rem;
-  margin: 0 auto;
-  max-width: 1200px;
-  text-align: center;
-  width: 100%;
 }
 
 /*
