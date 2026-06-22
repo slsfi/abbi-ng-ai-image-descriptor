@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,9 +12,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { PricePerMTokensPipe } from '../../pipes/price-per-m-tokens.pipe';
 import { UpperFirstLetterPipe } from '../../pipes/upper-first-letter.pipe';
+import { PromptService } from '../../services/prompt.service';
 import { SettingsService } from '../../services/settings.service';
 import { GeminiThinkingLevel, Model, OpenAiReasoningEffort } from '../../types/model.types';
 import { TaskTypeId } from '../../../assets/config/prompts';
+import { PromptEditorDialogComponent } from '../prompt-editor-dialog/prompt-editor-dialog.component';
 
 type ModelGroup = {
   provider: Model['provider'];
@@ -39,6 +42,8 @@ type ModelGroup = {
   styleUrl: './settings-form.component.scss'
 })
 export class SettingsFormComponent {
+  private readonly dialog = inject(MatDialog);
+  readonly prompts = inject(PromptService);
   settings = inject(SettingsService);
 
   readonly modelGroups = computed<ModelGroup[]>(() => {
@@ -93,6 +98,28 @@ export class SettingsFormComponent {
 
   setTaskType(type: TaskTypeId): void {
     this.settings.updateSelectedTaskType(type);
+  }
+
+  openPromptEditor(): void {
+    const taskConfig = this.settings.selectedTaskConfig();
+    const variant = this.settings.selectedVariant();
+
+    const dialogRef = this.dialog.open(PromptEditorDialogComponent, {
+      data: {
+        taskType: taskConfig.taskType,
+        variantId: variant.id,
+        taskLabel: taskConfig.label
+      },
+      width: '900px',
+      maxWidth: '95vw',
+      maxHeight: '90vh'
+    });
+
+    dialogRef.afterClosed().subscribe((prompt: string | null | undefined) => {
+      if (typeof prompt === 'string') {
+        this.prompts.setCustomPrompt(taskConfig.taskType, variant.id, prompt);
+      }
+    });
   }
 
   setTemperature(temperature: number): void {

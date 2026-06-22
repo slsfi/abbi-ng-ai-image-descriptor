@@ -18,6 +18,7 @@ import { SettingsFormComponent } from './components/settings-form/settings-form.
 import { UpperFirstLetterPipe } from './pipes/upper-first-letter.pipe';
 import { CostService } from './services/cost.service';
 import { ImageListService } from './services/image-list.service';
+import { PromptService } from './services/prompt.service';
 import { SettingsService } from './services/settings.service';
 import { ApiKeysService } from './services/api-keys.service';
 import { ModelProvider } from '../assets/config/models';
@@ -48,6 +49,7 @@ export class AppComponent implements OnInit {
   private apiKeys = inject(ApiKeysService);
   readonly costService = inject(CostService);
   imageListService = inject(ImageListService);
+  prompts = inject(PromptService);
   settings = inject(SettingsService);
 
   addingImages = signal<boolean>(false);

@@ -94,6 +94,32 @@ mat-slide-toggle.mat-mdc-slide-toggle {
   margin-top: 2.25em;
 }
 
+.prompt-editor-wrapper {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin-top: 1.25rem;
+
+  button mat-icon {
+    margin-right: 0.25rem;
+  }
+}
+
+.prompt-customised-hint {
+  align-items: center;
+  color: #245f2b;
+  display: inline-flex;
+  font-size: 0.875rem;
+  gap: 0.25rem;
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+  }
+}
+
 .model-description,
 .model-details-wrapper {
   font-size: 0.875em;

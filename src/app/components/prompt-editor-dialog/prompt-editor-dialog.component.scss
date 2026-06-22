@@ -1,0 +1,32 @@
+mat-dialog-content.mat-mdc-dialog-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 72vh;
+}
+
+.session-hint {
+  color: #242424;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 0 2rem 0;
+}
+
+.prompt-field {
+  width: 100%;
+
+  textarea {
+    font-family: "Fira Code", monospace, sans-serif;
+    font-optical-sizing: auto;
+    font-size: 0.9375em;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.45;
+  }
+}
+
+mat-dialog-actions.mat-mdc-dialog-actions {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}

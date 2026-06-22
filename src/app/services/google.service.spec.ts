@@ -6,7 +6,7 @@ function createSettings(overrides: Partial<RequestSettings> = {}): RequestSettin
     model: {
       provider: 'Google',
       name: 'Test model',
-      id: 'gemini-3-flash-preview',
+      id: 'gemini-3.5-flash',
       inputPrice: 0,
       outputPrice: 0,
       rpm: 1,

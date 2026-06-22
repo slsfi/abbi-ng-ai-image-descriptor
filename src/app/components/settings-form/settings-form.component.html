@@ -38,6 +38,26 @@
       <p class="model-description">{{ selectedTaskConfigValue.taskDescription }}</p>
     }
 
+    @if (selectedTaskTypeValue === 'transcriptionBatchTei') {
+      <div class="prompt-editor-wrapper">
+        <button matButton="outlined"
+              type="button"
+              (click)="openPromptEditor()"
+              matTooltip="Edit the prompt used for this task."
+        >
+          <mat-icon>edit</mat-icon>
+          <span>Edit prompt</span>
+        </button>
+
+        @if (prompts.hasCustomPrompt(selectedTaskTypeValue, settings.selectedVariantId())) {
+          <span class="prompt-customised-hint">
+            <mat-icon>check_circle</mat-icon>
+            <span>Customised</span>
+          </span>
+        }
+      </div>
+    }
+
     @if (selectedTaskTypeValue === 'altText') {
       <div class="form-field-wrapper include-filename">
         <mat-slide-toggle

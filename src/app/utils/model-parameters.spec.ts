@@ -76,7 +76,7 @@ describe('isTemperatureSupportedForModel', () => {
       model: {
         ...createSettings().model,
         provider: 'Google',
-        id: 'gemini-3-flash-preview',
+        id: 'gemini-3.5-flash',
         parameters: {
           reasoningSupportsTemperature: false,
           thinkingLevel: 'low',
