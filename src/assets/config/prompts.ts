@@ -94,7 +94,7 @@ export const TASK_CONFIGS: TaskTypeConfig[] = [
   {
     taskType: 'transcriptionBatchTei',
     label: 'Transcribe + TEI encode (batched)',
-    taskDescription: 'Transcribe text from multiple images in batches and encode the results as TEI XML in a single combined step.',
+    taskDescription: 'Process images in batches. For each batch, transcribe the text and encode it as TEI XML in a single step.',
     nouns: {
       singular: 'TEI transcription (batched)',
       plural: 'TEI transcriptions (batched)'
