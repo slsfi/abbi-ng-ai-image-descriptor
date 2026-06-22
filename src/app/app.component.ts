@@ -1,11 +1,12 @@
 import { ChangeDetectorRef, Component, NgZone, OnInit, effect, inject,
          signal, untracked } from '@angular/core';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { FormGroup } from '@angular/forms';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconRegistry } from '@angular/material/icon';
 import { MatStepperModule, StepperOrientation } from '@angular/material/stepper';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { map, Observable } from 'rxjs';
 
 import { APP_VERSION } from '../assets/config/app-version';
@@ -14,6 +15,8 @@ import { ApiKeyFormComponent } from './components/api-key-form/api-key-form.comp
 import { GenerateDescriptionsComponent } from './components/generate-descriptions/generate-descriptions.component';
 import { HeaderComponent } from './components/header/header.component';
 import { SettingsFormComponent } from './components/settings-form/settings-form.component';
+import { UpperFirstLetterPipe } from './pipes/upper-first-letter.pipe';
+import { CostService } from './services/cost.service';
 import { ImageListService } from './services/image-list.service';
 import { SettingsService } from './services/settings.service';
 import { ApiKeysService } from './services/api-keys.service';
@@ -23,13 +26,16 @@ import { ModelProvider } from '../assets/config/models';
   selector: 'app-root',
   imports: [
     AsyncPipe,
+    DecimalPipe,
     MatButtonModule,
     MatStepperModule,
+    MatTooltipModule,
     AddImagesComponent,
     ApiKeyFormComponent,
     GenerateDescriptionsComponent,
     HeaderComponent,
-    SettingsFormComponent
+    SettingsFormComponent,
+    UpperFirstLetterPipe
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
@@ -40,6 +46,7 @@ export class AppComponent implements OnInit {
   private matIconReg = inject(MatIconRegistry);
   private ngZone = inject(NgZone);
   private apiKeys = inject(ApiKeysService);
+  readonly costService = inject(CostService);
   imageListService = inject(ImageListService);
   settings = inject(SettingsService);
 

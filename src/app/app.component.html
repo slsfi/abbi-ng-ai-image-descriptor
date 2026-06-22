@@ -1,4 +1,9 @@
 @let taskNoun = settings.taskNouns();
+@let selectedModel = settings.selectedModel();
+@let selectedReasoningEffort = settings.selectedReasoningEffort();
+@let selectedThinkingLevel = settings.selectedThinkingLevel();
+@let selectedTemperature = settings.selectedTemperature();
+@let temperatureSupported = settings.isTemperatureSupported();
 
 <div class="content-wrapper">
   <app-header></app-header>
@@ -21,7 +26,7 @@
             <li>Choose task and model</li>
             <li>Add API key</li>
             <li>Add images</li>
-            <li>Generate and review results</li>
+            <li>Generate, review and export results</li>
           </ol>
         </div>
 
@@ -34,6 +39,26 @@
             <li><strong>TEI-encoding:</strong> Gemini 3.1 Pro</li>
           </ul>
         </div>
+      </div>
+    </section>
+
+    <section class="run-context" aria-label="Current generation settings">
+      <div class="run-context-model">
+        <span class="run-context-label">Selected model</span>
+        <span class="run-context-value">{{ selectedModel.name }}</span>
+        @if (selectedReasoningEffort) {
+          <span class="run-context-detail">Reasoning: {{ selectedReasoningEffort | upperFirstLetter }}</span>
+        }
+        @if (selectedThinkingLevel) {
+          <span class="run-context-detail">Thinking: {{ selectedThinkingLevel | upperFirstLetter }}</span>
+        }
+        @if (temperatureSupported && selectedTemperature !== null) {
+          <span class="run-context-detail">Temperature: {{ selectedTemperature | number:'1.1-1' }}</span>
+        }
+      </div>
+      <div class="run-context-cost" matTooltip="Estimated API cost (US dollars) since this app page was opened. Resets when you refresh the page.">
+        <span class="run-context-label">Session API cost</span>
+        <span class="run-context-value">${{ costService.cumulativeCost() | number:'1.2-3' }}</span>
       </div>
     </section>
 

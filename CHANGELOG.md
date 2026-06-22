@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 # Added
 
 - Support for the OpenAI [`gpt-5.5`](https://developers.openai.com/api/docs/models/gpt-5.5) model.
+- Selected model settings and session API cost above the workflow stepper.
 
 ### Changed
 
