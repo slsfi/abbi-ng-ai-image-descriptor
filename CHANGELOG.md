@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `@google/genai` to 2.9.0.
 - Deps: update `docx` to 9.7.1.
 - Deps: update `openai` to 6.44.0.
+- Deps (dev): update `jasmine-core` to 6.3.0.
 
 
 
