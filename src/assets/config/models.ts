@@ -2,7 +2,7 @@ import { Model } from '../../app/types/model.types'
 import { TaskTypeId } from './prompts';
 
 export type ModelProvider = 'OpenAI' | 'Google';
-export type ModelId = 'gpt-4.1' | 'gpt-5.4' | 'gemini-3.1-pro-preview' | 'gemini-3.5-flash' | 'gemini-2.5-pro' | 'gemini-2.5-flash';
+export type ModelId = 'gpt-4.1' | 'gpt-5.4' | 'gpt-5.5' | 'gemini-3.1-pro-preview' | 'gemini-3.5-flash' | 'gemini-2.5-pro' | 'gemini-2.5-flash';
 
 // provider = name of model creator
 // name = display name of the model
@@ -61,6 +61,25 @@ export const MODELS: Model[] = [
     rpm: 5000,
     supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
     url: 'https://developers.openai.com/api/docs/models/gpt-5.4',
+    parameters: {
+      imageDetail: 'original',
+      maxImageShortsidePx: null,
+      reasoningEffort: 'none',
+      reasoningEfforts: ['none', 'low', 'medium', 'high', 'xhigh'],
+      reasoningSupportsTemperature: false
+    },
+    supportsFilesApi: true
+  },
+  {
+    provider: 'OpenAI',
+    name: 'GPT-5.5',
+    id: 'gpt-5.5',
+    description: 'A powerful model optimized for high-quality outputs, well suited for complex images.',
+    inputPrice: { tiers: [{ upToTokens: 272000, per1M: 5.00 }, { upToTokens: null, per1M: 10.00 }] },
+    outputPrice: { tiers: [{ upToTokens: 272000, per1M: 30.00 }, { upToTokens: null, per1M: 45.00 }] },
+    rpm: 5000,
+    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
+    url: 'https://developers.openai.com/api/docs/models/gpt-5.5',
     parameters: {
       imageDetail: 'original',
       maxImageShortsidePx: null,
