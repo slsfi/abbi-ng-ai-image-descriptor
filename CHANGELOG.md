@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [2.5.0] – 2026-06-23
 
-# Added
+### Added
 
 - Support for the OpenAI [`gpt-5.5`](https://developers.openai.com/api/docs/models/gpt-5.5) model. ([0793d30](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/0793d30d9a9805e07f0ca682833af525a4219dd3))
 - Selected model settings and session API cost above the workflow stepper. ([94ff29b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/94ff29b39052865077fe8d57b47d043a26354727))
