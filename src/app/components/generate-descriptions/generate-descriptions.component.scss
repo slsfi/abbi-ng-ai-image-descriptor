@@ -1,11 +1,5 @@
 @use '@angular/material' as mat;
 
-.generate-desc-wrapper {
-  &.hide {
-    display: none;
-  }
-}
-
 .no-images {
   font-size: 1.125rem;
   font-weight: 500;
