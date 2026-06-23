@@ -102,7 +102,7 @@
       
       <div class="dialog-actions">
         @if (teiEncoding) {
-          <button matIconButton
+          <button matButton="outlined"
             class="toggle-preview-button"
             (click)="togglePreview()"
             [attr.aria-label]="previewShownValue ? 'Edit transcription' : 'Show transcription with syntax highlighting'"
@@ -111,6 +111,7 @@
             <mat-icon>
               {{ previewShownValue ? 'edit' : 'visibility' }}
             </mat-icon>
+            <span>{{ previewShownValue ? 'Edit' : 'Preview' }}</span>
           </button>
         }
         <button matButton [mat-dialog-close]="null">Cancel</button>
