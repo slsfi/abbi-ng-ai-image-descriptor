@@ -8,28 +8,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [2.5.0] – 2026-06-23
+
 # Added
 
-- Support for the OpenAI [`gpt-5.5`](https://developers.openai.com/api/docs/models/gpt-5.5) model.
-- Selected model settings and session API cost above the workflow stepper.
-- Prompt editing for the batched transcription + TEI encoding task, including restore-to-original support and a run-context indicator when the selected prompt is customised.
+- Support for the OpenAI [`gpt-5.5`](https://developers.openai.com/api/docs/models/gpt-5.5) model. ([0793d30](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/0793d30d9a9805e07f0ca682833af525a4219dd3))
+- Selected model settings and session API cost above the workflow stepper. ([94ff29b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/94ff29b39052865077fe8d57b47d043a26354727))
+- Prompt editing for the batched transcription + TEI encoding task, including restore-to-original support and a run-context indicator when the selected prompt is customised. ([23c63b6](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/23c63b6e506d6b1abfca44eccb5b03bd98785976))
 
 ### Changed
 
-- Group AI-model select options by provider.
-- Refine header and footer layout.
-- Increase Angular build budgets to remove build size warnings.
-- Update description of batched transcription and TEI-encoding task.
-- Use "Cascade Mono" as the default font for prompt and batch result views for improved glyph support.
-- Action buttons alignment and styling in edit description dialog.
-- Refactor generate descriptions component.
-- Update `nginx` to 1.30.3.
-- Deps: update `@angular/core` to 21.2.17, `@angular/cli` to 21.2.16, and `@angular/cdk` and `@angular/material` to 21.2.14.
-- Deps: update `@google/genai` to 2.9.0.
-- Deps: update `docx` to 9.7.1.
-- Deps: update `openai` to 6.44.0.
-- Deps (dev): update `jasmine-core` to 6.3.0.
-- Deps: update transitive dependencies.
+- Group AI-model select options by provider. ([09ec89d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/09ec89db76dcf33ee65d918007298cf058cbdf3f))
+- Refine header and footer layout. ([f325000](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/f32500026a816a1d103549dad18388bc7a025d64))
+- Increase Angular build budgets to remove build size warnings. ([2dbb4c7](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/2dbb4c731abccbeb50407f4e0abc33718ee162a0))
+- Update description of batched transcription and TEI-encoding task. ([446e43b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/446e43be13ea007ed0ccb71bdb5020cf756d8218))
+- Use "Cascade Mono" as the default font for prompt and batch result views for improved glyph support. ([f58222a](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/f58222a4287d0b2dbd3461ef62fbe4923226f9a1))
+- Action buttons alignment and styling in edit description dialog. ([fb97405](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/fb97405a3221828e9501936dfa3f368a9baedd68))
+- Refactor generate descriptions component. ([8044cfb](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/8044cfb52d3d763d97ffefdb6ff8d32ef8e1a243))
+- Update `nginx` to 1.30.3. ([5fce55f](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/5fce55fe1be108f687633d6a189a6e99b021f4f8))
+- Deps: update `@angular/core` to 21.2.17, `@angular/cli` to 21.2.16, and `@angular/cdk` and `@angular/material` to 21.2.14. ([b651aae](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/b651aae48410ce9de58333360231da507bb428f6))
+- Deps: update `@google/genai` to 2.9.0. ([af98ad6](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/af98ad693800526a0a4bc8044d27b88c18c41869))
+- Deps: update `docx` to 9.7.1. ([cf7007b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/cf7007b51bf08e646d8a0f6ca210571cbedadd70))
+- Deps: update `openai` to 6.44.0. ([88e82d4](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/88e82d455eba7527d0bf78a2eb601ee379797f04))
+- Deps (dev): update `jasmine-core` to 6.3.0. ([7608e26](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/7608e26a6abbff7de7fa4681baf560e0ce6536ec))
+- Deps: update transitive dependencies. ([00853fd](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/00853fd82eff0b3ec8676b6f3ec7e5c2ed7d2f45))
 
 
 
@@ -422,7 +426,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.4.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.5.0...HEAD
+[2.5.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.4.0...2.5.0
 [2.4.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.3.1...2.4.0
 [2.3.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.3.0...2.3.1
 [2.3.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.2.1...2.3.0
