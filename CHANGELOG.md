@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+
+- Deps: update `@angular/core` to 21.2.19 and `@angular/cli` to 21.2.20.
+
 
 
 ## [2.5.0] – 2026-06-23
