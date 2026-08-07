@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - Deps: update `@angular/core` to 21.2.19 and `@angular/cli` to 21.2.20.
+- Deps: update `@google/genai` to 2.16.0.
 
 
 
