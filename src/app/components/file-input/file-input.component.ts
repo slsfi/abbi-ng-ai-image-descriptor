@@ -1,10 +1,11 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'file-input',
   imports: [MatButtonModule],
   templateUrl: './file-input.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './file-input.component.scss'
 })
 export class FileInputComponent implements OnInit {

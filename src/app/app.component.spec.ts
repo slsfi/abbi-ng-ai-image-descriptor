@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
@@ -28,7 +28,7 @@ describe('AppComponent', () => {
       providers: [
         { provide: OpenAiService, useClass: MockOpenaiService },
         MatSnackBar,
-        provideHttpClient()
+        provideHttpClient(withXhr())
       ]
     }).compileComponents();
 

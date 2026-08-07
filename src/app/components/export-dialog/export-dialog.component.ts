@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
@@ -29,6 +29,7 @@ export interface ExportDialogData {
     IsEmptyStringPipe
   ],
   templateUrl: './export-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './export-dialog.component.scss',
 })
 export class ExportDialogComponent {

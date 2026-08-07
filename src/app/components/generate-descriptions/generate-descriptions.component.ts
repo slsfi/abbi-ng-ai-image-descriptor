@@ -1,6 +1,8 @@
-import { AfterViewInit, Component, DestroyRef, ElementRef, OnInit, ViewChild,
-         afterRenderEffect, inject, signal, viewChildren
-        } from '@angular/core';
+import {
+  AfterViewInit, Component, DestroyRef, ElementRef, OnInit, ViewChild,
+  afterRenderEffect, inject, signal, viewChildren,
+  ChangeDetectionStrategy
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -62,6 +64,7 @@ import { LanguageCode } from '../../../assets/config/prompts';
     BatchPlanComponent
 ],
   templateUrl: './generate-descriptions.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './generate-descriptions.component.scss'
 })
 export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {

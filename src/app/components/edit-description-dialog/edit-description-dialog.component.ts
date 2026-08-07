@@ -1,7 +1,9 @@
-import { Component, ElementRef, HostListener, OnInit, ViewChild,
-         afterNextRender, afterRenderEffect, computed, inject, signal,
-         viewChild
-        } from '@angular/core';
+import {
+  Component, ElementRef, HostListener, OnInit, ViewChild,
+  afterNextRender, afterRenderEffect, computed, inject, signal,
+  viewChild,
+  ChangeDetectionStrategy
+} from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkTextareaAutosize, TextFieldModule } from '@angular/cdk/text-field';
@@ -43,6 +45,7 @@ export interface EditDescriptionDialogData {
     UpperFirstLetterPipe
   ],
   templateUrl: './edit-description-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './edit-description-dialog.component.scss'
 })
 export class EditDescriptionDialogComponent implements OnInit {

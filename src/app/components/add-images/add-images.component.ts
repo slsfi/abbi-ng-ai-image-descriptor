@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Output, inject, ChangeDetectionStrategy } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -16,6 +16,7 @@ import { ImageData } from '../../types/image-data.types';
     FileInputComponent
   ],
   templateUrl: './add-images.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './add-images.component.scss'
 })
 export class AddImagesComponent {

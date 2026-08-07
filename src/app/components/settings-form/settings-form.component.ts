@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -39,6 +39,7 @@ type ModelGroup = {
     UpperFirstLetterPipe
   ],
   templateUrl: './settings-form.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './settings-form.component.scss'
 })
 export class SettingsFormComponent {
