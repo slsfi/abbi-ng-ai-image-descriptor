@@ -51,7 +51,7 @@ describe('GoogleService', () => {
 
         await service.describeImage(createSettings(), 'Prompt', 'data:image/png;base64,AAAA');
 
-        const payload = vi.mocked(generateSpy).mock.lastCall[0];
+        const payload = vi.mocked(generateSpy).mock.lastCall![0];
         expect(payload.config.temperature).toBe(0.4);
     });
 
@@ -81,7 +81,7 @@ describe('GoogleService', () => {
             },
         }), 'Prompt', 'data:image/png;base64,AAAA');
 
-        const payload = vi.mocked(generateSpy).mock.lastCall[0];
+        const payload = vi.mocked(generateSpy).mock.lastCall![0];
         expect('temperature' in payload.config).toBe(false);
     });
 });

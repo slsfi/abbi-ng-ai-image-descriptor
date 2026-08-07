@@ -67,7 +67,7 @@ describe('OpenAiService', () => {
 
         await service.describeImage(createSettings(), 'Prompt', 'data:image/png;base64,AAAA');
 
-        const payload = vi.mocked(createSpy).mock.lastCall[0];
+        const payload = vi.mocked(createSpy).mock.lastCall![0];
         expect(payload.temperature).toBe(0.7);
     });
 
@@ -96,7 +96,7 @@ describe('OpenAiService', () => {
             },
         }), 'Prompt', 'data:image/png;base64,AAAA');
 
-        const payload = vi.mocked(createSpy).mock.lastCall[0];
+        const payload = vi.mocked(createSpy).mock.lastCall![0];
         expect('temperature' in payload).toBe(false);
     });
 
@@ -123,7 +123,7 @@ describe('OpenAiService', () => {
             },
         }), 'Prompt', 'data:image/png;base64,AAAA');
 
-        const payload = vi.mocked(createSpy).mock.lastCall[0];
+        const payload = vi.mocked(createSpy).mock.lastCall![0];
         expect(payload.input[0].content[1].detail).toBe('low');
     });
 
@@ -142,7 +142,7 @@ describe('OpenAiService', () => {
 
         await service.describeImages(createSettings({ taskType: 'transcription' }), 'Prompt', ['data:image/png;base64,AAAA', 'data:image/png;base64,BBBB']);
 
-        const payload = vi.mocked(createSpy).mock.lastCall[0];
+        const payload = vi.mocked(createSpy).mock.lastCall![0];
         expect(payload.input[0].content[0]).toEqual({
             type: 'input_text',
             text: 'Prompt',
@@ -172,14 +172,14 @@ describe('OpenAiService', () => {
         const image = createImage();
         await service.describeImagesWithFilesApi(createSettings({ taskType: 'transcriptionBatchTei' }), 'Prompt', [image]);
 
-        const uploadPayload = vi.mocked(uploadSpy).mock.lastCall[0];
+        const uploadPayload = vi.mocked(uploadSpy).mock.lastCall![0];
         expect(uploadPayload.purpose).toBe('user_data');
         expect(uploadPayload.expires_after).toEqual({
             anchor: 'created_at',
             seconds: 48 * 60 * 60,
         });
 
-        const responsePayload = vi.mocked(createSpy).mock.lastCall[0];
+        const responsePayload = vi.mocked(createSpy).mock.lastCall![0];
         expect(responsePayload.input[0].content[1]).toEqual({
             type: 'input_image',
             file_id: 'file-123',
@@ -222,7 +222,7 @@ describe('OpenAiService', () => {
         expect(retrieveSpy).toHaveBeenCalledWith('file-existing');
         expect(uploadSpy).not.toHaveBeenCalled();
 
-        const responsePayload = vi.mocked(createSpy).mock.lastCall[0];
+        const responsePayload = vi.mocked(createSpy).mock.lastCall![0];
         expect(responsePayload.input[0].content[1].file_id).toBe('file-existing');
     });
 
