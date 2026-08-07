@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { AppComponent } from './app.component';
@@ -22,7 +21,6 @@ describe('AppComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         MatSnackBarModule,
-        BrowserAnimationsModule,
         AppComponent
       ],
       providers: [
