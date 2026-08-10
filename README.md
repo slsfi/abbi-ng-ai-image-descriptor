@@ -28,7 +28,7 @@ Images in the screenshot: Library of Congress public domain.
 
 ### Prerequisites
 
-1. Install [Node.js][node.js] which includes [npm][npm]. The app is compatible with Node `^20.19.0`, `^22.12.0` and `^24.0.0` (based on [Angular 21 compatibility][angular_version_compatibility]). Check your Node version with:
+1. Install [Node.js][node.js] which includes [npm][npm]. The app is compatible with Node `^22.22.3`, `^24.15.0` and `^26.0.0` (based on [Angular 22 compatibility][angular_version_compatibility]). Check your Node version with:
 
 ```
 Node --version

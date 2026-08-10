@@ -8,12 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### BREAKING CHANGES
+
+- Node `^22.22.3` or newer required.
+
 ### Changed
 
-- Deps: update `@angular/core` to 21.2.19 and `@angular/cli` to 21.2.20.
+- Migrate unit testing from Karma to Vitest.
+- Deps: update `@angular/core`, `@angular/cdk` and `@angular/material` to 22.1.1, and `@angular/cli` to 22.1.3.
 - Deps: update `@google/genai` to 2.16.0.
 - Deps: update `openai` to 7.4.0.
 - Deps: update transitive dependencies.
+
+### Removed
+
+- Deprecated dependency `@angular/animations`.
 
 
 

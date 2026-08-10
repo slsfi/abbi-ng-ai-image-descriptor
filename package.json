@@ -40,6 +40,6 @@
     "@types/prismjs": "^1.26.6",
     "jsdom": "^30.0.1",
     "typescript": "~6.0.3",
-    "vitest": "^4.0.8"
+    "vitest": "^4.1.10"
   }
 }
