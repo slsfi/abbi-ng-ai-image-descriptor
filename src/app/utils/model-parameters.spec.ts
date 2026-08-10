@@ -47,6 +47,24 @@ describe('isTemperatureSupportedForModel', () => {
         expect(isTemperatureSupportedForModel(settings.model, settings.reasoningEffort, settings.thinkingLevel)).toBe(true);
     });
 
+    it('gives the general temperature sampling opt-out precedence over reasoning support', () => {
+        const settings = createSettings({
+            model: {
+                ...createSettings().model,
+                id: 'gpt-5.4',
+                parameters: {
+                    supportsTemperatureSampling: false,
+                    reasoningSupportsTemperature: true,
+                    reasoningEffort: 'none',
+                    reasoningEfforts: ['none', 'low'],
+                },
+            },
+            reasoningEffort: 'none',
+        });
+
+        expect(isTemperatureSupportedForModel(settings.model, settings.reasoningEffort, settings.thinkingLevel)).toBe(false);
+    });
+
     it('requires OpenAI reasoning effort none when the flag is false', () => {
         const settings = createSettings({
             model: {
@@ -70,7 +88,7 @@ describe('isTemperatureSupportedForModel', () => {
             model: {
                 ...createSettings().model,
                 provider: 'Google',
-                id: 'gemini-3.5-flash',
+                id: 'gemini-3.1-pro-preview',
                 parameters: {
                     reasoningSupportsTemperature: false,
                     thinkingLevel: 'low',

@@ -26,4 +26,12 @@ describe('SettingsService', () => {
     service.updateSelectedTaskType('altText');
     expect(service.selectedTemperature()).toBe(0.4);
   });
+
+  it('reports temperature as unsupported for Gemini 3.6 Flash', () => {
+    const service = TestBed.inject(SettingsService);
+
+    service.updateSelectedModelId('gemini-3.6-flash');
+
+    expect(service.isTemperatureSupported()).toBe(false);
+  });
 });

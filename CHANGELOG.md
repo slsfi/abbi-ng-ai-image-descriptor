@@ -12,6 +12,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Node `^22.22.3` or newer required.
 
+### Added
+
+- Support for the Google `gemini-3.6-flash` model. It replaces `gemini-3.5-flash`.
+- Model-config aware temperature support rules: the temperature setting is disabled/omitted when generally unsupported by the model.
+
 ### Changed
 
 - Migrate unit testing from Karma/Jasmine to Vitest.

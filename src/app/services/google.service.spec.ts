@@ -6,7 +6,7 @@ function createSettings(overrides: Partial<RequestSettings> = {}): RequestSettin
         model: {
             provider: 'Google',
             name: 'Test model',
-            id: 'gemini-3.5-flash',
+            id: 'gemini-3.1-pro-preview',
             inputPrice: 0,
             outputPrice: 0,
             rpm: 1,
@@ -79,6 +79,38 @@ describe('GoogleService', () => {
                     reasoningSupportsTemperature: false,
                 },
             },
+        }), 'Prompt', 'data:image/png;base64,AAAA');
+
+        const payload = vi.mocked(generateSpy).mock.lastCall![0];
+        expect('temperature' in payload.config).toBe(false);
+    });
+
+    it('omits temperature when the model does not support temperature sampling', async () => {
+        const service = new GoogleService();
+        const generateSpy = vi.fn().mockResolvedValue({
+            text: 'ok',
+            usageMetadata: {
+                promptTokenCount: 1,
+                candidatesTokenCount: 1,
+                thoughtsTokenCount: 0,
+            },
+        });
+
+        (service as any).client = {
+            models: {
+                generateContent: generateSpy,
+            },
+        };
+
+        await service.describeImage(createSettings({
+            model: {
+                ...createSettings().model,
+                id: 'gemini-3.6-flash',
+                parameters: {
+                    supportsTemperatureSampling: false,
+                },
+            },
+            thinkingLevel: null,
         }), 'Prompt', 'data:image/png;base64,AAAA');
 
         const payload = vi.mocked(generateSpy).mock.lastCall![0];

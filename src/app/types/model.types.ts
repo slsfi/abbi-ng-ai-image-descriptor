@@ -25,6 +25,9 @@ import type { ReasoningEffort } from 'openai/resources/shared';
 //                       `low`, `medium`, `high` and `xhigh` depending on model
 //     reasoningEfforts = (optional) selectable list of supported reasoning
 //                        effort values
+//     supportsTemperatureSampling = (optional) when false, temperature
+//                                   sampling is not supported;
+//                                   defaults to true if undefined
 //     reasoningSupportsTemperature = (optional) when false, temperature is
 //                                    only supported with provider-specific
 //                                    "no reasoning/thinking" settings;
@@ -66,6 +69,7 @@ export interface ModelParameters {
   mediaResolution?: string;
   reasoningEffort?: OpenAiReasoningEffort;
   reasoningEfforts?: OpenAiReasoningEffort[];
+  supportsTemperatureSampling?: boolean;
   reasoningSupportsTemperature?: boolean;
   thinkingLevel?: GeminiThinkingLevel;
   thinkingLevels?: GeminiThinkingLevel[];
