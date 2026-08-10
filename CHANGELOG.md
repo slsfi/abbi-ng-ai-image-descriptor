@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Removed
+
+- Deprecated dependency `@angular/platform-browser-dynamic`.
+
 
 
 ## [3.0.0] – 2026-08-10
