@@ -8,28 +8,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [3.0.0] – 2026-08-10
+
 ### BREAKING CHANGES
 
-- Node `^22.22.3` or newer required.
+- Node `^22.22.3` or newer required. ([abe7382](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/abe7382e09dfc04f0ffeaeddc2688dc7c7e4575c), [4380d02](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/4380d0257b36b09f08955a633b1cdbbabb774302))
 
 ### Added
 
-- Support for the Google [`gemini-3.6-flash`](https://ai.google.dev/gemini-api/docs/models/gemini-3.6-flash) model. It replaces `gemini-3.5-flash`.
-- Support for the OpenAI [`gpt-5.6-terra`](https://developers.openai.com/api/docs/models/gpt-5.6-terra) and [`gpt-5.6-sol`](https://developers.openai.com/api/docs/models/gpt-5.6-sol) models. They replace `gpt-5.4` and `gpt-5.5` respectively.
-- Model-config aware temperature support rules: the temperature setting is disabled/omitted when generally unsupported by the model.
+- Support for the Google [`gemini-3.6-flash`](https://ai.google.dev/gemini-api/docs/models/gemini-3.6-flash) model. It replaces `gemini-3.5-flash`. ([fb2dc44](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/fb2dc441b694c92b420e04bf75cc7f586b5c6ab8))
+- Support for the OpenAI [`gpt-5.6-terra`](https://developers.openai.com/api/docs/models/gpt-5.6-terra) and [`gpt-5.6-sol`](https://developers.openai.com/api/docs/models/gpt-5.6-sol) models. They replace `gpt-5.4` and `gpt-5.5` respectively. ([dd90c76](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/dd90c7690292dce9bf14310a302b414b9b2d4e34))
+- Model-config aware temperature support rules: the temperature setting is disabled/omitted when generally unsupported by the model. ([fb2dc44](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/fb2dc441b694c92b420e04bf75cc7f586b5c6ab8))
 
 ### Changed
 
-- Migrate unit testing from Karma/Jasmine to Vitest.
-- Update `nginx` to 1.30.4.
-- Deps: update `@angular/core`, `@angular/cdk` and `@angular/material` to 22.1.1, and `@angular/cli` to 22.1.3.
-- Deps: update `@google/genai` to 2.16.0.
-- Deps: update `openai` to 7.4.0.
-- Deps: update transitive dependencies.
+- Migrate unit testing from Karma/Jasmine to Vitest. ([4380d02](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/4380d0257b36b09f08955a633b1cdbbabb774302))
+- Update `nginx` to 1.30.4. ([6dd35f9](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/6dd35f9c44eb4af8cb089408089883d170e5ac3a))
+- Deps: update `@angular/core`, `@angular/cdk` and `@angular/material` to 22.1.1, and `@angular/cli` to 22.1.3. [765761d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/765761d5f0bd672202052618f66618ca1bfab290), [4380d02](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/4380d0257b36b09f08955a633b1cdbbabb774302)
+- Deps: update `@google/genai` to 2.16.0. ([f95c28e](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/f95c28e474cc33fed3bf73078b3350d1607d27c7))
+- Deps: update `openai` to 7.4.0. ([86629566](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/6629566a131262a17cf069fe1506a44f6cfb5f75), [abe7382](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/abe7382e09dfc04f0ffeaeddc2688dc7c7e4575c))
+- Deps: update transitive dependencies. ([59c7532](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/59c7532660c1205b297182108d2ef6889d39f950))
 
 ### Removed
 
-- Deprecated dependency `@angular/animations`.
+- Deprecated dependency `@angular/animations`. ([4380d02](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/4380d0257b36b09f08955a633b1cdbbabb774302))
 
 
 
@@ -449,7 +453,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.5.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/3.0.0...HEAD
+[3.0.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.5.0...3.0.0
 [2.5.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.4.0...2.5.0
 [2.4.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.3.1...2.4.0
 [2.3.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.3.0...2.3.1
