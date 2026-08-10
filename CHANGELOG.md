@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 
-- Migrate unit testing from Karma to Vitest.
+- Migrate unit testing from Karma/Jasmine to Vitest.
 - Deps: update `@angular/core`, `@angular/cdk` and `@angular/material` to 22.1.1, and `@angular/cli` to 22.1.3.
 - Deps: update `@google/genai` to 2.16.0.
 - Deps: update `openai` to 7.4.0.
