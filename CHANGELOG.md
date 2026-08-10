@@ -14,7 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Added
 
-- Support for the Google `gemini-3.6-flash` model. It replaces `gemini-3.5-flash`.
+- Support for the Google [`gemini-3.6-flash`](https://ai.google.dev/gemini-api/docs/models/gemini-3.6-flash) model. It replaces `gemini-3.5-flash`.
+- Support for the OpenAI [`gpt-5.6-terra`](https://developers.openai.com/api/docs/models/gpt-5.6-terra) and [`gpt-5.6-sol`](https://developers.openai.com/api/docs/models/gpt-5.6-sol) models. They replace `gpt-5.4` and `gpt-5.5` respectively.
 - Model-config aware temperature support rules: the temperature setting is disabled/omitted when generally unsupported by the model.
 
 ### Changed

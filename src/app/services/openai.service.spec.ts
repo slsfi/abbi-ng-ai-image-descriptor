@@ -7,7 +7,7 @@ function createSettings(overrides: Partial<RequestSettings> = {}): RequestSettin
         model: {
             provider: 'OpenAI',
             name: 'Test model',
-            id: 'gpt-5.4',
+            id: 'gpt-5.6-terra',
             inputPrice: 0,
             outputPrice: 0,
             rpm: 1,
