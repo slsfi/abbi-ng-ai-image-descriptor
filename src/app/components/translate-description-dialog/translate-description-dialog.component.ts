@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose,
@@ -22,6 +22,7 @@ import { LanguageCode } from '../../../assets/config/prompts';
     MatRadioModule
   ],
   templateUrl: './translate-description-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './translate-description-dialog.component.scss'
 })
 export class TranslateDescriptionDialogComponent implements OnInit {

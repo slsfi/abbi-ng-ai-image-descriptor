@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, ChangeDetectionStrategy } from '@angular/core';
 
 import { SettingsService } from '../../services/settings.service';
 
@@ -12,6 +12,7 @@ type BatchPlanItem = {
   imports: [
   ],
   templateUrl: './batch-plan.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./batch-plan.component.scss'],
 })
 export class BatchPlanComponent {

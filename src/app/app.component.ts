@@ -1,5 +1,8 @@
-import { ChangeDetectorRef, Component, NgZone, OnInit, effect, inject,
-         signal, untracked } from '@angular/core';
+import {
+  ChangeDetectorRef, Component, NgZone, OnInit, effect, inject,
+  signal, untracked,
+  ChangeDetectionStrategy
+} from '@angular/core';
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { FormGroup } from '@angular/forms';
 import { BreakpointObserver } from '@angular/cdk/layout';
@@ -39,6 +42,7 @@ import { ModelProvider } from '../assets/config/models';
     UpperFirstLetterPipe
   ],
   templateUrl: './app.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {

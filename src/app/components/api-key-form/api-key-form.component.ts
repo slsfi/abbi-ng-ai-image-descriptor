@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnDestroy, OnInit, Output, inject } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, Output, inject, ChangeDetectionStrategy } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -22,6 +22,7 @@ import { SettingsService } from '../../services/settings.service';
     FileInputComponent
   ],
   templateUrl: './api-key-form.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './api-key-form.component.scss'
 })
 export class ApiKeyFormComponent implements OnInit, OnDestroy {
