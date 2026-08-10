@@ -100,6 +100,34 @@ describe('OpenAiService', () => {
         expect('temperature' in payload).toBe(false);
     });
 
+    it('omits temperature when the model does not support temperature sampling', async () => {
+        const service = new OpenAiService();
+        const createSpy = vi.fn().mockResolvedValue({
+            output_text: 'ok',
+            usage: { input_tokens: 1, output_tokens: 1 },
+        });
+
+        (service as any).client = {
+            responses: {
+                create: createSpy,
+            },
+        } as any;
+
+        await service.describeImage(createSettings({
+            model: {
+                ...createSettings().model,
+                parameters: {
+                    ...createSettings().model.parameters,
+                    supportsTemperatureSampling: false,
+                },
+            },
+            reasoningEffort: 'none',
+        }), 'Prompt', 'data:image/png;base64,AAAA');
+
+        const payload = vi.mocked(createSpy).mock.lastCall![0];
+        expect('temperature' in payload).toBe(false);
+    });
+
     it('uses image detail from the model parameters', async () => {
         const service = new OpenAiService();
         const createSpy = vi.fn().mockResolvedValue({

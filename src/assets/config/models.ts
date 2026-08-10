@@ -2,7 +2,7 @@ import { Model } from '../../app/types/model.types'
 import { TaskTypeId } from './prompts';
 
 export type ModelProvider = 'OpenAI' | 'Google';
-export type ModelId = 'gpt-4.1' | 'gpt-5.4' | 'gpt-5.5' | 'gemini-3.1-pro-preview' | 'gemini-3.5-flash' | 'gemini-2.5-pro' | 'gemini-2.5-flash';
+export type ModelId = 'gpt-4.1' | 'gpt-5.4' | 'gpt-5.5' | 'gemini-3.1-pro-preview' | 'gemini-3.6-flash' | 'gemini-2.5-pro' | 'gemini-2.5-flash';
 
 // provider = name of model creator
 // name = display name of the model
@@ -25,6 +25,9 @@ export type ModelId = 'gpt-4.1' | 'gpt-5.4' | 'gpt-5.5' | 'gemini-3.1-pro-previe
 //                       `low`, `medium`, `high` and `xhigh` depending on model
 //     reasoningEfforts = (optional) selectable list of supported reasoning
 //                        effort values
+//     supportsTemperatureSampling = (optional) when false, temperature
+//                                   sampling is not supported;
+//                                   defaults to true if undefined
 //     reasoningSupportsTemperature = (optional) when false, temperature is
 //                                    only supported with provider-specific
 //                                    "no reasoning/thinking" settings;
@@ -91,19 +94,20 @@ export const MODELS: Model[] = [
   },
   {
     provider: 'Google',
-    name: 'Gemini 3.5 Flash',
-    id: 'gemini-3.5-flash',
+    name: 'Gemini 3.6 Flash',
+    id: 'gemini-3.6-flash',
     description: 'A fast and cost-efficient alternative to Gemini 3.1 Pro that delivers near-pro transcription quality, including handwritten text, with much higher throughput.',
     inputPrice: 1.5,
-    outputPrice: 9.0,
+    outputPrice: 7.5,
     rpm: 1000,
     supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
-    url: 'https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash',
+    url: 'https://ai.google.dev/gemini-api/docs/models/gemini-3.6-flash',
     parameters: {
       thinkingLevel: 'low',
       thinkingLevels: ['minimal', 'low', 'medium', 'high'],
       maxImageShortsidePx: null,
-      mediaResolution: 'high'
+      mediaResolution: 'high',
+      supportsTemperatureSampling: false
     },
     supportsFilesApi: true
   },

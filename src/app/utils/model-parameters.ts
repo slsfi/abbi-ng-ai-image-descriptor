@@ -5,6 +5,10 @@ export function isTemperatureSupportedForModel(
   reasoningEffort?: OpenAiReasoningEffort | null,
   thinkingLevel?: GeminiThinkingLevel | null
 ): boolean {
+  if (!(model.parameters?.supportsTemperatureSampling ?? true)) {
+    return false;
+  }
+
   if (model.parameters?.reasoningSupportsTemperature ?? true) {
     return true;
   }

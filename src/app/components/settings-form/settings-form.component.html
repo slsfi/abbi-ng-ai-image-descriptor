@@ -258,6 +258,8 @@
               >
             </mat-slider>
           </div>
+        } @else if (model.parameters?.supportsTemperatureSampling === false) {
+          <p class="slider-support-message">This model does not support the temperature setting.</p>
         } @else {
           <p class="slider-support-message">This model does not support the temperature setting when {{ model.provider === 'OpenAI' ? 'reasoning' : 'thinking' }} is enabled.</p>
         }
