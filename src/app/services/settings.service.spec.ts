@@ -27,10 +27,10 @@ describe('SettingsService', () => {
     expect(service.selectedTemperature()).toBe(0.4);
   });
 
-  it('reports temperature as unsupported for Gemini 3.6 Flash', () => {
+  it('reports temperature as unsupported for Gemini 3.7 Flash', () => {
     const service = TestBed.inject(SettingsService);
 
-    service.updateSelectedModelId('gemini-3.6-flash');
+    service.updateSelectedModelId('gemini-3.7-flash');
 
     expect(service.isTemperatureSupported()).toBe(false);
   });

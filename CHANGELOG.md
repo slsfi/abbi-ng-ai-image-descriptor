@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- Support for the Google [`gemini-3.7-flash`](https://ai.google.dev/gemini-api/docs/models/gemini-3.7-flash) model. It replaces `gemini-3.6-flash`.
+
 ### Changed
 
 - Deps: update `@angular/core`, `@angular/cdk` and `@angular/material` to 22.1.2, and `@angular/cli` to 22.1.4.
@@ -16,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Removed
 
 - Deprecated dependency `@angular/platform-browser-dynamic`.
+- `gemini-3.6-flash` model (replaced by `gemini-3.7-flash`).
 
 
 
