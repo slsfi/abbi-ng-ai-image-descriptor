@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+
+- Deps: update `@angular/core`, `@angular/cdk` and `@angular/material` to 22.1.2, and `@angular/cli` to 22.1.4.
+
 ### Removed
 
 - Deprecated dependency `@angular/platform-browser-dynamic`.
