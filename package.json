@@ -23,7 +23,7 @@
     "@angular/material": "^22.1.2",
     "@angular/platform-browser": "^22.1.2",
     "@angular/router": "^22.1.2",
-    "@google/genai": "^2.16.0",
+    "@google/genai": "^2.17.1",
     "docx": "^9.7.1",
     "fflate": "^0.8.3",
     "openai": "^7.4.0",
