@@ -6,7 +6,7 @@
 # and define a default tag in case the build argument is not passed.
 # The Node.js image is used as the build image of the app,
 # https://hub.docker.com/_/node/.
-ARG NODE_IMAGE_TAG=22-alpine
+ARG NODE_IMAGE_TAG=24-alpine
 
 # Enable passing the tag of the nginx image as a build argument,
 # and define a default tag in case the build argument is not passed.

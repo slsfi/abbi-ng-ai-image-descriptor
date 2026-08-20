@@ -28,10 +28,11 @@ Images in the screenshot: Library of Congress public domain.
 
 ### Prerequisites
 
-1. Install [Node.js][node.js] which includes [npm][npm]. The app is compatible with Node `^22.22.3`, `^24.15.0` and `^26.0.0` (based on [Angular 22 compatibility][angular_version_compatibility]). Check your Node version with:
+1. Install [Node.js][node.js] which includes [npm][npm]. The app requires Node `^24.15.0` and npm `^11.0.0`; Docker and CI are configured to use Node `24`. Check both versions with:
 
 ```
-Node --version
+node --version
+npm --version
 ```
 
 2. Install the [Angular CLI][angular_cli] globally:
