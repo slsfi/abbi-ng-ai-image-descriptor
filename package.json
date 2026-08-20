@@ -5,6 +5,22 @@
   "homepage": "https://github.com/slsfi/abbi-ng-ai-image-descriptor#readme",
   "license": "MIT",
   "private": true,
+  "engines": {
+    "node": "^24.15.0",
+    "npm": "^11.0.0"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "^24.15.0",
+      "onFail": "error"
+    },
+    "packageManager": {
+      "name": "npm",
+      "version": "^11.0.0",
+      "onFail": "error"
+    }
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
