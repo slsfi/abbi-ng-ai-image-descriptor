@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `@google/genai` to 2.18.0.
 - Deps: update `openai` to 7.5.0.
 - Deps (dev): update `vitest` to 4.1.11.
+- Deps: update transitive dependencies.
 
 ### Fixed
 
