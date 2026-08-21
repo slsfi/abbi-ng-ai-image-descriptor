@@ -8,20 +8,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [4.0.0] – 2026-08-21
+
+### BREAKING CHANGES
+
+- Node `^24.15.0` and npm `>=11.16.0` required. ([c5fec02](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/c5fec0208cc1c9861e44a446675bd6e545f1ca1a))
+
 ### Changed
 
-- Upgrade the required Node.js runtime and Docker build image to Node 24 with npm 11.
-- Upgrade `actions/checkout` in Docker build action workflow to v7.
-- Add version-pinned npm install-script approvals and document the transitive dependency update workflow.
-- Deps: update `@angular/core`, `@angular/cdk` and `@angular/material` to 22.1.3, and `@angular/cli` to 22.1.5.
-- Deps: update `@google/genai` to 2.18.0.
-- Deps: update `openai` to 7.5.0.
-- Deps (dev): update `vitest` to 4.1.11.
-- Deps: update transitive dependencies.
+- Upgrade the required Node.js runtime and Docker build image to Node 24 with npm 11. ([c5fec02](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/c5fec0208cc1c9861e44a446675bd6e545f1ca1a))
+- Upgrade `actions/checkout` in Docker build action workflow to v7. ([00dda0c](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/00dda0cbe368a0ed4db14d53fa26ecc74da4f7c3))
+- Add version-pinned npm install-script approvals and document the transitive dependency update workflow. ([667e388](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/667e3880b11d964d823407449d6ea6e5eac2411e))
+- Deps: update `@angular/core`, `@angular/cdk` and `@angular/material` to 22.1.3, and `@angular/cli` to 22.1.5. ([68df339](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/68df3396fe08d1bc1eee56ae188992b60fff7387))
+- Deps: update `@google/genai` to 2.18.0. ([f9e81c8](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/f9e81c85a24a158386fdbf61b45c75f480c13cdb))
+- Deps: update `openai` to 7.5.0. ([0d51cdb](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/0d51cdb06c45403258843bcf2ac319e04a70c984))
+- Deps (dev): update `vitest` to 4.1.11. ([408794f](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/408794fd6dc1c7162d67e69a8f5c4acd9abe7003))
+- Deps: update transitive dependencies. ([de6fb81](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/de6fb81f40b47fe7df63cd2df912fcb6689f00b0))
 
 ### Fixed
 
-- Restore Dependabot dependency updates by removing the incompatible `devEngines.packageManager` range and treating npm 11.16.0 as a minimum version.
+- Restore Dependabot dependency updates by removing the incompatible `devEngines.packageManager` range and treating npm 11.16.0 as a minimum version. ([1d2e3a8](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/1d2e3a8dec1a420a7b1dafeb868f097d82539d5a))
 
 
 
@@ -490,7 +498,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/3.1.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.0.0...HEAD
+[4.0.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/3.1.0...4.0.0
 [3.1.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/3.0.0...3.1.0
 [3.0.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.5.0...3.0.0
 [2.5.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.4.0...2.5.0
