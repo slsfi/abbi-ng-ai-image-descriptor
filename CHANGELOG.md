@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Add version-pinned npm install-script approvals and document the transitive dependency update workflow.
 - Deps: update `@angular/core`, `@angular/cdk` and `@angular/material` to 22.1.3, and `@angular/cli` to 22.1.5.
 - Deps: update `openai` to 7.5.0.
+- Deps (dev): update `vitest` to 4.1.11.
 
 ### Fixed
 
