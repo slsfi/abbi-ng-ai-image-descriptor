@@ -15,6 +15,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Add version-pinned npm install-script approvals and document the transitive dependency update workflow.
 - Deps: update `@angular/core`, `@angular/cdk` and `@angular/material` to 22.1.3, and `@angular/cli` to 22.1.5.
 
+### Fixed
+
+- Restore Dependabot dependency updates by removing the incompatible `devEngines.packageManager` range and treating npm 11.16.0 as a minimum version.
+
 
 
 ## [3.1.0] – 2026-08-17
