@@ -8,21 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [4.0.1] – 2026-09-22
+
 ### Changed
 
-- Disable Dependabot's default cooldown period for version updates.
-- Update `nginx` to 1.30.5.
-- Deps: update `@angular/core`, `@angular/cdk` and `@angular/material` to 22.1.7, and `@angular/cli` to 22.1.8.
-- Deps: update `@google/genai` to 2.24.0.
-- Deps: update `openai` to 7.21.0.
-- Deps: update `zone.js` to 0.16.3.
-- Deps (dev): update `jsdom` to 30.1.1.
-- Deps: update transitive dependencies.
+- Disable Dependabot's default cooldown period for version updates. ([5ab895b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/5ab895bd9877da67f1c88ad15c9d7ce655e2adbf))
+- Update `nginx` to 1.30.5. ([d44f6a0](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/d44f6a08e2df2cd445081ed793068b3b2e1ced93))
+- Deps: update `@angular/core`, `@angular/cdk` and `@angular/material` to 22.1.7, and `@angular/cli` to 22.1.8. ([6d8e3c9](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/6d8e3c9457d956d587b80ad4661194f0fdedaf40))
+- Deps: update `@google/genai` to 2.24.0. ([8a9d987](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/8a9d987576f68b10f8355560949ba9a0ee877f1b), [78620f8](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/78620f864a99a2ac2d180790599b3d631be0db06))
+- Deps: update `openai` to 7.21.0. ([8147d8d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/8147d8d467e775f3f6d279a11af93600792a7fef))
+- Deps: update `zone.js` to 0.16.3. ([69490f8](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/69490f8d3c1e1f95ed8d4883d505aa102bf34b9f))
+- Deps (dev): update `jsdom` to 30.1.1. ([ce6f5d2](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/ce6f5d2a273637db79e86e1135f02fd8aacf42dd))
+- Deps: update transitive dependencies. ([f97f7c5](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/f97f7c5d5ce6e6f4e8f32e2a84265a8d1cdcb827))
 
 ### Fixed
 
-- Update `allowScripts` version of `@google/genai`.
-- Complement TEI-transcription prompts with an example of list encoding.
+- Complement TEI-transcription prompts with an example of list encoding. ([6e74d7f](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/6e74d7fd7d6b815c170df05dc0f912c36d01e2e5))
 
 
 
@@ -514,7 +517,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.0.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.0.1...HEAD
+[4.0.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.0.0...4.0.1
 [4.0.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/3.1.0...4.0.0
 [3.1.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/3.0.0...3.1.0
 [3.0.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/2.5.0...3.0.0
