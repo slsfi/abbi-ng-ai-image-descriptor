@@ -48,7 +48,7 @@
     "@angular/cli": "^22.1.8",
     "@angular/compiler-cli": "^22.1.7",
     "@types/prismjs": "^1.26.6",
-    "jsdom": "^30.0.1",
+    "jsdom": "^30.1.1",
     "typescript": "~6.0.3",
     "vitest": "^4.1.11"
   },
