@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Fixed
 
 - Update `allowScripts` version of `@google/genai`.
+- Complement TEI-transcription prompts with an example of list encoding.
 
 
 

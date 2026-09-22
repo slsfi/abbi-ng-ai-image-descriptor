@@ -594,6 +594,16 @@ STRICT:
 - Use `<item>` for the individual list items.
 - Do not encode inline lists. Inline enumerations in paragraphs stay in `<p>` as running text.
 
+### Example
+
+```
+<list>
+<item>First list item</item>
+<item>Second list item</item>
+<item>Third list item</item>
+</list>
+```
+
 --------------------------------------------------
 
 ## TABLES (`<table>`, `<row>`, `<cell>`)
