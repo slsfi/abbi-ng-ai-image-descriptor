@@ -10,8 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 
-- Deps: update `@angular/core`, `@angular/cdk` and `@angular/material` to 22.1.7, and `@angular/cli` to 22.1.8.
 - Disable Dependabot's default cooldown period for version updates.
+- Deps: update `@angular/core`, `@angular/cdk` and `@angular/material` to 22.1.7, and `@angular/cli` to 22.1.8.
+- Deps: update `@google/genai` to 2.24.0.
 
 
 
