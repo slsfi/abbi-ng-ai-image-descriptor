@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `openai` to 7.21.0.
 - Deps: update `zone.js` to 0.16.3.
 - Deps (dev): update `jsdom` to 30.1.1.
+- Deps: update transitive dependencies.
 
 ### Fixed
 
