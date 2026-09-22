@@ -15,6 +15,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `@google/genai` to 2.24.0.
 - Deps: update `openai` to 7.21.0.
 
+### Fixed
+
+- Update `allowScripts` version of `@google/genai`.
+
 
 
 ## [4.0.0] – 2026-08-21

@@ -53,7 +53,7 @@
     "vitest": "^4.1.11"
   },
   "allowScripts": {
-    "@google/genai@2.18.0": true,
+    "@google/genai@2.24.0": true,
     "@parcel/watcher@2.6.0": true,
     "esbuild@0.28.2": true,
     "fsevents@2.3.3": true,
