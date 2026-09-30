@@ -21,15 +21,6 @@ permissions:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    env:
-      # Define tag of official Node.js image to be used as the base image
-      # for the build, this is passed as a build argument to Dockerfile
-      # https://hub.docker.com/_/node/.
-      NODE_IMAGE_TAG: 24-alpine
-      # Define tag of official nginx image to be used as the final image
-      # for the build, this is passed as a build argument to Dockerfile
-      # https://hub.docker.com/_/nginx
-      NGINX_IMAGE_TAG: 1.30.4-alpine
 
     steps:
       # 1) Check out repository.
@@ -68,6 +59,3 @@ jobs:
           file: Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            NODE_IMAGE_TAG=${{ env.NODE_IMAGE_TAG }}
-            NGINX_IMAGE_TAG=${{ env.NGINX_IMAGE_TAG }}
