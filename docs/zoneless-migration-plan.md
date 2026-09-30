@@ -6,7 +6,7 @@ The structure and migration rules follow the implemented `digital-edition-cms-vi
 
 ## Implementation status
 
-**Phases 1–3 implemented and verified on 2026-09-30. Phases 4–7 have not started.**
+**Phases 1–4 implemented and verified on 2026-09-30. Phases 5–7 have not started.**
 
 - Baseline: `npm test -- --watch=false` passed 18 test files / 43 tests; `npm run build` passed.
 - Phase 1: the nine compatible Eager children now use implicit default OnPush, and the existing batch-results component's redundant OnPush declaration was removed.
@@ -23,7 +23,12 @@ The structure and migration rules follow the implemented `digital-edition-cms-vi
 - Root regression testing exposed a cached Material stepper completion icon after async validation. The API-key step now binds completion to reactive validity and its existing `interacted` state, preserving the interaction requirement while refreshing the icon.
 - Added 12 zoneless regressions across the API-key and real root/stepper/defer workflows, including delayed success/failure, provider errors, unchanged-status error changes, file loading, key clearing/restoration, cancelled validation, one-time defer loading, deduplicated handoffs, and subscription cleanup. No post-action `detectChanges()` or manual defer rendering is used.
 - Phase-3 focused verification: 2 test files / 14 tests passed. Full suite: 21 test files / 80 tests passed. Production build passed with the existing initial-bundle budget and CommonJS warnings.
-- `AppComponent` and `GenerateDescriptionsComponent` remain explicitly Eager. Zone.js configuration/dependencies, existing observable bindings, and phases 4–7 are unchanged.
+- After phase 3, `AppComponent` and `GenerateDescriptionsComponent` remained explicitly Eager. Zone.js configuration/dependencies, existing observable bindings, and phases 4–7 were unchanged.
+- Phase 4: `ImageListService.publishImageList()` emits a shallow array copy through the existing observable, preserving image/description references and list membership. Changed row-generation flags, description/translation commits, saved edits, navigation, and successful description deletion now publish; no-op flag changes/navigation/deletion do not emit.
+- TEI highlighting requests remain pending until matching code has rendered and been highlighted. Removed images/descriptions discard their requests, late SDK commits cannot queue highlighting for a removed image, and deletion highlights the newly selected TEI description.
+- Added 19 zoneless service/table regressions for identity preservation, generation/translation, edits, navigation, deletion, no-op notifications, real Prism highlighting, delayed upload cleanup, and removal during SDK work. Plain-text edits and intermediate sequential results render while global generation state stays unchanged and cost/dialog/snackbar mocks provide no incidental rendering notification.
+- Phase-4 focused verification: 2 test files / 20 tests passed. Full suite: 22 test files / 99 tests passed. Production build passed with the existing initial-bundle budget and CommonJS warnings.
+- `AppComponent` and `GenerateDescriptionsComponent` remain explicitly Eager. Global generation/export fields, paginator wiring, Zone.js configuration/dependencies, and phases 5–7 are unchanged.
 
 ## Objective and constraints
 
@@ -162,7 +167,7 @@ Suggested commit: `refactor(results): publish image-row state changes`
 
 Preserve `ImageListService.imageList$`, its `BehaviorSubject`, the `imageList` getter, plain data types, and `MatTableDataSource`.
 
-Add a small service method to publish the current list after a row mutation, using the existing `updateImageList()` with a shallow array copy. Keep each image object's identity: generation and provider upload workflows hold those references across awaits. Do not introduce a second store.
+Add `ImageListService.publishImageList()` to publish the current list after a row mutation, using the existing `updateImageList()` with a shallow array copy. Keep each image object's identity: generation and provider upload workflows hold those references across awaits. Do not introduce a second store.
 
 Publish after these successful mutations:
 
@@ -172,7 +177,7 @@ Publish after these successful mutations:
 - `previousDescription()` and `nextDescription()` — after changing the active index.
 - `ImageListService.deleteActiveDescription()` — after removing the description and correcting the active index.
 
-Add/remove image paths already publish the list; preserve their behavior. Keep Prism's existing highlighting requests, with publication and highlighting ordered so Prism sees the updated rendered text. Cover a two-pass Files API result whose upload cleanup is still pending: the row may still show a spinner when a highlighting request first runs. Consume a request only after its matching code element has rendered and been highlighted, rather than clearing the entire pending set before the node exists; discard requests for removed descriptions.
+Add/remove image paths already publish the list; preserve their behavior. Keep Prism's existing highlighting requests, with publication and highlighting ordered so Prism sees the updated rendered text. Cover a two-pass Files API result whose upload cleanup is still pending: the row may still show a spinner when a highlighting request first runs. Consume a request only after its matching code element has rendered and been highlighted, rather than clearing the entire pending set before the node exists; discard requests for removed descriptions/images and avoid queuing requests when an SDK result commits to an already-removed image. When deletion selects another TEI description, request highlighting for that description too.
 
 Add service and generation-view regressions for async row spinner changes, description commits/translation results, saved edits, active-description navigation, and deletion. Assert text, character counts, selected index, and available actions in the rendered table.
 

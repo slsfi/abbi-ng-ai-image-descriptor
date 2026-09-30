@@ -124,16 +124,20 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
       const need = this.needsHighlight();
       if (need.size === 0) return;
 
+      const pending = new Set(need);
       for (const elRef of this.teiCodeEls()) {
         const el = elRef.nativeElement;
         const key = `${el.getAttribute('data-image-id')}:${el.getAttribute('data-desc-idx')}`;
         if (need.has(key)) {
           Prism.highlightElement(el);
+          pending.delete(key);
         }
       }
 
-      // clear after we ran
-      this.needsHighlight.set(new Set());
+      // Keep requests whose code is still hidden by a generating spinner.
+      if (pending.size !== need.size) {
+        this.needsHighlight.set(pending);
+      }
     });
   }
 
@@ -145,6 +149,14 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     ).subscribe(
       (imageList: ImageData[]) => {
         this.matTableDataSource.data = imageList;
+        // Discard requests for descriptions removed before their code rendered.
+        this.needsHighlight.update(pending => {
+          const remaining = new Set([...pending].filter(key => {
+            const [imageId, descIdx] = key.split(':').map(Number);
+            return imageList.find(image => image.id === imageId)?.descriptions[descIdx]?.teiEncoded;
+          }));
+          return remaining.size === pending.size ? pending : remaining;
+        });
       }
     );
   }
@@ -822,6 +834,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     if (imageObj.activeDescriptionIndex > 0) {
       const idx = imageObj.activeDescriptionIndex - 1;
       imageObj.activeDescriptionIndex = idx;
+      this.imageListService.publishImageList();
 
       if (imageObj.descriptions[idx]?.teiEncoded) {
         this.markNeedsHighlight(imageObj.id, idx);
@@ -833,6 +846,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     if (imageObj.activeDescriptionIndex < imageObj.descriptions.length - 1) {
       const idx = imageObj.activeDescriptionIndex + 1;
       imageObj.activeDescriptionIndex = idx;
+      this.imageListService.publishImageList();
 
       if (imageObj.descriptions[idx]?.teiEncoded) {
         this.markNeedsHighlight(imageObj.id, idx);
@@ -853,6 +867,10 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     dialogRef.afterClosed().subscribe((remove: boolean) => {
       if (remove) {
         this.imageListService.deleteActiveDescription(imageObj);
+        const idx = imageObj.activeDescriptionIndex;
+        if (imageObj.descriptions[idx]?.teiEncoded) {
+          this.markNeedsHighlight(imageObj.id, idx);
+        }
       }
     });
   }
@@ -868,6 +886,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         const idx = imageObj.activeDescriptionIndex;
         const activeDesc = imageObj.descriptions[idx];
         activeDesc.description = edited;
+        this.imageListService.publishImageList();
 
         if (activeDesc.teiEncoded) {
           this.markNeedsHighlight(imageObj.id, idx);
@@ -1081,7 +1100,9 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   }
 
   private setImageGenerating(imageObj: ImageData, isGenerating: boolean) {
+    if (imageObj.generating === isGenerating) return;
     imageObj.generating = isGenerating;
+    this.imageListService.publishImageList();
   }
 
   private handleApiFailure(settings: RequestSettings, result: any, stopGeneration: boolean, imageObj?: ImageData) {
@@ -1318,6 +1339,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     imageObj.descriptions.push(desc);
     const idx = imageObj.descriptions.length - 1;
     imageObj.activeDescriptionIndex = idx;
+    this.imageListService.publishImageList();
 
     if (desc.teiEncoded) {
       this.markNeedsHighlight(imageObj.id, idx);
@@ -1333,6 +1355,8 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   }
 
   private markNeedsHighlight(imageId: number, descIdx: number): void {
+    const image = this.imageListService.imageList.find(image => image.id === imageId);
+    if (!image?.descriptions[descIdx]?.teiEncoded) return;
     this.needsHighlight.update(prev => {
       const next = new Set(prev);
       next.add(`${imageId}:${descIdx}`);
