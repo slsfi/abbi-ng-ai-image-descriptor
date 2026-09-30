@@ -1,8 +1,19 @@
 # Angular zoneless and default-OnPush migration plan
 
-Investigated on 2026-09-30 against the current Angular 22.2.0 app. This document is a plan only; application code, dependencies, and tests have not been changed or executed as part of the investigation.
+Investigated on 2026-09-30 against the Angular 22.2.0 app. The implementation status below records completed phases; the remaining phases are still planned.
 
 The structure and migration rules follow the implemented `digital-edition-cms-vincent/docs/zoneless-migration-plan.md` reference (completed on 2026-09-25), adapted to this app's file loading, AI generation, form handoff, and image-result store.
+
+## Implementation status
+
+**Phase 1 implemented and verified on 2026-09-30. Phases 2–7 have not started.**
+
+- Baseline: `npm test -- --watch=false` passed 18 test files / 43 tests; `npm run build` passed.
+- Phase 1: the nine compatible Eager children now use implicit default OnPush, and the existing batch-results component's redundant OnPush declaration was removed.
+- All ten phase-1 component specs run with explicit zoneless `TestBed` providers. Added 21 behavioral regression tests for file selection, dialog bindings/results, editing/highlighting, zoom/pan/resize, signal-driven settings/batch views, and deferred edit-dialog results. These tests await scheduled rendering without forcing a post-action `detectChanges()`.
+- Focused component verification: 13 test files / 31 tests passed. Full suite: 21 test files / 64 tests passed. Production build passed.
+- Both baseline and phase-1 builds report the existing initial-bundle budget and CommonJS warnings for Prism and `p-retry`.
+- `AppComponent`, `AddImagesComponent`, `ApiKeyFormComponent`, and `GenerateDescriptionsComponent` remain explicitly Eager. Zone.js configuration/dependencies, observable/form APIs, and component state are unchanged.
 
 ## Objective and constraints
 
@@ -56,7 +67,7 @@ This limits signal conversion to state that needs it for notification. Convertin
 
 ## Implementation commits
 
-Before implementation, record the results of `npm test -- --watch=false` and `npm run build` against the unchanged baseline. Resolve or document existing failures separately so they are not mistaken for migration regressions. These baseline commands have not been run during this planning task.
+Before implementation, record the results of `npm test -- --watch=false` and `npm run build` against the unchanged baseline. Resolve or document existing failures separately so they are not mistaken for migration regressions. The initial baseline results are recorded in the implementation status above.
 
 ### Commit 1 — Migrate compatible child components to OnPush
 
@@ -234,4 +245,4 @@ Inspect repository configuration and application sources for `zone.js`, `provide
 | Export | Existing formats still download the currently selected/edited descriptions and batch results. |
 | Dependency removal | App and testing polyfills are empty; no app import/provider enables Zone.js; `npm ls zone.js --all` reports no installed dependency; the browser has no `Zone` global. |
 
-The final acceptance condition is seven independently verified commits, all 14 app components using default OnPush, the full regression suite passing, a successful production build, and the diagnostic/browser workflows above functioning without Zone.js. This investigation does not claim those checks have already passed; they belong to implementation.
+The final acceptance condition is seven independently verified commits, all 14 app components using default OnPush, the full regression suite passing, a successful production build, and the diagnostic/browser workflows above functioning without Zone.js. Final zoneless acceptance checks remain pending; completed phase verification is recorded above.

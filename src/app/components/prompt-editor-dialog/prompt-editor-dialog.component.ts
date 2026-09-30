@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose,
@@ -35,7 +35,6 @@ export interface PromptEditorDialogData {
     TextFieldModule
   ],
   templateUrl: './prompt-editor-dialog.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './prompt-editor-dialog.component.scss'
 })
 export class PromptEditorDialogComponent {
