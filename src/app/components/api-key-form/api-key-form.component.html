@@ -1,3 +1,4 @@
+@let formState = apiKeyFormState();
 <form [formGroup]="apiKeyFormGroup">
   <mat-form-field appearance="outline">
     <mat-label>{{ settings.selectedModel().provider }} API key</mat-label>
@@ -8,17 +9,17 @@
     <button matIconButton matSuffix (click)="hideApiKey = !hideApiKey" [attr.aria-label]="'Hide API key'" [attr.aria-pressed]="hideApiKey">
       <mat-icon>{{hideApiKey ? 'visibility_off' : 'visibility'}}</mat-icon>
     </button>
-    @if (apiKeyFC?.hasError('required')) {
+    @if (formState.errors?.['required']) {
       <mat-error>You must add an API key</mat-error>
-    } @else if (apiKeyFC?.hasError('invalidApiKey')) {
+    } @else if (formState.errors?.['invalidApiKey']) {
       <mat-error>Invalid API key</mat-error>
     }
-    @if (apiKeyValidationMessage) {
-      <mat-hint [class.valid-api-key]="apiKeyFormGroup.valid">
-        @if (apiKeyFormGroup.valid) {
+    @if (apiKeyValidationMessage()) {
+      <mat-hint [class.valid-api-key]="formState.status === 'VALID'">
+        @if (formState.status === 'VALID') {
           <mat-icon aria-hidden="true">check</mat-icon>
         }
-        {{ apiKeyValidationMessage }}
+        {{ apiKeyValidationMessage() }}
       </mat-hint>
     }
   </mat-form-field>

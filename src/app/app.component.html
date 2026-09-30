@@ -76,7 +76,7 @@
       </mat-step>
 
       <!-- Step 2: Add API key -->
-      <mat-step [stepControl]="apiKeyFormGroup" label="Add API key">
+      <mat-step #apiKeyStep [stepControl]="apiKeyFormGroup()!" [completed]="apiKeyStep.interacted && isApiKeyFormValid()" label="Add API key">
         <h2>Add your {{ settings.selectedModel().provider }} API key</h2>
         <api-key-form
           (apiKeyValidated)="onApiKeyValidated($event)"
@@ -109,7 +109,7 @@
       <mat-step [label]="`Generate ${taskNoun.plural}`">
         <h2 id="generate-step-title">Generate {{ taskNoun.plural }}</h2>
         <!-- Defer loading the generate-descriptions component until the API key in step 2 has validated -->
-        @defer (when isApiKeyFormValid) {
+        @defer (when isApiKeyFormValid()) {
           <generate-descriptions></generate-descriptions>
         } @loading (minimum 500ms) {
           <p>Loading component ...</p>

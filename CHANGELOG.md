@@ -13,7 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Docker: use the `Dockerfile` as the single source of truth for Node.js and nginx base-image tags.
 - Docs: add Angular zoneless and default-OnPush migration plan.
 - Implement phase 1 of the Angular zoneless and default-OnPush migration plan: migrate compatible child components to `OnPush`.
-- Implement phase 1 of the Angular zoneless and default-OnPush migration plan: use signals for file-loading progress.
+- Implement phase 2 of the Angular zoneless and default-OnPush migration plan: use signals for file-loading progress.
+- Implement phase 3 of the Angular zoneless and default-OnPush migration plan: make API-key validation and root form integration reactive.
 - Deps: update `@angular/core`, `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.0.
 
 

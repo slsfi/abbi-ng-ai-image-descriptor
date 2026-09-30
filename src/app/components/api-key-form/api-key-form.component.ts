@@ -1,5 +1,5 @@
-import { Component, EventEmitter, OnDestroy, OnInit, Output, inject, ChangeDetectionStrategy } from '@angular/core';
-import { AbstractControl, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { Component, EventEmitter, OnDestroy, OnInit, Output, WritableSignal, afterNextRender, computed, inject, signal } from '@angular/core';
+import { AbstractControl, FormBuilder, FormControl, FormControlStatus, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,6 +9,12 @@ import { catchError, debounceTime, Observable, of, Subscription, switchMap } fro
 import { FileInputComponent } from '../file-input/file-input.component';
 import { AiService } from '../../services/ai.service';
 import { SettingsService } from '../../services/settings.service';
+
+type ApiKeyFormState = {
+  value: string;
+  status: FormControlStatus;
+  errors: ValidationErrors | null;
+};
 
 @Component({
   selector: 'api-key-form',
@@ -22,7 +28,6 @@ import { SettingsService } from '../../services/settings.service';
     FileInputComponent
   ],
   templateUrl: './api-key-form.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './api-key-form.component.scss'
 })
 export class ApiKeyFormComponent implements OnInit, OnDestroy {
@@ -34,7 +39,14 @@ export class ApiKeyFormComponent implements OnInit, OnDestroy {
   @Output() formGroupOutput = new EventEmitter<FormGroup>();
 
   apiKeyFormGroup: FormGroup;
-  apiKeyValidationMessage: string | null = null;
+  readonly apiKeyFormState: WritableSignal<ApiKeyFormState>;
+  readonly apiKeyValidationMessage = computed(() => {
+    const { value, status } = this.apiKeyFormState();
+    if (!value) return null;
+    if (status === 'PENDING') return 'Validating API key ...';
+    if (status === 'VALID') return 'The API key is valid.';
+    return null;
+  });
   formControlChangeSubscr: Subscription | null | undefined = null;
   formGroupChangeSubscr: Subscription | null = null;
   hideApiKey: boolean = true;
@@ -47,6 +59,8 @@ export class ApiKeyFormComponent implements OnInit, OnDestroy {
         updateOn: 'blur' // Run async validator when the control loses focus
       })
     });
+    this.apiKeyFormState = signal(this.getFormState());
+    afterNextRender(() => this.formGroupOutput.emit(this.apiKeyFormGroup));
   }
 
   get apiKeyFC() {
@@ -54,11 +68,9 @@ export class ApiKeyFormComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Emit the form group when the component initializes
-    this.formGroupOutput.emit(this.apiKeyFormGroup);
-
     // Subscribe to the form group value changes and emit the form group whenever changes occur
     this.formGroupChangeSubscr = this.apiKeyFormGroup.valueChanges.subscribe(() => {
+      this.apiKeyFormState.set(this.getFormState());
       this.formGroupOutput.emit(this.apiKeyFormGroup);
     });
 
@@ -66,17 +78,11 @@ export class ApiKeyFormComponent implements OnInit, OnDestroy {
     // when the value of the API key form field changes and the
     // entered key is valid.
     this.formControlChangeSubscr = this.apiKeyFC?.statusChanges.subscribe(status => {
-      if (this.apiKeyFC?.value) {
-        if (status === 'PENDING') {
-          this.apiKeyValidationMessage = 'Validating API key ...';
-        } else if (status === 'VALID') {
-          this.apiKeyValidationMessage = 'The API key is valid.';
-          const key = (this.apiKeyFC.value ?? '').trim();
-          this.aiService.updateClient(key);
-          this.apiKeyValidated.emit(key);
-        } else {
-          this.apiKeyValidationMessage = null;
-        }
+      this.apiKeyFormState.set(this.getFormState());
+      if (this.apiKeyFC?.value && status === 'VALID') {
+        const key = (this.apiKeyFC.value ?? '').trim();
+        this.aiService.updateClient(key);
+        this.apiKeyValidated.emit(key);
       }
     });
   }
@@ -84,6 +90,11 @@ export class ApiKeyFormComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.formControlChangeSubscr?.unsubscribe();
     this.formGroupChangeSubscr?.unsubscribe();
+  }
+
+  private getFormState(): ApiKeyFormState {
+    const control = this.apiKeyFC!;
+    return { value: control.value ?? '', status: control.status, errors: control.errors };
   }
 
   loadApiKeyFromFile(files: File[]): void {
