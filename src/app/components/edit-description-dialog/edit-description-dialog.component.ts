@@ -1,8 +1,7 @@
 import {
   Component, ElementRef, HostListener, OnInit, ViewChild,
   afterNextRender, afterRenderEffect, computed, inject, signal,
-  viewChild,
-  ChangeDetectionStrategy
+  viewChild
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -45,7 +44,6 @@ export interface EditDescriptionDialogData {
     UpperFirstLetterPipe
   ],
   templateUrl: './edit-description-dialog.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './edit-description-dialog.component.scss'
 })
 export class EditDescriptionDialogComponent implements OnInit {
