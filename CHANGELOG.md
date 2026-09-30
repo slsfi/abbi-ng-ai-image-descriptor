@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+
+- Docker: use the `Dockerfile` as the single source of truth for Node.js and nginx base-image tags.
+
 
 
 ## [4.0.1] – 2026-09-22

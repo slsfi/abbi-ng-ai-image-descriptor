@@ -123,7 +123,7 @@ npm run build
 
 ### Node.js and nginx Docker images
 
-[Node.js][node.js] and [nginx][nginx] Docker images are used in the build process. To update these, change the tags specified in both [`Dockerfile`][dockerfile] and in [`docker-build-and-push.yml`][docker_build].
+[Node.js][node.js] and [nginx][nginx] Docker images are used in the build process. To update these, change the default tags specified in [`Dockerfile`][dockerfile]. The [`docker-build-and-push.yml`][docker_build] workflow uses these defaults, keeping local and CI builds aligned.
 
 ### Modifying available AI-models, languages and prompt types
 
