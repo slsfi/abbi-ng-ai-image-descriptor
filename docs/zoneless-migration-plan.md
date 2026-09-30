@@ -6,7 +6,7 @@ The structure and migration rules follow the implemented `digital-edition-cms-vi
 
 ## Implementation status
 
-**Phases 1–2 implemented and verified on 2026-09-30. Phases 3–7 have not started.**
+**Phases 1–3 implemented and verified on 2026-09-30. Phases 4–7 have not started.**
 
 - Baseline: `npm test -- --watch=false` passed 18 test files / 43 tests; `npm run build` passed.
 - Phase 1: the nine compatible Eager children now use implicit default OnPush, and the existing batch-results component's redundant OnPush declaration was removed.
@@ -17,7 +17,13 @@ The structure and migration rules follow the implemented `digital-edition-cms-vi
 - Phase 2: `AddImagesComponent` now uses implicit default OnPush. Its processed counter, total file count, and progress percentage are writable signals, including native file/image callbacks and the delayed reset. File processing, `addingImages`, `imageList$`/`AsyncPipe`, and reset cancellation behavior are preserved.
 - Added four zoneless file-loading regression tests for incremental progress before list publication, completion through the existing file-input/observable APIs, the delayed reset without another notification, and cancellation of the previous reset during a new selection. Tests control `FileReader`/`Image` callbacks and timers, then await scheduled rendering without `detectChanges()`.
 - Phase-2 focused verification: 1 test file / 5 tests passed. Full suite: 21 test files / 68 tests passed. Production build passed with the same initial-bundle budget and CommonJS warnings.
-- `AppComponent`, `ApiKeyFormComponent`, and `GenerateDescriptionsComponent` remain explicitly Eager. Zone.js configuration/dependencies and the remaining phases are unchanged.
+- After phase 2, `AppComponent`, `ApiKeyFormComponent`, and `GenerateDescriptionsComponent` remained explicitly Eager. Zone.js configuration/dependencies and the remaining phases were unchanged.
+- Phase 3: `ApiKeyFormComponent` now uses implicit default OnPush. A signal snapshot of the control's value/status/errors drives validation hints, styling, and errors; its message is computed. The initial form handoff uses `afterNextRender`. Reactive forms, blur validation, validator observables, subsequent form outputs, and validated-key/client updates are preserved.
+- The root uses signals for the form reference and validation status, with one status subscription per current group and cleanup on replacement/destruction. Its provider effect also waits for form availability, restoring saved keys on initial load. The `NgZone.run()`/nested `detectChanges()` handoff workaround was removed.
+- Root regression testing exposed a cached Material stepper completion icon after async validation. The API-key step now binds completion to reactive validity and its existing `interacted` state, preserving the interaction requirement while refreshing the icon.
+- Added 12 zoneless regressions across the API-key and real root/stepper/defer workflows, including delayed success/failure, provider errors, unchanged-status error changes, file loading, key clearing/restoration, cancelled validation, one-time defer loading, deduplicated handoffs, and subscription cleanup. No post-action `detectChanges()` or manual defer rendering is used.
+- Phase-3 focused verification: 2 test files / 14 tests passed. Full suite: 21 test files / 80 tests passed. Production build passed with the existing initial-bundle budget and CommonJS warnings.
+- `AppComponent` and `GenerateDescriptionsComponent` remain explicitly Eager. Zone.js configuration/dependencies, existing observable bindings, and phases 4–7 are unchanged.
 
 ## Objective and constraints
 
@@ -132,7 +138,7 @@ In `api-key-form.component.ts` and its template:
 
 In `app.component.ts` and its template, while **retaining `Eager`**:
 
-1. Store the received form reference in a signal. Update `[stepControl]` and internal form access accordingly, preserving the initially unavailable form behavior.
+1. Store the received form reference in a signal. Update `[stepControl]` and internal form access accordingly, preserving the initially unavailable form behavior. Bind the API-key step's `[completed]` to `apiKeyStep.interacted && isApiKeyFormValid()` so its cached indicator also updates with async validation, preserving Material's existing interaction requirement.
 2. On a new form reference, subscribe once to the group's `statusChanges`, seed its current status, and write a status signal. Derive `isApiKeyFormValid` from that status and use the signal in `@defer`. Repeated outputs carrying the same group must not create duplicate subscriptions; unsubscribe on replacement/destruction.
 3. Make the existing provider-change effect also depend on form readiness, keeping its mutations inside `untracked()`. This ensures restoration runs when the form becomes available, as well as when the provider changes.
 4. Remove the `NgZone.run()`/nested `detectChanges()` handoff workaround and their unused injections/imports after the safe handoff is covered by tests.
@@ -140,7 +146,7 @@ In `app.component.ts` and its template, while **retaining `Eager`**:
 Add zoneless component and root integration regressions for:
 
 - Initial rendering and form handoff without `ExpressionChangedAfterItHasBeenCheckedError`.
-- Delayed validation: `PENDING` to `VALID` and `PENDING` to `INVALID`; hint/error DOM, client updates, step validity, and the root's defer condition update without a subsequent click.
+- Delayed validation: `PENDING` to `VALID` and `PENDING` to `INVALID`; hint/error DOM, client updates, step validity/completion icon, and the root's defer condition update without a subsequent click. Navigation remains blocked while pending/invalid and succeeds once valid; clearing the key removes completion again.
 - Switching between required and invalid-key errors while the status remains `INVALID`, and clearing a previously valid key without leaving a stale success hint.
 - Loading a key from a file and programmatically resetting/restoring a key during provider changes.
 - Restoring an already-stored provider key after initial form availability.

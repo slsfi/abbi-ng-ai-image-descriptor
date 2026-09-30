@@ -1,16 +1,16 @@
 import {
-  ChangeDetectorRef, Component, NgZone, OnInit, effect, inject,
+  Component, OnDestroy, OnInit, computed, effect, inject,
   signal, untracked,
   ChangeDetectionStrategy
 } from '@angular/core';
 import { AsyncPipe, DecimalPipe } from '@angular/common';
-import { FormGroup } from '@angular/forms';
+import { FormControlStatus, FormGroup } from '@angular/forms';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconRegistry } from '@angular/material/icon';
 import { MatStepperModule, StepperOrientation } from '@angular/material/stepper';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { map, Observable } from 'rxjs';
+import { map, Observable, Subscription } from 'rxjs';
 
 import { APP_VERSION } from '../assets/config/app-version';
 import { AddImagesComponent } from './components/add-images/add-images.component';
@@ -45,19 +45,20 @@ import { ModelProvider } from '../assets/config/models';
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app.component.scss'
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   private breakpointObserver = inject(BreakpointObserver);
-  private cdRef = inject(ChangeDetectorRef);
   private matIconReg = inject(MatIconRegistry);
-  private ngZone = inject(NgZone);
   private apiKeys = inject(ApiKeysService);
+  private apiKeyStatusSubscr?: Subscription;
+  private apiKeyFormStatus = signal<FormControlStatus>('INVALID');
   readonly costService = inject(CostService);
   imageListService = inject(ImageListService);
   prompts = inject(PromptService);
   settings = inject(SettingsService);
 
   addingImages = signal<boolean>(false);
-  apiKeyFormGroup!: FormGroup;
+  apiKeyFormGroup = signal<FormGroup | undefined>(undefined);
+  readonly isApiKeyFormValid = computed(() => this.apiKeyFormStatus() === 'VALID');
   appVersion = APP_VERSION;
 
   // Observe viewport width so the stepper orientation can be changed
@@ -70,9 +71,11 @@ export class AppComponent implements OnInit {
   constructor() {
     effect(() => {
       const provider = this.settings.selectedModel().provider;
-      // Avoid tracking anything that onProviderChanged reads/writes,
-      // so this effect only depends on selectedModel().provider
-      untracked(() => this.onProviderChanged(provider));
+      const formGroup = this.apiKeyFormGroup();
+      // Restore the provider key when the form becomes available as well.
+      if (formGroup) {
+        untracked(() => this.onProviderChanged(provider));
+      }
     });
   }
 
@@ -81,8 +84,13 @@ export class AppComponent implements OnInit {
     this.matIconReg.setDefaultFontSetClass('material-symbols-outlined');
   }
 
+  ngOnDestroy(): void {
+    this.apiKeyStatusSubscr?.unsubscribe();
+  }
+
   onProviderChanged(provider: ModelProvider) {
-    const keyCtrl = this.apiKeyFormGroup?.get('apiKeyFC');
+    const formGroup = this.apiKeyFormGroup();
+    const keyCtrl = formGroup?.get('apiKeyFC');
     if (!keyCtrl) return;
 
     const storedKey = this.apiKeys.getKey(provider);
@@ -97,7 +105,7 @@ export class AppComponent implements OnInit {
       keyCtrl.reset('');
       keyCtrl.markAsPristine();
       keyCtrl.markAsUntouched();
-      this.apiKeyFormGroup?.updateValueAndValidity({ emitEvent: true });
+      formGroup?.updateValueAndValidity({ emitEvent: true });
     }
   }
 
@@ -108,21 +116,17 @@ export class AppComponent implements OnInit {
   }
 
   setApiKeyFormGroup(formGroup: FormGroup): void {
-    // Wrap the updating of the form group in ngZone and manually
-    // trigger change detection to avoid
-    // `ExpressionChangedAfterItHasBeenCheckedError`.
-    this.ngZone.run(() => {
-      this.apiKeyFormGroup = formGroup;
-      this.cdRef.detectChanges();
+    if (this.apiKeyFormGroup() === formGroup) return;
+    this.apiKeyStatusSubscr?.unsubscribe();
+    this.apiKeyFormGroup.set(formGroup);
+    this.apiKeyFormStatus.set(formGroup.status);
+    this.apiKeyStatusSubscr = formGroup.statusChanges.subscribe(status => {
+      this.apiKeyFormStatus.set(status);
     });
   }
 
   setAddingImages(status: boolean): void {
     this.addingImages.set(status);
-  }
-
-  get isApiKeyFormValid(): boolean {
-    return this.apiKeyFormGroup?.valid ?? false;
   }
 
 }
