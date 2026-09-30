@@ -6,14 +6,18 @@ The structure and migration rules follow the implemented `digital-edition-cms-vi
 
 ## Implementation status
 
-**Phase 1 implemented and verified on 2026-09-30. Phases 2–7 have not started.**
+**Phases 1–2 implemented and verified on 2026-09-30. Phases 3–7 have not started.**
 
 - Baseline: `npm test -- --watch=false` passed 18 test files / 43 tests; `npm run build` passed.
 - Phase 1: the nine compatible Eager children now use implicit default OnPush, and the existing batch-results component's redundant OnPush declaration was removed.
 - All ten phase-1 component specs run with explicit zoneless `TestBed` providers. Added 21 behavioral regression tests for file selection, dialog bindings/results, editing/highlighting, zoom/pan/resize, signal-driven settings/batch views, and deferred edit-dialog results. These tests await scheduled rendering without forcing a post-action `detectChanges()`.
 - Focused component verification: 13 test files / 31 tests passed. Full suite: 21 test files / 64 tests passed. Production build passed.
 - Both baseline and phase-1 builds report the existing initial-bundle budget and CommonJS warnings for Prism and `p-retry`.
-- `AppComponent`, `AddImagesComponent`, `ApiKeyFormComponent`, and `GenerateDescriptionsComponent` remain explicitly Eager. Zone.js configuration/dependencies, observable/form APIs, and component state are unchanged.
+- After phase 1, `AppComponent`, `AddImagesComponent`, `ApiKeyFormComponent`, and `GenerateDescriptionsComponent` remained explicitly Eager. Zone.js configuration/dependencies, observable/form APIs, and component state were unchanged.
+- Phase 2: `AddImagesComponent` now uses implicit default OnPush. Its processed counter, total file count, and progress percentage are writable signals, including native file/image callbacks and the delayed reset. File processing, `addingImages`, `imageList$`/`AsyncPipe`, and reset cancellation behavior are preserved.
+- Added four zoneless file-loading regression tests for incremental progress before list publication, completion through the existing file-input/observable APIs, the delayed reset without another notification, and cancellation of the previous reset during a new selection. Tests control `FileReader`/`Image` callbacks and timers, then await scheduled rendering without `detectChanges()`.
+- Phase-2 focused verification: 1 test file / 5 tests passed. Full suite: 21 test files / 68 tests passed. Production build passed with the same initial-bundle budget and CommonJS warnings.
+- `AppComponent`, `ApiKeyFormComponent`, and `GenerateDescriptionsComponent` remain explicitly Eager. Zone.js configuration/dependencies and the remaining phases are unchanged.
 
 ## Objective and constraints
 
