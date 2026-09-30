@@ -121,7 +121,12 @@ export class ImageListService {
                     ? indexToRemove - 1
                     : indexToRemove
             );
+      this.publishImageList();
     }
+  }
+
+  publishImageList(): void {
+    this.updateImageList([...this.imageList]);
   }
 
   updateImageList(list: ImageData[]): void {
