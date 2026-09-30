@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Output, inject, signal } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -16,7 +16,6 @@ import { ImageData } from '../../types/image-data.types';
     FileInputComponent
   ],
   templateUrl: './add-images.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './add-images.component.scss'
 })
 export class AddImagesComponent {
@@ -24,9 +23,9 @@ export class AddImagesComponent {
 
   @Output() addingImages = new EventEmitter<boolean>(false);
 
-  processedCounter: number = 0;
-  progressPercentage: number = 0;
-  totalFileCount: number = 0;
+  processedCounter = signal(0);
+  progressPercentage = signal(0);
+  totalFileCount = signal(0);
   private resetTimer?: ReturnType<typeof setTimeout>;
 
   async addImageFiles(files: File[]): Promise<void> {
@@ -38,9 +37,9 @@ export class AddImagesComponent {
     }
 
     this.addingImages.emit(true);
-    this.processedCounter = 0;
-    this.totalFileCount = files.length;
-    this.progressPercentage = 0;
+    this.processedCounter.set(0);
+    this.totalFileCount.set(files.length);
+    this.progressPercentage.set(0);
 
     const processedFiles: ImageData[] = [];
 
@@ -75,11 +74,11 @@ export class AddImagesComponent {
               uploadKey: uploadKey,
             });
 
-            this.processedCounter++;
-            this.progressPercentage = Math.min(
+            this.processedCounter.update(count => count + 1);
+            this.progressPercentage.set(Math.min(
               100,
-              Math.round((this.processedCounter / this.totalFileCount) * 100)
-            );
+              Math.round((this.processedCounter() / this.totalFileCount()) * 100)
+            ));
 
             resolve();
           };
@@ -100,9 +99,9 @@ export class AddImagesComponent {
 
     // Reset the progress bar with a slight delay
     this.resetTimer = setTimeout(() => {
-      this.totalFileCount = 0;
-      this.processedCounter = 0;
-      this.progressPercentage = 0;
+      this.totalFileCount.set(0);
+      this.processedCounter.set(0);
+      this.progressPercentage.set(0);
     }, 1000);     
 
   }
