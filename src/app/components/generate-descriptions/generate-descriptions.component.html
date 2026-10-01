@@ -1,6 +1,8 @@
 @let taskNoun = settings.taskNouns();
 @let selectedTaskType = settings.selectedTaskType();
 @let imageList = (imageListService.imageList$ | async) ?? [];
+@let generating = this.generating();
+@let exporting = this.exporting();
 
 @if (imageList.length == 0) {
   <p class="no-images">No images. Go back to the previous step to add some!</p>

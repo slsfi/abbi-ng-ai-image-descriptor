@@ -2,12 +2,13 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { EMPTY, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 
 import { GenerateDescriptionsComponent } from './generate-descriptions.component';
 import Prism from '../../utils/prism';
 import { AiService } from '../../services/ai.service';
 import { CostService } from '../../services/cost.service';
+import { ExportService } from '../../services/export.service';
 import { ImageListService } from '../../services/image-list.service';
 import { SettingsService } from '../../services/settings.service';
 import { AiResult } from '../../types/ai.types';
@@ -26,6 +27,21 @@ describe('GenerateDescriptionsComponent', () => {
     deleteUploadedFile: vi.fn<AiService['deleteUploadedFile']>()
   };
   const costs = { cumulativeCost: () => 0, updateCostFromResponse: vi.fn(() => 0) };
+  const snackActions: Subject<void>[] = [];
+  const snackDismissals: Subject<void>[] = [];
+  const snackBar = {
+    open: vi.fn(() => {
+      const action = new Subject<void>();
+      const dismissed = new Subject<void>();
+      snackActions.push(action);
+      snackDismissals.push(dismissed);
+      return {
+        dismiss: vi.fn(),
+        onAction: () => action.asObservable(),
+        afterDismissed: () => dismissed.asObservable()
+      };
+    })
+  };
 
   function deferred<T>() {
     let resolve!: (value: T) => void;
@@ -61,6 +77,11 @@ describe('GenerateDescriptionsComponent', () => {
     expect(row(image).querySelector('.desc-text')?.textContent?.trim()).toBe(text);
     expect(row(image).querySelector('.desc-length')?.textContent?.replace(/\s+/g, ' ').trim())
       .toBe(`Length: ${count} characters`);
+  }
+
+  function buttonWithText(text: string): HTMLButtonElement {
+    const buttons: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll('button');
+    return [...buttons].find(button => button.textContent?.replace(/\s+/g, ' ').trim().includes(text))!;
   }
 
   function dialogResult<T>(): Subject<T> {
@@ -100,13 +121,16 @@ describe('GenerateDescriptionsComponent', () => {
     ai.describeImagesFilesApi.mockResolvedValue({ text: '' });
     ai.deleteUploadedFile.mockResolvedValue(undefined);
     costs.updateCostFromResponse.mockClear();
+    snackActions.length = 0;
+    snackDismissals.length = 0;
+    snackBar.open.mockClear();
     await TestBed.configureTestingModule({
       imports: [GenerateDescriptionsComponent],
       providers: [
         provideZonelessChangeDetection(),
         { provide: AiService, useValue: ai },
         { provide: CostService, useValue: costs },
-        { provide: MatSnackBar, useValue: { open: () => ({ dismiss: () => {}, onAction: () => EMPTY, afterDismissed: () => EMPTY }) } }
+        { provide: MatSnackBar, useValue: snackBar }
       ]
     }).compileComponents();
 
@@ -121,6 +145,51 @@ describe('GenerateDescriptionsComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('attaches the paginator when images arrive and replaces it across conditional table views', async () => {
+    expect(component.paginator()).toBeUndefined();
+    expect(component.matTableDataSource.paginator).toBeNull();
+
+    await showImages(image());
+    const firstPaginator = component.paginator();
+    expect(firstPaginator).toBeDefined();
+    expect(component.matTableDataSource.paginator).toBe(firstPaginator);
+
+    settings.updateSelectedTaskType('transcriptionBatchTei');
+    await fixture.whenStable();
+    expect(component.paginator()).toBeUndefined();
+    expect(component.matTableDataSource.paginator).toBeNull();
+
+    settings.updateSelectedTaskType('altText');
+    await fixture.whenStable();
+    expect(component.paginator()).toBeDefined();
+    expect(component.paginator()).not.toBe(firstPaginator);
+    expect(component.matTableDataSource.paginator).toBe(component.paginator());
+  });
+
+  it('renders single-image generation controls and row progress through a delayed result', async () => {
+    const target = image();
+    await showImages(target);
+    const result = deferred<AiResult>();
+    ai.describeImage.mockReturnValueOnce(result.promise);
+
+    const generating = component.generate(target);
+    await vi.waitFor(() => expect(ai.describeImage).toHaveBeenCalledTimes(1));
+    await fixture.whenStable();
+    expect(component.generating()).toBe(true);
+    expect(buttonWithText('Generate all').disabled).toBe(true);
+    expect(buttonWithText('Export').disabled).toBe(true);
+    expect(row(target).querySelector('mat-spinner')).not.toBeNull();
+
+    result.resolve({ text: 'Deferred result' });
+    await generating;
+    await fixture.whenStable();
+    expect(component.generating()).toBe(false);
+    expect(buttonWithText('Generate all').disabled).toBe(false);
+    expect(buttonWithText('Export').disabled).toBe(false);
+    expectText(target, 'Deferred result', 15);
+    expect(row(target).querySelector('mat-spinner')).toBeNull();
   });
 
   it('renders a deferred plain-text edit through the observable while global generation and costs stay unchanged', async () => {
@@ -140,7 +209,7 @@ describe('GenerateDescriptionsComponent', () => {
 
     expectText(first, 'Edited plain text', 17);
     expect(row(first).querySelector('.edit-button')).not.toBeNull();
-    expect(component.generating).toBe(false);
+    expect(component.generating()).toBe(false);
     expect(costs.updateCostFromResponse).not.toHaveBeenCalled();
     expect(highlight).not.toHaveBeenCalled();
     expect(imageList.imageList).not.toBe(previousList);
@@ -163,7 +232,9 @@ describe('GenerateDescriptionsComponent', () => {
     await fixture.whenStable();
     expect(row(first).querySelector('mat-spinner')).not.toBeNull();
     expect(row(second).querySelector('mat-spinner')).toBeNull();
-    expect(component.generating).toBe(true);
+    expect(component.generating()).toBe(true);
+    expect(buttonWithText('Generate all').disabled).toBe(true);
+    expect(buttonWithText('Export').disabled).toBe(true);
 
     firstResult.resolve({ text: 'First description' });
     await vi.waitFor(() => expect(ai.describeImage).toHaveBeenCalledTimes(2));
@@ -171,7 +242,7 @@ describe('GenerateDescriptionsComponent', () => {
     expectText(first, 'First description', 17);
     expect(row(first).querySelector('mat-spinner')).toBeNull();
     expect(row(second).querySelector('mat-spinner')).not.toBeNull();
-    expect(component.generating).toBe(true);
+    expect(component.generating()).toBe(true);
     expect(costs.cumulativeCost()).toBe(0);
     expect(imageList.imageList[0]).toBe(first);
     expect(imageList.imageList[1]).toBe(second);
@@ -182,7 +253,9 @@ describe('GenerateDescriptionsComponent', () => {
     await fixture.whenStable();
     expectText(second, 'Second result', 13);
     expect(row(second).querySelector('mat-spinner')).toBeNull();
-    expect(component.generating).toBe(false);
+    expect(component.generating()).toBe(false);
+    expect(buttonWithText('Generate all').disabled).toBe(false);
+    expect(buttonWithText('Export').disabled).toBe(false);
     expect(row(first).querySelectorAll('td')[2].textContent).toContain('Regenerate');
   });
 
@@ -207,7 +280,63 @@ describe('GenerateDescriptionsComponent', () => {
     expect(row(first).querySelector('.no-desc')).not.toBeNull();
     expect(first.descriptions).toEqual([]);
     expect(ai.describeImage).toHaveBeenCalledTimes(1);
+    expect(component.generating()).toBe(false);
+    expect(buttonWithText('Generate all').disabled).toBe(false);
+    expect(snackBar.open).toHaveBeenCalledTimes(2);
+    snackDismissals[1].next();
+    snackDismissals[1].complete();
+    expect(snackBar.open).toHaveBeenCalledTimes(2);
     subscription.unsubscribe();
+  });
+
+  it('stops after an awaited request when the progress action clears the generation signal', async () => {
+    const first = image();
+    const second = image();
+    await showImages(first, second);
+    const firstResult = deferred<AiResult>();
+    ai.describeImage.mockReturnValueOnce(firstResult.promise);
+
+    const generating = component.generateAll();
+    await vi.waitFor(() => expect(ai.describeImage).toHaveBeenCalledTimes(1));
+    snackActions[0].next();
+    await fixture.whenStable();
+    expect(component.generating()).toBe(false);
+    expect(buttonWithText('Generate all').disabled).toBe(false);
+    expect(row(first).querySelector('mat-spinner')).not.toBeNull();
+
+    firstResult.resolve({ text: 'Completed in-flight result' });
+    await generating;
+    await fixture.whenStable();
+    expect(ai.describeImage).toHaveBeenCalledTimes(1);
+    expectText(first, 'Completed in-flight result', 26);
+    expect(second.descriptions).toEqual([]);
+    expect(first.generating).toBe(false);
+    expect(second.generating).toBe(false);
+  });
+
+  it('stops during a rate-limit delay before starting the next request', async () => {
+    const first = image();
+    const second = image();
+    await showImages(first, second);
+    const delay = deferred<number>();
+    const enforceRpm = vi.spyOn(component as any, 'enforceRpm')
+      .mockResolvedValueOnce(1)
+      .mockReturnValueOnce(delay.promise);
+    ai.describeImage.mockResolvedValueOnce({ text: 'First result' });
+
+    const generating = component.generateAll();
+    await vi.waitFor(() => expect(enforceRpm).toHaveBeenCalledTimes(2));
+    expect(ai.describeImage).toHaveBeenCalledTimes(1);
+    snackActions[0].next();
+    delay.resolve(2);
+    await generating;
+    await fixture.whenStable();
+
+    expect(component.generating()).toBe(false);
+    expect(ai.describeImage).toHaveBeenCalledTimes(1);
+    expectText(first, 'First result', 12);
+    expect(second.descriptions).toEqual([]);
+    expect(buttonWithText('Generate all').disabled).toBe(false);
   });
 
   it('renders an async translation as the selected description with navigation actions and length', async () => {
@@ -341,6 +470,38 @@ describe('GenerateDescriptionsComponent', () => {
     expect(code.querySelector('.token.tag')).not.toBeNull();
   });
 
+  it('renders the transcription and TEI phases before highlighting the encoded result', async () => {
+    const target = image();
+    await showImages(target);
+    await enableTei();
+    const transcription = deferred<AiResult>();
+    const encoding = deferred<AiResult>();
+    ai.describeImagesFilesApi
+      .mockReturnValueOnce(transcription.promise)
+      .mockReturnValueOnce(encoding.promise);
+
+    const generating = component.generate(target);
+    await vi.waitFor(() => expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(1));
+    await fixture.whenStable();
+    expect(component.teiEncoding()).toBe(false);
+    expect(row(target).querySelector('.spinner-label')?.textContent).toContain('Generating transcription');
+
+    transcription.resolve({ text: 'Transcribed text' });
+    await vi.waitFor(() => expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(2));
+    await fixture.whenStable();
+    expect(component.teiEncoding()).toBe(true);
+    expect(row(target).querySelector('.spinner-label')?.textContent).toContain('Generating TEI encoding');
+
+    encoding.resolve({ text: '<body><p>Encoded result</p></body>' });
+    await generating;
+    await fixture.whenStable();
+    const code = row(target).querySelector('code')!;
+    expect(component.generating()).toBe(false);
+    expect(component.teiEncoding()).toBe(false);
+    expect(code.textContent).toBe('<p>Encoded result</p>');
+    expect(code.querySelector('.token.tag')).not.toBeNull();
+  });
+
   it('keeps a TEI highlighting request until upload cleanup finishes and its code actually renders', async () => {
     const target = image();
     await showImages(target);
@@ -415,5 +576,66 @@ describe('GenerateDescriptionsComponent', () => {
     expect(fixture.nativeElement.querySelector('.no-images')).not.toBeNull();
     expect(component['needsHighlight']().size).toBe(0);
     expect(highlight).not.toHaveBeenCalled();
+  });
+
+  it('uses the existing synchronous export lifetime and forwards the dialog options', async () => {
+    await showImages(image([description('Ready to export')]));
+    const result = dialogResult<{
+      value: boolean;
+      selectedExportFormat: string;
+      filename: string;
+    }>();
+    const exportFile = vi.spyOn(TestBed.inject(ExportService), 'exportImageListToFile')
+      .mockImplementation(() => expect(component.exporting()).toBe(true));
+
+    component.export();
+    expect(component.exporting()).toBe(false);
+    const dialogConfig = vi.mocked(TestBed.inject(MatDialog).open).mock.calls[0][1];
+    expect(dialogConfig).toEqual(expect.objectContaining({ data: { teiTranscriptions: false } }));
+
+    result.next({ value: true, selectedExportFormat: 'csv', filename: 'reviewed-images' });
+    result.complete();
+    await fixture.whenStable();
+    expect(exportFile).toHaveBeenCalledWith('csv', 'reviewed-images');
+    expect(component.exporting()).toBe(false);
+    expect(buttonWithText('Export').disabled).toBe(false);
+  });
+
+  it('renders batch cancellation immediately and does not overwrite it with a late result', async () => {
+    const first = image();
+    const second = image();
+    await showImages(first, second);
+    settings.updateSelectedTaskType('transcriptionBatchTei');
+    settings.updateBatchSize(1);
+    await fixture.whenStable();
+    const lateResult = deferred<AiResult>();
+    ai.describeImagesFilesApi
+      .mockReturnValueOnce(lateResult.promise)
+      .mockResolvedValueOnce({ text: '<body><p>Second batch</p></body>' });
+
+    const generating = component.generateAll();
+    await vi.waitFor(() => expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(1));
+    await fixture.whenStable();
+    expect(component.batchResults.results().map(batch => batch.status)).toEqual(['generating', 'pending']);
+    expect(fixture.nativeElement.querySelector('.batch-generating')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.batch-pending')).not.toBeNull();
+    expect(first.generating).toBe(true);
+
+    snackActions[0].next();
+    await fixture.whenStable();
+    expect(component.generating()).toBe(false);
+    expect(component.batchResults.results().map(batch => batch.status)).toEqual(['cancelled', 'cancelled']);
+    expect(fixture.nativeElement.querySelectorAll('.batch-cancelled')).toHaveLength(2);
+    expect(first.generating).toBe(false);
+    expect(second.generating).toBe(false);
+
+    lateResult.resolve({ text: '<body><p>Late first batch</p></body>' });
+    await generating;
+    await fixture.whenStable();
+    expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(1);
+    expect(component.batchResults.results().map(batch => batch.status)).toEqual(['cancelled', 'cancelled']);
+    expect(component.batchResults.results()[0].teiBody).toBeUndefined();
+    expect(first.generating).toBe(false);
+    expect(second.generating).toBe(false);
   });
 });

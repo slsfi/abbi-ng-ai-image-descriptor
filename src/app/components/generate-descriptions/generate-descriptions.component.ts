@@ -1,7 +1,6 @@
 import {
-  AfterViewInit, Component, DestroyRef, ElementRef, OnInit, ViewChild,
-  afterRenderEffect, inject, signal, viewChildren,
-  ChangeDetectionStrategy
+  Component, DestroyRef, ElementRef, OnInit,
+  afterRenderEffect, effect, inject, signal, viewChild, viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncPipe } from '@angular/common';
@@ -62,12 +61,11 @@ import { LanguageCode } from '../../../assets/config/prompts';
     BatchResultsComponent,
     CharacterCountPipe,
     BatchPlanComponent
-],
+  ],
   templateUrl: './generate-descriptions.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './generate-descriptions.component.scss'
 })
-export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
+export class GenerateDescriptionsComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private readonly dialog = inject(MatDialog);
   readonly costService = inject(CostService);
@@ -79,14 +77,14 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   readonly settings = inject(SettingsService);
   private readonly snackBar = inject(MatSnackBar);
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  readonly paginator = viewChild(MatPaginator);
   readonly teiCodeEls = viewChildren<ElementRef<HTMLElement>>('teiCodeEl');
 
   currentPaginatorSize: number = 10;
   matTableDataSource = new MatTableDataSource<ImageData>([]);
   displayedColumns: string[] = ['imagePreview', 'description', 'actions'];
-  exporting: boolean = false;
-  generating: boolean = false;
+  readonly exporting = signal(false);
+  readonly generating = signal(false);
 
   teiEncoding = signal<boolean>(false);
 
@@ -117,6 +115,10 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   private readonly cancelledBatchIds = new Set<string>();
 
   constructor() {
+    effect(() => {
+      this.matTableDataSource.paginator = this.paginator() ?? null;
+    });
+
     afterRenderEffect(() => {
       // Run Prism and highlighting code blocks only when there
       // are code nodes in DOM and some of them have been marked
@@ -159,10 +161,6 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
         });
       }
     );
-  }
-
-  ngAfterViewInit(): void {
-    this.matTableDataSource.paginator = this.paginator;
   }
 
   async generateAll() {
@@ -214,14 +212,14 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     let lastRequestAt: number | null = null;
 
     for (const imageObj of this.imageListService.imageList) {
-      if (!this.generating) {
+      if (!this.generating()) {
         // Generation has been stopped by user
         break;
       }
 
       // Throttle (only when rpm < 100)
       lastRequestAt = await this.enforceRpm(settings.model?.rpm, lastRequestAt);
-      if (!this.generating) {
+      if (!this.generating()) {
         break;
       }
 
@@ -304,7 +302,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     // 2. TEI-encode transcription from previous pass
     try {
       for (const teiEncodingPass of [false, true]) {
-        if (!this.generating) {
+        if (!this.generating()) {
           // Generation has been stopped by user
           break;
         }
@@ -415,14 +413,14 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
       try {
         for (const teiEncodingPass of [false, true]) {
-          if (!this.generating) {
+          if (!this.generating()) {
             // Generation has been stopped by user
             break loopImages;
           }
 
           // Throttle (only when rpm < 100)
           lastRequestAt = await this.enforceRpm(settings.model?.rpm, lastRequestAt);
-          if (!this.generating) {
+          if (!this.generating()) {
             break loopImages;
           }
 
@@ -533,13 +531,13 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
     // Process each batch
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
-      if (!this.generating) {
+      if (!this.generating()) {
         break;
       }
 
       // Throttle per REQUEST (per batch)
       lastRequestAt = await this.enforceRpm(settings.model?.rpm, lastRequestAt);
-      if (!this.generating) {
+      if (!this.generating()) {
         break;
       }
 
@@ -931,12 +929,12 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result?.value && result?.selectedExportFormat) {
-        this.exporting = true;
+        this.exporting.set(true);
         this.exportService.exportImageListToFile(
           result?.selectedExportFormat,
           result?.filename
         );
-        this.exporting = false;
+        this.exporting.set(false);
       }
     });
   }
@@ -1054,7 +1052,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
     ref.afterDismissed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.errorSnackRef = null;
 
-      if (this.generating && this.lastProgressMessage) {
+      if (this.generating() && this.lastProgressMessage) {
         this.openProgressSnack(this.lastProgressMessage);
       } else {
         this.closeProgressSnack();
@@ -1096,7 +1094,7 @@ export class GenerateDescriptionsComponent implements AfterViewInit, OnInit {
   }
 
   private setGlobalGenerating(isGenerating: boolean) {
-    this.generating = isGenerating;
+    this.generating.set(isGenerating);
   }
 
   private setImageGenerating(imageObj: ImageData, isGenerating: boolean) {
