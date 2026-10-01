@@ -20,9 +20,7 @@
             "outputPath": "dist",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": [],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -65,10 +63,7 @@
                 "@angular/material/prebuilt-themes/azure-blue.css",
                 "src/styles.scss"
               ],
-              "polyfills": [
-                "zone.js",
-                "zone.js/testing"
-              ]
+              "polyfills": []
             }
           },
           "defaultConfiguration": "production"

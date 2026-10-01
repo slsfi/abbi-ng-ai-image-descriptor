@@ -118,6 +118,7 @@ describe('AppComponent', () => {
   });
 
   it('creates and binds the child form after its initial render without a nested change-detection pass', async () => {
+    expect(Reflect.get(globalThis, 'Zone')).toBeUndefined();
     expect(component.apiKeyFormGroup()).toBeUndefined();
     await fixture.whenStable();
 

@@ -1,12 +1,12 @@
 # Angular zoneless and default-OnPush migration plan
 
-Investigated on 2026-09-30 against the Angular 22.2.0 app. The implementation status below records completed phases; the remaining phases are still planned.
+Investigated on 2026-09-30 against the Angular 22.2.0 app. The implementation status below records all seven completed phases and their verification.
 
 The structure and migration rules follow the implemented `digital-edition-cms-vincent/docs/zoneless-migration-plan.md` reference (completed on 2026-09-25), adapted to this app's file loading, AI generation, form handoff, and image-result store.
 
 ## Implementation status
 
-**Phases 1–6 implemented and verified (phase 6 on 2026-10-01). Phase 7 has not started.**
+**All seven phases implemented and verified (phases 6–7 on 2026-10-01). The app and test builds run without Zone.js.**
 
 - Baseline: `npm test -- --watch=false` passed 18 test files / 43 tests; `npm run build` passed.
 - Phase 1: the nine compatible Eager children now use implicit default OnPush, and the existing batch-results component's redundant OnPush declaration was removed.
@@ -36,7 +36,12 @@ The structure and migration rules follow the implemented `digital-edition-cms-vi
 - Phase 6 (2026-10-01): `AppComponent` now uses implicit default OnPush after verification of the child-component gate. Removed its Eager declaration and unused strategy import. A source audit confirms all 14 app components use implicit default OnPush, with no remaining `changeDetection:` declarations or `ChangeDetectionStrategy` imports.
 - Added four zoneless root integration regressions for viewport-driven stepper orientation through the existing observable/`AsyncPipe`, image-step completion from list membership and deferred-child loading output, settings/custom-prompt/session-cost summaries, and a complete mocked settings → API-key → native file-loading → generation workflow. The workflow uses the real child components and deferred loading, renders incremental file progress and delayed AI results, and checks controls and session cost without post-action `detectChanges()` or manual defer rendering.
 - Phase-6 focused verification: 1 test file / 11 tests passed. Full suite: 22 test files / 110 tests passed. Production build passed with the existing initial-bundle budget and CommonJS warnings.
-- Production's Zone provider, application/test polyfills, and Zone.js dependencies remain in place for phase 7. Existing observable and form APIs are preserved.
+- After phase 6, production's Zone provider, application/test polyfills, and Zone.js dependencies remained in place for phase 7. Existing observable and form APIs were preserved.
+- Phase 7 (2026-10-01): `src/main.ts` now bootstraps directly with `appConfig`, both application and testing polyfill arrays are explicitly empty, and `npm uninstall zone.js` removed the direct dependency and installed package. The lockfile diff is limited to those Zone.js entries; unrelated package versions, metadata, and install-script approvals are preserved. Angular's optional Zone.js peer metadata remains intentional.
+- The existing root creation/form-handoff regression also asserts that `globalThis.Zone` is absent. Explicit zoneless providers remain in the component regression specs; no custom test bootstrap was added. The full suite passes with Zone.js physically absent: 22 test files / 110 tests.
+- Ran a local development build with temporary `provideCheckNoChangesConfig({ exhaustive: true, interval: 1000 })`. A clean headless Chrome context, using mocked AI responses without external AI requests, passed the browser checklist for settings and viewport changes, API-key typing/file loading/restoration, native image loading/reset/step completion, pagination, single/sequential/translation/TEI/batch generation, stop/cancel/error/recovery, editing/deletion/navigation, dialog zoom/resize/preview, custom-prompt save/restore, and highlighting. All ten existing export formats produced real downloads; text/XML exports contained the selected edited content. No exhaustive change-detection errors occurred, and `globalThis.Zone` was absent.
+- Removed the diagnostic provider/import and temporary browser helper after verification. The final production build passed with the existing initial-bundle budget and CommonJS warnings. A separate clean Chrome check of the production output passed bootstrap, idle deferred loading, viewport/task updates, and absence of the Zone global. The initial bundle decreased from approximately 1.74 MB to 1.69 MB.
+- Final audit: all 14 app components use implicit default OnPush, application/testing polyfills are empty, no production source enables Zone.js or contains the old `NgZone`/`detectChanges()` handoff, `npm ls zone.js --all` reports an empty tree, and no installed/locked Zone.js package or temporary diagnostic configuration remains.
 
 ## Objective and constraints
 
@@ -268,4 +273,4 @@ Inspect repository configuration and application sources for `zone.js`, `provide
 | Export | Existing formats still download the currently selected/edited descriptions and batch results. |
 | Dependency removal | App and testing polyfills are empty; no app import/provider enables Zone.js; `npm ls zone.js --all` reports no installed dependency; the browser has no `Zone` global. |
 
-The final acceptance condition is seven independently verified commits, all 14 app components using default OnPush, the full regression suite passing, a successful production build, and the diagnostic/browser workflows above functioning without Zone.js. Final zoneless acceptance checks remain pending; completed phase verification is recorded above.
+The final acceptance condition is seven independently verified commits, all 14 app components using default OnPush, the full regression suite passing, a successful production build, and the diagnostic/browser workflows above functioning without Zone.js. All seven implementation phases and final zoneless acceptance checks are verified; completed phase verification is recorded above.
