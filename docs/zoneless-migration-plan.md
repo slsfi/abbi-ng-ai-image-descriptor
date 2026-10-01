@@ -6,7 +6,7 @@ The structure and migration rules follow the implemented `digital-edition-cms-vi
 
 ## Implementation status
 
-**Phases 1–4 implemented and verified on 2026-09-30. Phases 5–7 have not started.**
+**Phases 1–5 implemented and verified on 2026-09-30. Phases 6–7 have not started.**
 
 - Baseline: `npm test -- --watch=false` passed 18 test files / 43 tests; `npm run build` passed.
 - Phase 1: the nine compatible Eager children now use implicit default OnPush, and the existing batch-results component's redundant OnPush declaration was removed.
@@ -28,7 +28,11 @@ The structure and migration rules follow the implemented `digital-edition-cms-vi
 - TEI highlighting requests remain pending until matching code has rendered and been highlighted. Removed images/descriptions discard their requests, late SDK commits cannot queue highlighting for a removed image, and deletion highlights the newly selected TEI description.
 - Added 19 zoneless service/table regressions for identity preservation, generation/translation, edits, navigation, deletion, no-op notifications, real Prism highlighting, delayed upload cleanup, and removal during SDK work. Plain-text edits and intermediate sequential results render while global generation state stays unchanged and cost/dialog/snackbar mocks provide no incidental rendering notification.
 - Phase-4 focused verification: 2 test files / 20 tests passed. Full suite: 22 test files / 99 tests passed. Production build passed with the existing initial-bundle budget and CommonJS warnings.
-- `AppComponent` and `GenerateDescriptionsComponent` remain explicitly Eager. Global generation/export fields, paginator wiring, Zone.js configuration/dependencies, and phases 5–7 are unchanged.
+- Phase 5: `GenerateDescriptionsComponent` now uses implicit default OnPush. Its component-wide generation and export controls are writable signals, and every template binding, async loop boundary, snackbar callback, and export assignment reads or writes the signal explicitly.
+- The conditional Material paginator is a `viewChild()` signal. An effect attaches the current paginator to the existing `MatTableDataSource` and clears it when the table disappears, covering initially empty views and task-mode changes without changing the table or observable APIs.
+- Added seven zoneless generation regressions for delayed single-image controls, stop actions during an awaited request and rate-limit delay, TEI phase rendering/highlighting, conditional paginator replacement, synchronous export state/options, and late batch completion after cancellation. Together with the existing batch-results tests, pending, generating, success, error, cancelled, regeneration, and cancellation rendering remain covered.
+- Phase-5 focused verification: 2 test files / 22 tests passed. Full suite: 22 test files / 106 tests passed. Production build passed with the existing initial-bundle budget and CommonJS warnings.
+- Source audit: all 13 app-owned child components now use implicit default OnPush. `AppComponent` remains explicitly Eager until phase 6; Zone.js configuration/dependencies and phases 6–7 are unchanged.
 
 ## Objective and constraints
 

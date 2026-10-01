@@ -15,6 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Implement phase 1 of the Angular zoneless and default-OnPush migration plan: migrate compatible child components to `OnPush`.
 - Implement phase 2 of the Angular zoneless and default-OnPush migration plan: use signals for file-loading progress.
 - Implement phase 3 of the Angular zoneless and default-OnPush migration plan: make API-key validation and root form integration reactive.
+- Implement phase 4 of the Angular zoneless and default-OnPush migration plan: publish image-row changes through the existing observable.
+- Implement phase 5 of the Angular zoneless and default-OnPush migration plan: use signals for generation controls and migrate their parent.
 - Deps: update `@angular/core`, `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.0.
 
 
