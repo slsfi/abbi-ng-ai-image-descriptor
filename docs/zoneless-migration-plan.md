@@ -6,7 +6,7 @@ The structure and migration rules follow the implemented `digital-edition-cms-vi
 
 ## Implementation status
 
-**Phases 1–5 implemented and verified on 2026-09-30. Phases 6–7 have not started.**
+**Phases 1–6 implemented and verified (phase 6 on 2026-10-01). Phase 7 has not started.**
 
 - Baseline: `npm test -- --watch=false` passed 18 test files / 43 tests; `npm run build` passed.
 - Phase 1: the nine compatible Eager children now use implicit default OnPush, and the existing batch-results component's redundant OnPush declaration was removed.
@@ -32,7 +32,11 @@ The structure and migration rules follow the implemented `digital-edition-cms-vi
 - The conditional Material paginator is a `viewChild()` signal. An effect attaches the current paginator to the existing `MatTableDataSource` and clears it when the table disappears, covering initially empty views and task-mode changes without changing the table or observable APIs.
 - Added seven zoneless generation regressions for delayed single-image controls, stop actions during an awaited request and rate-limit delay, TEI phase rendering/highlighting, conditional paginator replacement, synchronous export state/options, and late batch completion after cancellation. Together with the existing batch-results tests, pending, generating, success, error, cancelled, regeneration, and cancellation rendering remain covered.
 - Phase-5 focused verification: 2 test files / 22 tests passed. Full suite: 22 test files / 106 tests passed. Production build passed with the existing initial-bundle budget and CommonJS warnings.
-- Source audit: all 13 app-owned child components now use implicit default OnPush. `AppComponent` remains explicitly Eager until phase 6; Zone.js configuration/dependencies and phases 6–7 are unchanged.
+- After phase 5, all 13 app-owned child components used implicit default OnPush. `AppComponent` remained explicitly Eager until phase 6; Zone.js configuration/dependencies and phases 6–7 were unchanged.
+- Phase 6 (2026-10-01): `AppComponent` now uses implicit default OnPush after verification of the child-component gate. Removed its Eager declaration and unused strategy import. A source audit confirms all 14 app components use implicit default OnPush, with no remaining `changeDetection:` declarations or `ChangeDetectionStrategy` imports.
+- Added four zoneless root integration regressions for viewport-driven stepper orientation through the existing observable/`AsyncPipe`, image-step completion from list membership and deferred-child loading output, settings/custom-prompt/session-cost summaries, and a complete mocked settings → API-key → native file-loading → generation workflow. The workflow uses the real child components and deferred loading, renders incremental file progress and delayed AI results, and checks controls and session cost without post-action `detectChanges()` or manual defer rendering.
+- Phase-6 focused verification: 1 test file / 11 tests passed. Full suite: 22 test files / 110 tests passed. Production build passed with the existing initial-bundle budget and CommonJS warnings.
+- Production's Zone provider, application/test polyfills, and Zone.js dependencies remain in place for phase 7. Existing observable and form APIs are preserved.
 
 ## Objective and constraints
 
