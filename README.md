@@ -59,6 +59,8 @@ npm start
 
 Open your browser on http://localhost:4200/. The app will automatically rebuild and reload if you change any of the source files.
 
+See [Development notes][development] for architecture and testing guidance.
+
 ## Building and deployment
 
 On each commit in the `main` branch a Docker image with the tag `main` is automatically built using GitHub Actions and stored in the [GitHub Container Registry][abbi_ghcr].
@@ -140,6 +142,7 @@ The prompts for the various tasks supported by the app are defined in separate p
 [changelog]: CHANGELOG.md
 [clone_repository]: https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository
 [compose.yaml]: compose.yaml
+[development]: docs/DEVELOPMENT.md
 [docker_build]: .github/workflows/docker-build-and-push.yml
 [dockerfile]: Dockerfile
 [git_bash]: https://gitforwindows.org/
