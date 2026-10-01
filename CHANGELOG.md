@@ -23,7 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Implement phase 5 of the Angular zoneless and default-OnPush migration plan: use signals for generation controls and migrate their parent.
 - Implement phase 6 of the Angular zoneless and default-OnPush migration plan: migrate the root to `OnPush`.
 - Implement phase 7 of the Angular zoneless and default-OnPush migration plan: remove Zone.js from application and test builds.
-- Deps: update `@angular/core`, `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.0.
+- Deps: update `@angular/core`, `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.1.
 - Deps: update `docx` to 9.8.1.
 - Deps (dev): update `vitest` to 5.0.3.
 
