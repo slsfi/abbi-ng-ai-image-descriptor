@@ -1,7 +1,6 @@
 import {
   Component, OnDestroy, OnInit, computed, effect, inject,
-  signal, untracked,
-  ChangeDetectionStrategy
+  signal, untracked
 } from '@angular/core';
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { FormControlStatus, FormGroup } from '@angular/forms';
@@ -42,7 +41,6 @@ import { ModelProvider } from '../assets/config/models';
     UpperFirstLetterPipe
   ],
   templateUrl: './app.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit, OnDestroy {
