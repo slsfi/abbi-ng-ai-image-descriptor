@@ -8,42 +8,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [4.1.0] – 2026-10-02
+
 ### Added
 
-- `AGENTS.md` with instructions for Codex.
-- Support for the Google [`gemini-3.8-flash`](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash) model.
-- Support for the OpenAI [`gpt-6.1-sol`](https://developers.openai.com/api/docs/models/gpt-6.1-sol) model.
+- `AGENTS.md` with instructions for Codex. ([283b5df](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/283b5df3a3dfe990a5bb1cf911a04bc19e537662))
+- Support for the Google [`gemini-3.8-flash`](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash) model. ([d3e6c3b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/d3e6c3bd5f15a080d9158028769516d8bb622919))
+- Support for the OpenAI [`gpt-6.1-sol`](https://developers.openai.com/api/docs/models/gpt-6.1-sol) model. ([dc3158f](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/dc3158fb8a918e908b7f990ba5ae24665d8c5af8))
 
 ### Changed
 
-- Docker: use the `Dockerfile` as the single source of truth for Node.js and nginx base-image tags.
-- Docs: add Angular zoneless and default-OnPush migration plan.
-- Implement phase 1 of the Angular zoneless and default-OnPush migration plan: migrate compatible child components to `OnPush`.
-- Implement phase 2 of the Angular zoneless and default-OnPush migration plan: use signals for file-loading progress.
-- Implement phase 3 of the Angular zoneless and default-OnPush migration plan: make API-key validation and root form integration reactive.
-- Implement phase 4 of the Angular zoneless and default-OnPush migration plan: publish image-row changes through the existing observable.
-- Implement phase 5 of the Angular zoneless and default-OnPush migration plan: use signals for generation controls and migrate their parent.
-- Implement phase 6 of the Angular zoneless and default-OnPush migration plan: migrate the root to `OnPush`.
-- Implement phase 7 of the Angular zoneless and default-OnPush migration plan: remove Zone.js from application and test builds.
-- Migrate the remaining `@Input` properties in the file-input component to Angular signal inputs and update their template bindings.
-- Migrate the remaining `@Output` events in the file-input, add-images, and API-key form components to Angular's `output()` function.
-- Migrate the remaining `@ViewChild` queries in the edit-description dialog to Angular signal queries and update their references.
-- Edit description dialog: use the component's `host` property for resize listener.
-- Edit description dialog: use signals for zoom and pan state and computed signals for the image transform and zoom status.
-- Deps: update `@angular/core`, `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.1.
-- Deps: update `@google/genai` to 2.26.0.
-- Deps: update `docx` to 9.8.1.
-- Deps: update `openai` to 7.27.0.
-- Deps (dev): update `vitest` to 5.0.3.
-- Deps: update transitive dependencies.
+- Docker: use the `Dockerfile` as the single source of truth for Node.js and nginx base-image tags. ([b0c3f22](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/b0c3f22d233dac445a22af39aa679f50859cd788))
+- Migrate to Angular zoneless and default-`OnPush` APIs, remove `zone.js`. ([2fdc284](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/2fdc284287b66bb027588815986205ef78c7c9b5), [db35039](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/db35039c6ed67c1abdcdaa49cfc13c84cab129a5), [d038870](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/d038870730d4d853ad46791fdc604cec0e2d1799), [2ee21f1](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/2ee21f167d5a21326ee9c2d883d79fcddea12e5b), [a6c23f3](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/a6c23f330537c6d42bea98b7da3e1ced7775b7f1), [816286a](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/816286a670307cd9e3488e212ba857fca6a930bc), [7257b77](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/7257b7723e4a0e6621563d4d50c54c01825129ff), [1b35023](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/1b35023b465ede9104cd75e253c9911945dc01a6))
+- Migrate the remaining `@Input` properties in the file-input component to Angular signal inputs and update their template bindings. ([75be862](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/75be86246afbc341b63cc99e6399c2c299c1595e))
+- Migrate the remaining `@Output` events in the file-input, add-images, and API-key form components to Angular's `output()` function. ([683fde0](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/683fde0012c02644a0986894e3e746cbc9344054))
+- Migrate the remaining `@ViewChild` queries in the edit-description dialog to Angular signal queries and update their references. ([9e4efa0](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/9e4efa0db055b6116eda66d6a57e5c9aca84ea04))
+- Edit description dialog: use the component's `host` property for resize listener. ([8ecb1cc](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/8ecb1cca581af26f5f6326ffb7753cb0b8bd17c0))
+- Edit description dialog: use signals for zoom and pan state and computed signals for the image transform and zoom status. ([4c0f154](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/4c0f1545336160fcfc21ab5420097f9336917dc3))
+- Deps: update `@angular/core`, `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.1. ([26dafb8](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/26dafb82f22d227656771f6998d3b967504b4858), [df69efb](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/df69efbda3633e2fc0f8f3c7883376ab582ffad7))
+- Deps: update `@google/genai` to 2.26.0. ([b4c6ac7](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/b4c6ac7815b5ed776ae1d5b9878c3940083c261d))
+- Deps: update `docx` to 9.8.1. ([eb23e32](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/eb23e32f0e45caded9d72496848eefb8170f77fe))
+- Deps: update `openai` to 7.27.0. ([bfbbe8d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/bfbbe8dfad89736cdff56d71033902cd4cbfa3f2))
+- Deps (dev): update `vitest` to 5.0.3. ([236968d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/236968d47c6bf6f065b90d6095a0f277c522f610))
+- Deps: update transitive dependencies. ([c73d491](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/c73d4917428d09e5b516c535dac44dc171c6c059))
 
 ### Fixed
 
-- Prevent batch regeneration from interrupting an automatic generate-all run. Keep regenerate buttons visible and disabled only during the automatic run, while allowing concurrent manual regenerations afterward.
+- Prevent batch regeneration from interrupting an automatic generate-all run. Keep regenerate buttons visible and disabled only during the automatic run, while allowing concurrent manual regenerations afterward. ([0c61ab3](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/0c61ab364840fece2e0196d8746f647c96247030))
 
 ### Removed
 
-- The `gpt-5.6-terra` model.
+- The `gpt-5.6-terra` model. ([dc3158f](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/dc3158fb8a918e908b7f990ba5ae24665d8c5af8))
 
 
 
@@ -554,7 +551,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.0.1...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.1.0...HEAD
+[4.1.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.0.1...4.1.0
 [4.0.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.0.0...4.0.1
 [4.0.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/3.1.0...4.0.0
 [3.1.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/3.0.0...3.1.0
