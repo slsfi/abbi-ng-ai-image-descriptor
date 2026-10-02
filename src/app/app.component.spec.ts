@@ -150,10 +150,10 @@ describe('AppComponent', () => {
     await fixture.whenStable();
     settings.updateSelectedTaskType('transcriptionBatchTei');
     await fixture.whenStable();
-    settings.updateSelectedModelId('gpt-5.6-terra');
+    settings.updateSelectedModelId('gpt-5.6-sol');
     await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('.run-context-model .run-context-value').textContent)
-      .toBe('GPT-5.6 Terra');
+      .toBe('GPT-5.6 Sol');
     expect(fixture.nativeElement.querySelector('#generate-step-title').textContent)
       .toBe(`Generate ${settings.taskNouns().plural}`);
 

@@ -2,7 +2,7 @@ import { Model } from '../../app/types/model.types'
 import { TaskTypeId } from './prompts';
 
 export type ModelProvider = 'OpenAI' | 'Google';
-export type ModelId = 'gpt-4.1' | 'gpt-5.6-terra' | 'gpt-5.6-sol' | 'gemini-3.1-pro-preview' | 'gemini-3.7-flash' | 'gemini-3.8-flash' | 'gemini-2.5-pro' | 'gemini-2.5-flash';
+export type ModelId = 'gpt-4.1' | 'gpt-5.6-sol' | 'gpt-6.1-sol' | 'gemini-2.5-flash' | 'gemini-2.5-pro' | 'gemini-3.7-flash' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview';
 
 // provider = name of model creator
 // name = display name of the model
@@ -44,7 +44,7 @@ export const MODELS: Model[] = [
     provider: 'OpenAI',
     name: 'GPT-4.1',
     id: 'gpt-4.1',
-    description: 'A high-quality model for generating clear, accurate, and well-structured alt text, especially suited for detailed image descriptions.',
+    description: 'A high-quality non-reasoning model for generating clear, accurate, and well-structured alt text.',
     inputPrice: 2.0,
     outputPrice: 8.0,
     rpm: 5000,
@@ -56,14 +56,14 @@ export const MODELS: Model[] = [
   },
   {
     provider: 'OpenAI',
-    name: 'GPT-5.6 Terra',
-    id: 'gpt-5.6-terra',
-    description: 'A cost-conscious model that balances quality and price for alt text and complex image understanding.',
-    inputPrice: { tiers: [{ upToTokens: 272000, per1M: 2.00 }, { upToTokens: null, per1M: 4.00 }] },
-    outputPrice: { tiers: [{ upToTokens: 272000, per1M: 12.00 }, { upToTokens: null, per1M: 18.00 }] },
+    name: 'GPT-5.6 Sol',
+    id: 'gpt-5.6-sol',
+    description: 'The flagship model in the GPT-5.6 family, suitable for high-quality alt text and complex image understanding.',
+    inputPrice: { tiers: [{ upToTokens: 272000, per1M: 4.00 }, { upToTokens: null, per1M: 8.00 }] },
+    outputPrice: { tiers: [{ upToTokens: 272000, per1M: 20.00 }, { upToTokens: null, per1M: 30.00 }] },
     rpm: 5000,
     supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
-    url: 'https://developers.openai.com/api/docs/models/gpt-5.6-terra',
+    url: 'https://developers.openai.com/api/docs/models/gpt-5.6-sol',
     parameters: {
       imageDetail: 'original',
       maxImageShortsidePx: null,
@@ -75,20 +75,54 @@ export const MODELS: Model[] = [
   },
   {
     provider: 'OpenAI',
-    name: 'GPT-5.6 Sol',
-    id: 'gpt-5.6-sol',
-    description: 'The flagship GPT-5.6 model for high-quality alt text and complex image understanding.',
-    inputPrice: { tiers: [{ upToTokens: 272000, per1M: 5.00 }, { upToTokens: null, per1M: 10.00 }] },
-    outputPrice: { tiers: [{ upToTokens: 272000, per1M: 30.00 }, { upToTokens: null, per1M: 45.00 }] },
+    name: 'GPT-6.1 Sol',
+    id: 'gpt-6.1-sol',
+    description: 'The near-flagship model in the GPT-6 family, suitable for high-quality alt text and complex image understanding.',
+    inputPrice: { tiers: [{ upToTokens: 272000, per1M: 2.00 }, { upToTokens: null, per1M: 4.00 }] },
+    outputPrice: { tiers: [{ upToTokens: 272000, per1M: 10.00 }, { upToTokens: null, per1M: 15.00 }] },
     rpm: 5000,
     supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
-    url: 'https://developers.openai.com/api/docs/models/gpt-5.6-sol',
+    url: 'https://developers.openai.com/api/docs/models/gpt-6.1-sol',
     parameters: {
       imageDetail: 'original',
       maxImageShortsidePx: null,
-      reasoningEffort: 'none',
-      reasoningEfforts: ['none', 'low', 'medium', 'high', 'xhigh'],
+      reasoningEffort: 'low',
+      reasoningEfforts: ['low', 'medium', 'high', 'xhigh'],
       reasoningSupportsTemperature: false
+    },
+    supportsFilesApi: true
+  },
+  {
+    provider: 'Google',
+    name: 'Gemini 2.5 Flash',
+    id: 'gemini-2.5-flash',
+    description: 'A fast and economical model for large-scale alt text and transcription tasks, providing good overall accuracy with excellent throughput.',
+    inputPrice: 0.30,
+    outputPrice: 2.50,
+    rpm: 1000,
+    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
+    url: 'https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash',
+    parameters: {
+      thinkingBudget: 512,
+      maxImageShortsidePx: null,
+      mediaResolution: 'high'
+    },
+    supportsFilesApi: true
+  },
+  {
+    provider: 'Google',
+    name: 'Gemini 2.5 Pro',
+    id: 'gemini-2.5-pro',
+    description: 'A high-quality general-purpose model that performs well for both alt text and transcription, offering strong accuracy but falling short of Gemini 3 Pro on handwritten text.',
+    inputPrice: { tiers: [{ upToTokens: 200000, per1M: 1.25 }, { upToTokens: null, per1M: 2.50 }] },
+    outputPrice: { tiers: [{ upToTokens: 200000, per1M: 10.00 }, { upToTokens: null, per1M: 15.00 }] },
+    rpm: 150,
+    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
+    url: 'https://ai.google.dev/gemini-api/docs/models#gemini-2.5-pro',
+    parameters: {
+      thinkingBudget: 512,
+      maxImageShortsidePx: null,
+      mediaResolution: 'high'
     },
     supportsFilesApi: true
   },
@@ -143,40 +177,6 @@ export const MODELS: Model[] = [
     parameters: {
       thinkingLevel: 'low',
       thinkingLevels: ['low', 'medium', 'high'],
-      maxImageShortsidePx: null,
-      mediaResolution: 'high'
-    },
-    supportsFilesApi: true
-  },
-  {
-    provider: 'Google',
-    name: 'Gemini 2.5 Pro',
-    id: 'gemini-2.5-pro',
-    description: 'A high-quality general-purpose model that performs well for both alt text and transcription, offering strong accuracy but falling short of Gemini 3 Pro on handwritten text.',
-    inputPrice: { tiers: [{ upToTokens: 200000, per1M: 1.25 }, { upToTokens: null, per1M: 2.50 }] },
-    outputPrice: { tiers: [{ upToTokens: 200000, per1M: 10.00 }, { upToTokens: null, per1M: 15.00 }] },
-    rpm: 150,
-    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
-    url: 'https://ai.google.dev/gemini-api/docs/models#gemini-2.5-pro',
-    parameters: {
-      thinkingBudget: 512,
-      maxImageShortsidePx: null,
-      mediaResolution: 'high'
-    },
-    supportsFilesApi: true
-  },
-  {
-    provider: 'Google',
-    name: 'Gemini 2.5 Flash',
-    id: 'gemini-2.5-flash',
-    description: 'A fast and economical model for large-scale alt text and transcription tasks, providing good overall accuracy with excellent throughput.',
-    inputPrice: 0.30,
-    outputPrice: 2.50,
-    rpm: 1000,
-    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
-    url: 'https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash',
-    parameters: {
-      thinkingBudget: 512,
       maxImageShortsidePx: null,
       mediaResolution: 'high'
     },

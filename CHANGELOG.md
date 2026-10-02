@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - `AGENTS.md` with instructions for Codex.
 - Support for the Google [`gemini-3.8-flash`](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash) model.
+- Support for the OpenAI [`gpt-6.1-sol`](https://developers.openai.com/api/docs/models/gpt-6.1-sol) model.
 
 ### Changed
 
@@ -39,6 +40,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Prevent batch regeneration from interrupting an automatic generate-all run. Keep regenerate buttons visible and disabled only during the automatic run, while allowing concurrent manual regenerations afterward.
 
+### Removed
+
+- The `gpt-5.6-terra` model.
 
 
 
