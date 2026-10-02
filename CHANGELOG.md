@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Edit description dialog: use signals for zoom and pan state and computed signals for the image transform and zoom status.
 - Deps: update `@angular/core`, `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.1.
 - Deps: update `docx` to 9.8.1.
+- Deps: update `openai` to 7.27.0.
 - Deps (dev): update `vitest` to 5.0.3.
 
 ### Fixed
