@@ -1,11 +1,11 @@
 <div class="file-upload">
-  <label [for]="uniqueId" [class.stroked]="appearence == 'stroked'">{{ label }}</label>
+  <label [for]="uniqueId" [class.stroked]="appearence() == 'stroked'">{{ label() }}</label>
   <input
     [id]="uniqueId"
     [name]="uniqueId"
     type="file"
     (change)="onFileSelected($event)"
-    [accept]="acceptedFileTypes"
-    [attr.multiple]="multiple ? '' : null"
+    [accept]="acceptedFileTypes()"
+    [attr.multiple]="multiple() ? '' : null"
   />
 </div>
