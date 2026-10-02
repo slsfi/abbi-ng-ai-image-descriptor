@@ -10,6 +10,8 @@ Use signals for template state updated by asynchronous callbacks, such as file-l
 
 Image results remain plain objects in [ImageListService](../src/app/services/image-list.service.ts). After changing a row's generation flag, descriptions, or active description, call `publishImageList()`. It emits a shallow array copy while preserving image and description references, which ongoing generation requests retain across awaits. Add/remove operations already publish the list.
 
+`generatingAll` covers the lifetime of an automatic batch generation loop, including cancellation cleanup. Batch regeneration is disabled only during that loop. Manual regenerations can run concurrently for different batches; the map of abort controllers keeps the global `generating` state active until every request and its cleanup have settled. The progress snackbar's Stop action cancels all running batches.
+
 API-key validation uses reactive forms and observable validators. Signal snapshots of form value/status/errors drive the validation UI and root stepper/defer state. Preserve these notifications when changing validation; asynchronous form updates alone do not schedule rendering.
 
 ## Regression tests

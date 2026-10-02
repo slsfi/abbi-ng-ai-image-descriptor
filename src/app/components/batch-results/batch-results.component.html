@@ -81,9 +81,11 @@
             
             @if (r.status === 'success' || r.status === 'error' || r.status === 'cancelled') {
               <button matIconButton
+                disabledInteractive
+                [disabled]="regenerationDisabled()"
                 (click)="generateOne(r)"
                 [attr.aria-label]="'Regenerate'"
-                [matTooltip]="'Regenerate'"
+                [matTooltip]="regenerationDisabled() ? 'Wait until the automatic run finishes before regenerating a batch.' : 'Regenerate'"
               >
                 <mat-icon>refresh</mat-icon>
               </button>

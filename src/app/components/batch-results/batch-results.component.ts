@@ -1,5 +1,5 @@
 import { Component, ElementRef, afterRenderEffect,
-         inject, output, signal, viewChildren
+         inject, input, output, signal, viewChildren
         } from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,6 +30,8 @@ export class BatchResultsComponent {
   readonly batchResults = inject(BatchResultsService);
   readonly exportService = inject(ExportService);
   readonly snackBar = inject(MatSnackBar);
+
+  readonly regenerationDisabled = input(false);
 
   /** Emitted when the user requests regeneration of a finished batch. */
   generateBatch = output<BatchResult>();
@@ -113,6 +115,7 @@ export class BatchResultsComponent {
   }
 
   generateOne(result: BatchResult): void {
+    if (this.regenerationDisabled()) return;
     this.generateBatch.emit(result);
   }
 
