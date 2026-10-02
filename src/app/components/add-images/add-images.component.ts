@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, inject, signal } from '@angular/core';
+import { Component, inject, output, signal } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -21,7 +21,7 @@ import { ImageData } from '../../types/image-data.types';
 export class AddImagesComponent {
   imageListService = inject(ImageListService);
 
-  @Output() addingImages = new EventEmitter<boolean>(false);
+  readonly addingImages = output<boolean>();
 
   processedCounter = signal(0);
   progressPercentage = signal(0);

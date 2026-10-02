@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output, input } from '@angular/core';
+import { Component, OnInit, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
@@ -12,7 +12,7 @@ export class FileInputComponent implements OnInit {
   readonly appearence = input<string>('flat'); // 'flat' or 'stroked'
   readonly label = input<string>('Upload Files');
   readonly multiple = input<boolean>(false);
-  @Output() filesSelected: EventEmitter<File[]> = new EventEmitter<File[]>();
+  readonly filesSelected = output<File[]>();
 
   selectedFiles: File[] = [];
   uniqueId: string = '';

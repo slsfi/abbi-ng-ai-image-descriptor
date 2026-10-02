@@ -1,5 +1,6 @@
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 
 import { ApiKeyFormComponent } from './api-key-form.component';
@@ -10,8 +11,8 @@ describe('ApiKeyFormComponent', () => {
   let fixture: ComponentFixture<ApiKeyFormComponent>;
   let validations: Subject<boolean>[];
   let ai: { isValidApiKey: ReturnType<typeof vi.fn>; updateClient: ReturnType<typeof vi.fn> };
-  let groups: ReturnType<typeof vi.fn>;
-  let validated: ReturnType<typeof vi.fn>;
+  let groups: ReturnType<typeof vi.fn<(group: FormGroup) => void>>;
+  let validated: ReturnType<typeof vi.fn<(key: string) => void>>;
 
   function input(): HTMLInputElement {
     return fixture.nativeElement.querySelector('input[formControlName="apiKeyFC"]');
@@ -47,8 +48,8 @@ describe('ApiKeyFormComponent', () => {
 
     fixture = TestBed.createComponent(ApiKeyFormComponent);
     component = fixture.componentInstance;
-    groups = vi.fn();
-    validated = vi.fn();
+    groups = vi.fn<(group: FormGroup) => void>();
+    validated = vi.fn<(key: string) => void>();
     component.formGroupOutput.subscribe(groups);
     component.apiKeyValidated.subscribe(validated);
   });

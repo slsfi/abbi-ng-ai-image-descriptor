@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnDestroy, OnInit, Output, WritableSignal, afterNextRender, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, WritableSignal, afterNextRender, computed, inject, output, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormControlStatus, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -35,8 +35,8 @@ export class ApiKeyFormComponent implements OnInit, OnDestroy {
   private aiService = inject(AiService);
   readonly settings = inject(SettingsService);
 
-  @Output() apiKeyValidated = new EventEmitter<string>();
-  @Output() formGroupOutput = new EventEmitter<FormGroup>();
+  readonly apiKeyValidated = output<string>();
+  readonly formGroupOutput = output<FormGroup>();
 
   apiKeyFormGroup: FormGroup;
   readonly apiKeyFormState: WritableSignal<ApiKeyFormState>;
