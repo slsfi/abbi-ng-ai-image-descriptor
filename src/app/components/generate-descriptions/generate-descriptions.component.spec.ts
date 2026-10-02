@@ -95,7 +95,7 @@ describe('GenerateDescriptionsComponent', () => {
     settings.updateSelectedTaskType('transcriptionBatchTei');
     settings.updateBatchSize(1);
     await fixture.whenStable();
-    settings.updateSelectedModelId('gpt-5.6-terra');
+    settings.updateSelectedModelId('gpt-5.6-sol');
     await fixture.whenStable();
     for (const [index, img] of images.entries()) {
       component.batchResults.add({
@@ -120,7 +120,7 @@ describe('GenerateDescriptionsComponent', () => {
   async function enableTei(): Promise<void> {
     settings.updateSelectedTaskType('transcription');
     await fixture.whenStable();
-    settings.updateSelectedModelId('gpt-5.6-terra');
+    settings.updateSelectedModelId('gpt-5.6-sol');
     settings.teiEncode.set(true);
     await fixture.whenStable();
   }
@@ -678,7 +678,7 @@ describe('GenerateDescriptionsComponent', () => {
     settings.updateSelectedTaskType('transcriptionBatchTei');
     settings.updateBatchSize(1);
     await fixture.whenStable();
-    settings.updateSelectedModelId('gpt-5.6-terra');
+    settings.updateSelectedModelId('gpt-5.6-sol');
     await fixture.whenStable();
     const requests = Array.from({ length: 6 }, () => deferred<AiResult>());
     for (const request of requests) ai.describeImagesFilesApi.mockReturnValueOnce(request.promise);

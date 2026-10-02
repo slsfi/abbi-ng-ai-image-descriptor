@@ -35,7 +35,7 @@ describe('isTemperatureSupportedForModel', () => {
         const settings = createSettings({
             model: {
                 ...createSettings().model,
-                id: 'gpt-5.6-terra',
+                id: 'gpt-5.6-sol',
                 parameters: {
                     reasoningEffort: 'none',
                     reasoningEfforts: ['none', 'low'],
@@ -51,7 +51,7 @@ describe('isTemperatureSupportedForModel', () => {
         const settings = createSettings({
             model: {
                 ...createSettings().model,
-                id: 'gpt-5.6-terra',
+                id: 'gpt-5.6-sol',
                 parameters: {
                     supportsTemperatureSampling: false,
                     reasoningSupportsTemperature: true,
@@ -69,7 +69,7 @@ describe('isTemperatureSupportedForModel', () => {
         const settings = createSettings({
             model: {
                 ...createSettings().model,
-                id: 'gpt-5.6-terra',
+                id: 'gpt-5.6-sol',
                 parameters: {
                     reasoningSupportsTemperature: false,
                     reasoningEffort: 'none',
