@@ -1,5 +1,5 @@
 import {
-  Component, ElementRef, HostListener, OnInit, ViewChild,
+  Component, ElementRef, HostListener, OnInit,
   afterNextRender, afterRenderEffect, computed, inject, signal,
   viewChild
 } from '@angular/core';
@@ -52,7 +52,15 @@ export class EditDescriptionDialogComponent implements OnInit {
   imageListService = inject(ImageListService);
   settings = inject(SettingsService);
 
+  readonly autosize = viewChild<CdkTextareaAutosize>('autosize');
   readonly codeEl = viewChild<ElementRef<HTMLElement>>('codeElEditDialog');
+  readonly imgEl = viewChild<ElementRef<HTMLImageElement>>('imgEl');
+  readonly imgViewport = viewChild<ElementRef<HTMLDivElement>>('imgViewport');
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.clampPan();
+  }
 
   imageObj?: ImageData = this.data.imageObj;
   batchObj?: BatchResult = this.data.batchObj;
@@ -95,20 +103,11 @@ export class EditDescriptionDialogComponent implements OnInit {
   private panStartX = 0;
   private panStartY = 0;
 
-  @ViewChild('autosize') autosize?: CdkTextareaAutosize;
-  @ViewChild('imgViewport') imgViewport?: ElementRef<HTMLDivElement>;
-  @ViewChild('imgEl') imgEl?: ElementRef<HTMLImageElement>;
-
-  @HostListener('window:resize')
-  onResize(): void {
-    this.clampPan();
-  }
-
   constructor() {
     // Wait for content to render, then trigger textarea resize.
     afterNextRender({
       write: () => {
-        this.autosize?.resizeToFitContent(true);
+        this.autosize()?.resizeToFitContent(true);
       }
     });
 
@@ -219,8 +218,8 @@ export class EditDescriptionDialogComponent implements OnInit {
       return;
     }
 
-    const img = this.imgEl?.nativeElement;
-    const vp  = this.imgViewport?.nativeElement;
+    const img = this.imgEl()?.nativeElement;
+    const vp  = this.imgViewport()?.nativeElement;
     if (!img || !vp) return;
 
     // Image size at zoom=1 (rendered)
