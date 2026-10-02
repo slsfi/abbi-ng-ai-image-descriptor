@@ -1,13 +1,10 @@
-import {
-  Component, ElementRef, HostListener, OnInit,
-  afterNextRender, afterRenderEffect, computed, inject, signal,
-  viewChild
-} from '@angular/core';
+import { Component, ElementRef, OnInit, afterNextRender, afterRenderEffect,
+         computed, inject, signal, viewChild
+        } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkTextareaAutosize, TextFieldModule } from '@angular/cdk/text-field';
-import { MAT_DIALOG_DATA, MatDialogClose,
-         MatDialogContent, MatDialogRef
+import { MAT_DIALOG_DATA, MatDialogClose, MatDialogContent, MatDialogRef
         } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -30,6 +27,9 @@ export interface EditDescriptionDialogData {
 
 @Component({
   selector: 'edit-description-dialog',
+  host: {
+    '(window:resize)': 'clampPan()'
+  },
   imports: [
     FormsModule,
     DecimalPipe,
@@ -56,11 +56,6 @@ export class EditDescriptionDialogComponent implements OnInit {
   readonly codeEl = viewChild<ElementRef<HTMLElement>>('codeElEditDialog');
   readonly imgEl = viewChild<ElementRef<HTMLImageElement>>('imgEl');
   readonly imgViewport = viewChild<ElementRef<HTMLDivElement>>('imgViewport');
-
-  @HostListener('window:resize')
-  onResize(): void {
-    this.clampPan();
-  }
 
   imageObj?: ImageData = this.data.imageObj;
   batchObj?: BatchResult = this.data.batchObj;
@@ -211,7 +206,7 @@ export class EditDescriptionDialogComponent implements OnInit {
     this.setZoom(this.zoom + dir * this.zoomStep);
   }
 
-  private clampPan(): void {
+  protected clampPan(): void {
     if (this.zoom <= 1) {
       this.panX = 0;
       this.panY = 0;
