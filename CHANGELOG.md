@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Migrate the remaining `@Output` events in the file-input, add-images, and API-key form components to Angular's `output()` function.
 - Migrate the remaining `@ViewChild` queries in the edit-description dialog to Angular signal queries and update their references.
 - Edit description dialog: use the component's `host` property for resize listener.
+- Edit description dialog: use signals for zoom and pan state and computed signals for the image transform and zoom status.
 - Deps: update `@angular/core`, `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.1.
 - Deps: update `docx` to 9.8.1.
 - Deps (dev): update `vitest` to 5.0.3.

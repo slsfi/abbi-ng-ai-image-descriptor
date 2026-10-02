@@ -84,13 +84,19 @@ export class EditDescriptionDialogComponent implements OnInit {
   });
 
   // Zoom / pan
-  zoom = 1;
+  readonly zoom = signal(1);
   readonly minZoom = 1;
   readonly maxZoom = 5;
   readonly zoomStep = 0.25;
 
-  panX = 0; // px
-  panY = 0; // px
+  readonly panX = signal(0); // px
+  readonly panY = signal(0); // px
+
+  // Translate then scale; origin at center (set in CSS).
+  readonly imageTransform = computed(() =>
+    `translate(${this.panX()}px, ${this.panY()}px) scale(${this.zoom()})`
+  );
+  readonly isZoomed = computed(() => this.zoom() > 1);
 
   private dragging = false;
   private dragStartX = 0;
@@ -140,27 +146,27 @@ export class EditDescriptionDialogComponent implements OnInit {
   }
 
   zoomIn(): void {
-    this.setZoom(this.zoom + this.zoomStep);
+    this.setZoom(this.zoom() + this.zoomStep);
   }
 
   zoomOut(): void {
-    this.setZoom(this.zoom - this.zoomStep);
+    this.setZoom(this.zoom() - this.zoomStep);
   }
 
   resetZoom(): void {
-    this.zoom = 1;
-    this.panX = 0;
-    this.panY = 0;
+    this.zoom.set(1);
+    this.panX.set(0);
+    this.panY.set(0);
   }
 
   private setZoom(next: number): void {
     const clamped = Math.min(this.maxZoom, Math.max(this.minZoom, Number(next.toFixed(2))));
-    if (clamped === this.zoom) return;
+    if (clamped === this.zoom()) return;
 
-    this.zoom = clamped;
-    if (this.zoom === 1) {
-      this.panX = 0;
-      this.panY = 0;
+    this.zoom.set(clamped);
+    if (clamped === 1) {
+      this.panX.set(0);
+      this.panY.set(0);
     } else {
       // keep pan within bounds after zoom changes
       this.clampPan();
@@ -169,13 +175,13 @@ export class EditDescriptionDialogComponent implements OnInit {
 
   // Drag to pan
   onPointerDown(ev: PointerEvent): void {
-    if (this.zoom <= 1) return;
+    if (this.zoom() <= 1) return;
 
     this.dragging = true;
     this.dragStartX = ev.clientX;
     this.dragStartY = ev.clientY;
-    this.panStartX = this.panX;
-    this.panStartY = this.panY;
+    this.panStartX = this.panX();
+    this.panStartY = this.panY();
 
     // capture pointer so dragging continues even if pointer leaves viewport
     (ev.currentTarget as HTMLElement)?.setPointerCapture?.(ev.pointerId);
@@ -187,8 +193,8 @@ export class EditDescriptionDialogComponent implements OnInit {
     const dx = ev.clientX - this.dragStartX;
     const dy = ev.clientY - this.dragStartY;
 
-    this.panX = this.panStartX + dx;
-    this.panY = this.panStartY + dy;
+    this.panX.set(this.panStartX + dx);
+    this.panY.set(this.panStartY + dy);
 
     this.clampPan();
   }
@@ -203,13 +209,14 @@ export class EditDescriptionDialogComponent implements OnInit {
     ev.preventDefault();
 
     const dir = ev.deltaY > 0 ? -1 : 1;
-    this.setZoom(this.zoom + dir * this.zoomStep);
+    this.setZoom(this.zoom() + dir * this.zoomStep);
   }
 
   protected clampPan(): void {
-    if (this.zoom <= 1) {
-      this.panX = 0;
-      this.panY = 0;
+    const zoom = this.zoom();
+    if (zoom <= 1) {
+      this.panX.set(0);
+      this.panY.set(0);
       return;
     }
 
@@ -219,8 +226,8 @@ export class EditDescriptionDialogComponent implements OnInit {
 
     // Image size at zoom=1 (rendered)
     const imgRect = img.getBoundingClientRect();
-    const baseW = imgRect.width / this.zoom;
-    const baseH = imgRect.height / this.zoom;
+    const baseW = imgRect.width / zoom;
+    const baseH = imgRect.height / zoom;
 
     // Viewport size (visible window)
     const vpRect = vp.getBoundingClientRect();
@@ -228,23 +235,14 @@ export class EditDescriptionDialogComponent implements OnInit {
     const vpH = vpRect.height;
 
     // How much bigger the scaled image is than the viewport
-    const scaledW = baseW * this.zoom;
-    const scaledH = baseH * this.zoom;
+    const scaledW = baseW * zoom;
+    const scaledH = baseH * zoom;
 
     const maxX = Math.max(0, (scaledW - vpW) / 2);
     const maxY = Math.max(0, (scaledH - vpH) / 2);
 
-    this.panX = Math.min(maxX, Math.max(-maxX, this.panX));
-    this.panY = Math.min(maxY, Math.max(-maxY, this.panY));
-  }
-
-  get imageTransform(): string {
-    // translate then scale; origin at center (set in CSS)
-    return `translate(${this.panX}px, ${this.panY}px) scale(${this.zoom})`;
-  }
-
-  get isZoomed(): boolean {
-    return this.zoom > 1;
+    this.panX.set(Math.min(maxX, Math.max(-maxX, this.panX())));
+    this.panY.set(Math.min(maxY, Math.max(-maxY, this.panY())));
   }
 
   togglePreview(): void {

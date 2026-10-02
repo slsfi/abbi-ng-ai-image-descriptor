@@ -2,6 +2,7 @@
 @let aspectRatioValue = aspectRatio();
 @let imageIndex = activeImage();
 @let previewShownValue = previewShown();
+@let zoom = this.zoom();
 
 <mat-dialog-content>
   <div class="container"
@@ -61,7 +62,7 @@
       <div
         #imgViewport
         class="img-viewport"
-        [class.zoomed]="isZoomed"
+        [class.zoomed]="isZoomed()"
         (pointerdown)="onPointerDown($event)"
         (pointermove)="onPointerMove($event)"
         (pointerup)="onPointerUp()"
@@ -73,7 +74,7 @@
           [src]="dialogImages[imageIndex].base64Image"
           [height]="dialogImages[imageIndex].height"
           [width]="dialogImages[imageIndex].width"
-          [style.transform]="imageTransform"
+          [style.transform]="imageTransform()"
           alt="Image"
           draggable="false"
         >
