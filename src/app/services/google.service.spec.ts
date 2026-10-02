@@ -105,7 +105,7 @@ describe('GoogleService', () => {
         await service.describeImage(createSettings({
             model: {
                 ...createSettings().model,
-                id: 'gemini-3.7-flash',
+                id: 'gemini-3.8-flash',
                 parameters: {
                     supportsTemperatureSampling: false,
                 },
