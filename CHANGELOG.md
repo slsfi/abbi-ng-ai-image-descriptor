@@ -35,6 +35,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `docx` to 9.8.1.
 - Deps: update `openai` to 7.27.0.
 - Deps (dev): update `vitest` to 5.0.3.
+- Deps: update transitive dependencies.
 
 ### Fixed
 
