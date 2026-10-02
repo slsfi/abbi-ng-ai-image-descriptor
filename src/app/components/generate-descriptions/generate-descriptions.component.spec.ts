@@ -30,7 +30,7 @@ describe('GenerateDescriptionsComponent', () => {
   const snackActions: Subject<void>[] = [];
   const snackDismissals: Subject<void>[] = [];
   const snackBar = {
-    open: vi.fn(() => {
+    open: vi.fn((_message: string) => {
       const action = new Subject<void>();
       const dismissed = new Subject<void>();
       snackActions.push(action);
@@ -82,6 +82,31 @@ describe('GenerateDescriptionsComponent', () => {
   function buttonWithText(text: string): HTMLButtonElement {
     const buttons: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll('button');
     return [...buttons].find(button => button.textContent?.replace(/\s+/g, ' ').trim().includes(text))!;
+  }
+
+  function batchButton(index: number, label: string): HTMLButtonElement {
+    const batchRow: HTMLElement = fixture.nativeElement.querySelectorAll('.batch-result-wrapper')[index];
+    return batchRow.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)!;
+  }
+
+  async function showCompletedBatches(count = 2) {
+    const images = Array.from({ length: count }, () => image());
+    await showImages(...images);
+    settings.updateSelectedTaskType('transcriptionBatchTei');
+    settings.updateBatchSize(1);
+    await fixture.whenStable();
+    settings.updateSelectedModelId('gpt-5.6-terra');
+    await fixture.whenStable();
+    for (const [index, img] of images.entries()) {
+      component.batchResults.add({
+        id: `batch-${index}`, createdAt: '2026-10-01T00:00:00.000Z',
+        taskType: 'transcriptionBatchTei', imageIds: [img.id],
+        batchIndex: index + 1, batchSize: 1, status: 'success',
+        teiBody: `<p>Batch ${index + 1}</p>`
+      });
+    }
+    await fixture.whenStable();
+    return component.batchResults.results();
   }
 
   function dialogResult<T>(): Subject<T> {
@@ -620,22 +645,258 @@ describe('GenerateDescriptionsComponent', () => {
     expect(fixture.nativeElement.querySelector('.batch-generating')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.batch-pending')).not.toBeNull();
     expect(first.generating).toBe(true);
+    expect(component.generatingAll()).toBe(true);
 
     snackActions[0].next();
     await fixture.whenStable();
     expect(component.generating()).toBe(false);
+    expect(component.generatingAll()).toBe(true);
     expect(component.batchResults.results().map(batch => batch.status)).toEqual(['cancelled', 'cancelled']);
     expect(fixture.nativeElement.querySelectorAll('.batch-cancelled')).toHaveLength(2);
     expect(first.generating).toBe(false);
     expect(second.generating).toBe(false);
+    expect(batchButton(0, 'Regenerate').getAttribute('aria-disabled')).toBe('true');
+    expect(buttonWithText('Generate TEI transcriptions').disabled).toBe(true);
+    await component.transcribeAndTeiEncodeBatch(component.batchResults.results()[0]);
+    await component.generateAll();
+    expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(1);
 
     lateResult.resolve({ text: '<body><p>Late first batch</p></body>' });
     await generating;
     await fixture.whenStable();
+    expect(component.generatingAll()).toBe(false);
+    expect(batchButton(0, 'Regenerate').getAttribute('aria-disabled')).not.toBe('true');
     expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(1);
     expect(component.batchResults.results().map(batch => batch.status)).toEqual(['cancelled', 'cancelled']);
     expect(component.batchResults.results()[0].teiBody).toBeUndefined();
     expect(first.generating).toBe(false);
     expect(second.generating).toBe(false);
+  });
+
+  it('blocks regeneration after cancelling batch two so all five automatic batches are processed', async () => {
+    await showImages(...Array.from({ length: 5 }, () => image()));
+    settings.updateSelectedTaskType('transcriptionBatchTei');
+    settings.updateBatchSize(1);
+    await fixture.whenStable();
+    settings.updateSelectedModelId('gpt-5.6-terra');
+    await fixture.whenStable();
+    const requests = Array.from({ length: 6 }, () => deferred<AiResult>());
+    for (const request of requests) ai.describeImagesFilesApi.mockReturnValueOnce(request.promise);
+    const batchRow = (index: number): HTMLElement => fixture.nativeElement.querySelectorAll('.batch-result-wrapper')[index];
+    const regenerateButton = (index: number): HTMLButtonElement => batchRow(index).querySelector('button[aria-label="Regenerate"]')!;
+
+    const automaticRun = component.generateAll();
+    await vi.waitFor(() => expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(1));
+    requests[0].resolve({ text: '<body><p>First batch</p></body>' });
+    await vi.waitFor(() => expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(2));
+    await fixture.whenStable();
+
+    batchRow(1).querySelector<HTMLButtonElement>('button[aria-label="Cancel batch"]')!.click();
+    requests[1].resolve({ text: '<body><p>Late cancelled batch</p></body>' });
+    await vi.waitFor(() => expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(3));
+    await fixture.whenStable();
+    const cancelledBatch = component.batchResults.results()[1];
+    const blockedButton = regenerateButton(1);
+    expect(cancelledBatch.status).toBe('cancelled');
+    expect(regenerateButton(0).getAttribute('aria-disabled')).toBe('true');
+    expect(blockedButton.getAttribute('aria-disabled')).toBe('true');
+
+    blockedButton.click();
+    await component.transcribeAndTeiEncodeBatch(cancelledBatch);
+    await fixture.whenStable();
+    expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(3);
+    expect(component.generating()).toBe(true);
+    expect(component.generatingAll()).toBe(true);
+    expect(component.batchResults.results()[1].status).toBe('cancelled');
+
+    requests[2].resolve({ text: '<body><p>Third batch</p></body>' });
+    await vi.waitFor(() => expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(4));
+    requests[3].resolve({ text: '<body><p>Fourth batch</p></body>' });
+    await vi.waitFor(() => expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(5));
+    await fixture.whenStable();
+    expect(component.batchResults.results()[4].status).toBe('generating');
+    expect(regenerateButton(1)).toBe(blockedButton);
+    expect(blockedButton.getAttribute('aria-disabled')).toBe('true');
+
+    requests[4].resolve({ text: '<body><p>Fifth batch</p></body>' });
+    await automaticRun;
+    await fixture.whenStable();
+    expect(component.batchResults.results().map(batch => batch.status))
+      .toEqual(['success', 'cancelled', 'success', 'success', 'success']);
+    expect(component.generating()).toBe(false);
+    expect(component.generatingAll()).toBe(false);
+    expect(regenerateButton(1)).toBe(blockedButton);
+    expect(blockedButton.getAttribute('aria-disabled')).not.toBe('true');
+
+    blockedButton.click();
+    await vi.waitFor(() => expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(6));
+    await fixture.whenStable();
+    expect(component.batchResults.results()[1].status).toBe('generating');
+    expect(component.generatingAll()).toBe(false);
+    expect(regenerateButton(0).getAttribute('aria-disabled')).not.toBe('true');
+
+    requests[5].resolve({ text: '<body><p>Regenerated second batch</p></body>' });
+    await vi.waitFor(() => expect(component.generating()).toBe(false));
+    await fixture.whenStable();
+    expect(component.batchResults.results()[1].status).toBe('success');
+    expect(component.batchResults.results()[1].teiBody).toContain('Regenerated second batch');
+    expect(regenerateButton(0).getAttribute('aria-disabled')).not.toBe('true');
+  });
+
+  it('enables regeneration after an automatic batch fails', async () => {
+    await showImages(image());
+    settings.updateSelectedTaskType('transcriptionBatchTei');
+    settings.updateBatchSize(1);
+    await fixture.whenStable();
+    const request = deferred<AiResult>();
+    ai.describeImagesFilesApi.mockReturnValueOnce(request.promise);
+
+    const automaticRun = component.generateAll();
+    await vi.waitFor(() => expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(1));
+    request.resolve({ text: '', error: { code: 500, message: 'Provider error' } });
+    await automaticRun;
+    await fixture.whenStable();
+    expect(component.batchResults.results()[0].status).toBe('error');
+    expect(component.generating()).toBe(false);
+    expect(component.generatingAll()).toBe(false);
+    const regenerateButton: HTMLButtonElement = fixture.nativeElement.querySelector('button[aria-label="Regenerate"]');
+    expect(regenerateButton.getAttribute('aria-disabled')).not.toBe('true');
+
+    regenerateButton.click();
+    await vi.waitFor(() => expect(component.generating()).toBe(false));
+    await fixture.whenStable();
+    expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(2);
+    expect(component.batchResults.results()[0].status).toBe('success');
+  });
+
+  it.each([0, 1])('keeps concurrent manual regeneration active when batch %i finishes first', async finishedIndex => {
+    await showCompletedBatches();
+    const requests = [deferred<AiResult>(), deferred<AiResult>()];
+    for (const request of requests) ai.describeImagesFilesApi.mockReturnValueOnce(request.promise);
+    batchButton(0, 'Regenerate').click();
+    await fixture.whenStable();
+    expect(component.generating()).toBe(true);
+    expect(component.generatingAll()).toBe(false);
+    expect(batchButton(1, 'Regenerate').getAttribute('aria-disabled')).not.toBe('true');
+
+    const secondButton = batchButton(1, 'Regenerate');
+    secondButton.click();
+    secondButton.click();
+    await fixture.whenStable();
+    expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(2);
+    expect(component.batchResults.results().map(batch => batch.status)).toEqual(['generating', 'generating']);
+    expect(snackBar.open.mock.lastCall?.[0]).toBe('Regenerating 2 TEI batches');
+    expect(buttonWithText('Generate TEI transcriptions').disabled).toBe(true);
+    await component.generateAll();
+    expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(2);
+
+    requests[finishedIndex].resolve({ text: `<body><p>Regenerated batch ${finishedIndex + 1}</p></body>` });
+    await vi.waitFor(() => expect(component.batchResults.results()[finishedIndex].status).toBe('success'));
+    await fixture.whenStable();
+    expect(component.generating()).toBe(true);
+    expect(component.batchResults.results()[1 - finishedIndex].status).toBe('generating');
+    expect(snackBar.open.mock.lastCall?.[0]).toBe('Regenerating 1 TEI batch');
+    expect(batchButton(finishedIndex, 'Regenerate').getAttribute('aria-disabled')).not.toBe('true');
+    expect(buttonWithText('Generate TEI transcriptions').disabled).toBe(true);
+    expect(buttonWithText('Export TEI transcriptions').disabled).toBe(true);
+
+    requests[1 - finishedIndex].resolve({ text: `<body><p>Regenerated batch ${2 - finishedIndex}</p></body>` });
+    await vi.waitFor(() => expect(component.generating()).toBe(false));
+    await fixture.whenStable();
+    expect(component.batchResults.results().map(batch => batch.status)).toEqual(['success', 'success']);
+    expect(component.batchResults.results()[0].teiBody).toContain('Regenerated batch 1');
+    expect(component.batchResults.results()[1].teiBody).toContain('Regenerated batch 2');
+    expect(buttonWithText('Generate TEI transcriptions').disabled).toBe(false);
+    expect(buttonWithText('Export TEI transcriptions').disabled).toBe(false);
+    expect(snackBar.open.mock.results.at(-1)?.value.dismiss).toHaveBeenCalledOnce();
+  });
+
+  it.each(['one batch', 'all batches'] as const)('cancels %s during concurrent regeneration without late results overwriting cancellation', async cancellation => {
+    const batches = await showCompletedBatches();
+    const requests = [deferred<AiResult>(), deferred<AiResult>()];
+    for (const request of requests) ai.describeImagesFilesApi.mockReturnValueOnce(request.promise);
+    const runs = batches.map(batch => component.transcribeAndTeiEncodeBatch(batch));
+    await fixture.whenStable();
+    const signals = ai.describeImagesFilesApi.mock.calls.map(call => call[3]!.signal!);
+
+    if (cancellation === 'all batches') {
+      snackActions.at(-1)!.next();
+    } else {
+      batchButton(0, 'Cancel batch').click();
+    }
+    await fixture.whenStable();
+    expect(signals[0].aborted).toBe(true);
+    expect(signals[1].aborted).toBe(cancellation === 'all batches');
+    expect(component.batchResults.results().map(batch => batch.status))
+      .toEqual(['cancelled', cancellation === 'all batches' ? 'cancelled' : 'generating']);
+    expect(component.generating()).toBe(true);
+    expect(component.generatingAll()).toBe(false);
+    await component.generateAll();
+    await component.transcribeAndTeiEncodeBatch(batches[0]);
+    expect(ai.describeImagesFilesApi).toHaveBeenCalledTimes(2);
+
+    requests[0].resolve({ text: '<body><p>Late cancelled batch</p></body>' });
+    await runs[0];
+    await fixture.whenStable();
+    expect(component.batchResults.results()[0].status).toBe('cancelled');
+    expect(component.batchResults.results()[0].teiBody).toBe('<p>Batch 1</p>');
+    expect(component.generating()).toBe(true);
+
+    requests[1].resolve({ text: '<body><p>Second regenerated batch</p></body>' });
+    await runs[1];
+    await fixture.whenStable();
+    expect(component.batchResults.results()[1].status).toBe(cancellation === 'all batches' ? 'cancelled' : 'success');
+    expect(component.generating()).toBe(false);
+    expect(buttonWithText('Generate TEI transcriptions').disabled).toBe(false);
+  });
+
+  it('preserves another manual regeneration and its progress snackbar when one batch fails', async () => {
+    const batches = await showCompletedBatches();
+    const requests = [deferred<AiResult>(), deferred<AiResult>()];
+    for (const request of requests) ai.describeImagesFilesApi.mockReturnValueOnce(request.promise);
+    const runs = batches.map(batch => component.transcribeAndTeiEncodeBatch(batch));
+    requests[0].resolve({ text: '', error: { code: 500, message: 'Provider error' } });
+    await runs[0];
+    await fixture.whenStable();
+    expect(component.batchResults.results()[0].status).toBe('error');
+    expect(component.batchResults.results()[1].status).toBe('generating');
+    expect(component.generating()).toBe(true);
+    expect(component.generatingAll()).toBe(false);
+    expect(batchButton(0, 'Regenerate').getAttribute('aria-disabled')).not.toBe('true');
+
+    snackDismissals.at(-1)!.next();
+    expect(snackBar.open.mock.lastCall?.[0]).toBe('Regenerating 1 TEI batch');
+    requests[1].resolve({ text: '<body><p>Second regenerated batch</p></body>' });
+    await runs[1];
+    await fixture.whenStable();
+    expect(component.batchResults.results().map(batch => batch.status)).toEqual(['error', 'success']);
+    expect(component.generating()).toBe(false);
+  });
+
+  it('keeps generation busy until the remaining manual batch upload cleanup settles', async () => {
+    const batches = await showCompletedBatches();
+    imageList.imageList[0].filesApiId = 'uploaded-first-batch';
+    const requests = [deferred<AiResult>(), deferred<AiResult>()];
+    const cleanup = deferred<void>();
+    for (const request of requests) ai.describeImagesFilesApi.mockReturnValueOnce(request.promise);
+    ai.deleteUploadedFile.mockReturnValueOnce(cleanup.promise);
+    const runs = batches.map(batch => component.transcribeAndTeiEncodeBatch(batch));
+
+    requests[0].resolve({ text: '<body><p>First regenerated batch</p></body>' });
+    await vi.waitFor(() => expect(ai.deleteUploadedFile).toHaveBeenCalledOnce());
+    requests[1].resolve({ text: '<body><p>Second regenerated batch</p></body>' });
+    await runs[1];
+    await fixture.whenStable();
+    expect(component.generating()).toBe(true);
+    expect(component.generatingAll()).toBe(false);
+    expect(component.batchResults.results().map(batch => batch.status)).toEqual(['generating', 'success']);
+    expect(buttonWithText('Generate TEI transcriptions').disabled).toBe(true);
+
+    cleanup.resolve();
+    await runs[0];
+    await fixture.whenStable();
+    expect(component.generating()).toBe(false);
+    expect(component.batchResults.results().map(batch => batch.status)).toEqual(['success', 'success']);
+    expect(buttonWithText('Generate TEI transcriptions').disabled).toBe(false);
   });
 });

@@ -27,6 +27,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `docx` to 9.8.1.
 - Deps (dev): update `vitest` to 5.0.3.
 
+### Fixed
+
+- Prevent batch regeneration from interrupting an automatic generate-all run. Keep regenerate buttons visible and disabled only during the automatic run, while allowing concurrent manual regenerations afterward.
+
 
 
 

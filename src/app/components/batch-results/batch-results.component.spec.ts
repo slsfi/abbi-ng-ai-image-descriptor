@@ -1,5 +1,6 @@
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { OverlayContainer } from '@angular/cdk/overlay';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
 
@@ -108,5 +109,52 @@ describe('BatchResultsComponent', () => {
     button('Remove').click();
     await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('.no-results')).not.toBeNull();
+  });
+
+  it.each(['success', 'error', 'cancelled'] as const)(
+    'keeps the %s regenerate button focusable but blocks its action during an automatic run', async status => {
+      const regenerate = vi.fn();
+      fixture.componentInstance.generateBatch.subscribe(regenerate);
+      results.add({ ...batch, status, teiBody: '<body><p>Transcription</p></body>' });
+      await fixture.whenStable();
+      const regenerateButton = button('Regenerate');
+
+      fixture.componentRef.setInput('regenerationDisabled', true);
+      await fixture.whenStable();
+      expect(button('Regenerate')).toBe(regenerateButton);
+      expect(regenerateButton.getAttribute('aria-disabled')).toBe('true');
+      expect(regenerateButton.classList.contains('mat-mdc-button-disabled')).toBe(true);
+      expect(regenerateButton.disabled).toBe(false);
+      expect(regenerateButton.tabIndex).toBe(0);
+      regenerateButton.focus();
+      expect(document.activeElement).toBe(regenerateButton);
+      const description = document.getElementById(regenerateButton.getAttribute('aria-describedby')!);
+      expect(description?.textContent).toBe('Wait until the automatic run finishes before regenerating a batch.');
+
+      regenerateButton.click();
+      fixture.componentInstance.generateOne(results.results()[0]);
+      expect(regenerate).not.toHaveBeenCalled();
+
+      fixture.componentRef.setInput('regenerationDisabled', false);
+      await fixture.whenStable();
+      expect(button('Regenerate')).toBe(regenerateButton);
+      expect(regenerateButton.getAttribute('aria-disabled')).not.toBe('true');
+      expect(regenerateButton.classList.contains('mat-mdc-button-disabled')).toBe(false);
+      regenerateButton.click();
+      expect(regenerate).toHaveBeenCalledExactlyOnceWith(results.results()[0]);
+    }
+  );
+
+  it('shows the reason for disabled regeneration on hover', async () => {
+    results.add({ ...batch, status: 'cancelled' });
+    fixture.componentRef.setInput('regenerationDisabled', true);
+    await fixture.whenStable();
+
+    button('Regenerate').dispatchEvent(new MouseEvent('mouseenter'));
+    const overlay = TestBed.inject(OverlayContainer).getContainerElement();
+    await vi.waitFor(() => {
+      expect(overlay.querySelector('.mat-mdc-tooltip')?.textContent)
+        .toContain('Wait until the automatic run finishes before regenerating a batch.');
+    });
   });
 });

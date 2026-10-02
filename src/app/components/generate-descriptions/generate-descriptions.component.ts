@@ -85,6 +85,7 @@ export class GenerateDescriptionsComponent implements OnInit {
   displayedColumns: string[] = ['imagePreview', 'description', 'actions'];
   readonly exporting = signal(false);
   readonly generating = signal(false);
+  readonly generatingAll = signal(false);
 
   teiEncoding = signal<boolean>(false);
 
@@ -104,7 +105,7 @@ export class GenerateDescriptionsComponent implements OnInit {
   /** Image currently being processed via Files API in the TEI 2-pass flow. */
   private teiAbortImage: ImageData | null = null;
 
-  /** AbortController for the *currently running* batch (keyed by batchId). */
+  /** AbortControllers for in-flight batch requests (keyed by batchId). */
   private readonly abortByBatchId = new Map<string, AbortController>();
 
   /**
@@ -164,10 +165,16 @@ export class GenerateDescriptionsComponent implements OnInit {
   }
 
   async generateAll() {
+    if (this.generating() || this.generatingAll()) return;
     const settings: RequestSettings = this.settings.getSettings();
 
     if (settings.taskType === 'transcriptionBatchTei') {
-      await this.transcribeAndTeiEncodeBatchedAll();
+      this.generatingAll.set(true);
+      try {
+        await this.transcribeAndTeiEncodeBatchedAll();
+      } finally {
+        this.generatingAll.set(false);
+      }
     } else if (settings.taskType === 'transcription' && settings.teiEncode) {
       await this.transcribeAndTeiEncodeAll();
     } else {
@@ -642,14 +649,8 @@ export class GenerateDescriptionsComponent implements OnInit {
    * token usage, and cost, or marked as error if the request fails.
    */
   async transcribeAndTeiEncodeBatch(batch: BatchResult) {
-    // regenerate single batch
-    this.setGlobalGenerating(true);
-
-    // clear previous cancelled state for this batch (optional but nice)
-    this.cancelledBatchIds.delete(batch.id);
-
-    const ctrl = new AbortController();
-    this.abortByBatchId.set(batch.id, ctrl);
+    // Also guard clicks arriving before the disabled input has rendered.
+    if (this.generatingAll() || this.abortByBatchId.has(batch.id)) return;
 
     const settings: RequestSettings = this.settings.getSettings();
     const prompt = this.constructPromptTemplate();
@@ -663,19 +664,22 @@ export class GenerateDescriptionsComponent implements OnInit {
       return;
     }
 
+    this.cancelledBatchIds.delete(batch.id);
+    const ctrl = new AbortController();
+    this.abortByBatchId.set(batch.id, ctrl);
+
     // mark images generating (even if table hidden, keeps state consistent)
     for (const img of batchImages) {
       this.setImageGenerating(img, true);
     }
 
-    this.openProgressSnack(`Regenerating TEI batch ${batch.batchIndex} (${batch.imageIds.length} ${batch.imageIds.length === 1 ? 'image' : 'images'})`);
-
     const generating: Partial<BatchResult> = {
-        status: 'generating',
-        modelId: settings.model.id,
-      };
+      status: 'generating',
+      modelId: settings.model.id,
+    };
 
     this.batchResults.update(batchId, generating);
+    this.updateBatchRegenerationProgress();
 
     try {
       const res = await this.runAiTaskBatchImages(
@@ -718,8 +722,7 @@ export class GenerateDescriptionsComponent implements OnInit {
         this.setImageGenerating(img, false);
       }
 
-      this.closeProgressSnack();
-      this.setGlobalGenerating(false);
+      this.updateBatchRegenerationProgress();
     }
   }
 
@@ -777,6 +780,10 @@ export class GenerateDescriptionsComponent implements OnInit {
     // Clear image "generating" flags immediately for a responsive UX
     for (const img of imgs) {
       this.setImageGenerating(img, false);
+    }
+
+    if (!this.generatingAll()) {
+      this.updateBatchRegenerationProgress();
     }
 
     // Best-effort cleanup:
@@ -1011,6 +1018,17 @@ export class GenerateDescriptionsComponent implements OnInit {
     this.progressStopSub = this.progressSnackRef.onAction().subscribe(() => {
       this.stopFromProgressSnack();
     });
+  }
+
+  private updateBatchRegenerationProgress(): void {
+    // Stay busy until cancelled requests and their upload cleanup have settled too.
+    this.setGlobalGenerating(this.abortByBatchId.size > 0);
+    const runningCount = [...this.abortByBatchId.values()].filter(ctrl => !ctrl.signal.aborted).length;
+    if (runningCount > 0) {
+      this.openProgressSnack(`Regenerating ${runningCount} TEI ${runningCount === 1 ? 'batch' : 'batches'}`);
+    } else {
+      this.closeProgressSnack();
+    }
   }
 
   private closeProgressSnack() {
@@ -1365,14 +1383,15 @@ export class GenerateDescriptionsComponent implements OnInit {
   /**
    * Handles clicks on the global progress snackbar "Stop" action.
    *
-   * General behavior (all task types):
+   * Looped generation:
    * - Immediately stops future iterations by clearing the global `generating` flag.
    *
    * Batch TEI generation (`taskType === 'transcriptionBatchTei'`):
-   * - Cancels the currently running batch (if any):
+   * - Cancels all currently running batches:
    *   - aborts the in-flight request via AbortController
    *   - schedules best-effort deletion of any uploaded Files API images
    * - Cancels all still-pending batches so they will not start.
+   * - Concurrent manual regenerations remain busy until cancelled requests settle.
    *
    * Sequential transcription + TEI encoding (`taskType === 'transcription'` with TEI enabled):
    * - If the selected model supports the Files API:
@@ -1389,20 +1408,20 @@ export class GenerateDescriptionsComponent implements OnInit {
    *   cancellation occurs.
    */
   private stopFromProgressSnack(): void {
-    // Always stop future iterations for all task types.
-    this.setGlobalGenerating(false);
-
     const settings = this.settings.getSettings();
 
     // Batched TEI-transcription
     if (settings.taskType === 'transcriptionBatchTei') {
+      if (this.generatingAll()) {
+        this.setGlobalGenerating(false);
+      }
       const results = this.batchResults.results();
 
-      // Cancel the in-progress batch (if any)
-      const running = results.find(r => r.status === 'generating');
-      if (running) {
+      // Cancel every concurrent request, as well as the automatic run's current batch.
+      const running = results.filter(r => r.status === 'generating');
+      for (const batch of running) {
         // Fire-and-forget; cancelBatch() is async
-        void this.cancelBatch(running.id);
+        void this.cancelBatch(batch.id);
       }
 
       // Cancel all still pending
@@ -1413,6 +1432,8 @@ export class GenerateDescriptionsComponent implements OnInit {
 
       return;
     }
+
+    this.setGlobalGenerating(false);
 
     // Single-image / sequential TEI 2-pass mode using Files API
     if (settings.taskType === 'transcription' && settings.teiEncode && !!settings.model?.supportsFilesApi) {

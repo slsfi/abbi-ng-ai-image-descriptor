@@ -2,6 +2,7 @@
 @let selectedTaskType = settings.selectedTaskType();
 @let imageList = (imageListService.imageList$ | async) ?? [];
 @let generating = this.generating();
+@let generatingAll = this.generatingAll();
 @let exporting = this.exporting();
 
 @if (imageList.length == 0) {
@@ -14,7 +15,7 @@
       <div class="buttons-row">
         <button matButton="filled"
           (click)="generateAll()"
-          [disabled]="generating"
+          [disabled]="generating || generatingAll"
         >Generate TEI transcriptions ({{ imageList.length }} {{ (imageList.length > 1) ? 'images' : 'image' }})</button>
       </div>
 
@@ -33,6 +34,7 @@
         >Remove all images</button>
       </div>
       <batch-results
+            [regenerationDisabled]="generatingAll"
             (generateBatch)="transcribeAndTeiEncodeBatch($event)"
             (cancelBatch)="cancelBatch($event)"
       ></batch-results>
