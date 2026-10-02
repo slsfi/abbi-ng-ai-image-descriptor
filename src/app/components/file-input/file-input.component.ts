@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
@@ -8,10 +8,10 @@ import { MatButtonModule } from '@angular/material/button';
   styleUrl: './file-input.component.scss'
 })
 export class FileInputComponent implements OnInit {
-  @Input() acceptedFileTypes: string = '';
-  @Input() appearence: string = 'flat'; // 'flat' or 'stroked'
-  @Input() label: string = 'Upload Files';
-  @Input() multiple: boolean = false;
+  readonly acceptedFileTypes = input<string>('');
+  readonly appearence = input<string>('flat'); // 'flat' or 'stroked'
+  readonly label = input<string>('Upload Files');
+  readonly multiple = input<boolean>(false);
   @Output() filesSelected: EventEmitter<File[]> = new EventEmitter<File[]>();
 
   selectedFiles: File[] = [];
