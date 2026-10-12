@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `@google/genai` to 2.28.0.
 - Deps: update `docx` to 9.10.0.
 - Deps: update `openai` to 7.32.0.
+- Deps (dev): update `jsdom` to 30.1.2.
 
 ### Removed
 
