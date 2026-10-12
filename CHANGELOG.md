@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Removed
+
+- The `gemini-3.7-flash` model. Use `gemini-3.8-flash` instead.
+
 
 
 ## [4.1.0] – 2026-10-02
