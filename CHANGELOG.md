@@ -8,21 +8,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [4.1.1] – 2026-10-12
+
 ### Changed
 
-- Deps: update `@angular/core`, `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.2.
-- Deps: update `@google/genai` to 2.28.0.
-- Deps: update `docx` to 9.10.0.
-- Deps: update `openai` to 7.32.0.
-- Deps (dev): update `jsdom` to 30.1.2.
+- Deps: update `@angular/core`, `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.2. ([0c38412](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/0c38412d2eaba4441758b804ef7f0a0f9de95f1b))
+- Deps: update `@google/genai` to 2.28.0. ([4277c18](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/4277c18764498f655a747545352b7950a92bc1c1))
+- Deps: update `docx` to 9.10.0. ([ddb548b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/ddb548b408007255a0547db57094d441c1f4d1fd))
+- Deps: update `openai` to 7.32.0. ([9c7920c](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/9c7920cd9213773cba9ec6b96aa8825f23e8828e))
+- Deps (dev): update `jsdom` to 30.1.2. ([3eba5f3](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/3eba5f3a1ef947df1d4f3726a6ee588158e07806))
 
 ### Fixed
 
-- Add `test:ci` npm command.
+- Add `test:ci` npm command. ([4d9c559](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/4d9c5590c6a7906365c1a17b33141c85244d9caa))
 
 ### Removed
 
-- The `gemini-3.7-flash` model. Use `gemini-3.8-flash` instead.
+- The `gemini-3.7-flash` model. Use `gemini-3.8-flash` instead. ([c8da960](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/c8da960e42bb771eadd93c09832a155ccdc11988))
 
 
 
@@ -567,7 +571,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.1.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.1.1...HEAD
+[4.1.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.1.0...4.1.1
 [4.1.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.0.1...4.1.0
 [4.0.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.0.0...4.0.1
 [4.0.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/3.1.0...4.0.0
