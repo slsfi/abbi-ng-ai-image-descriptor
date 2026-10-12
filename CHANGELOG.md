@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - Deps: update `@angular/core`, `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.2.
+- Deps: update `@google/genai` to 2.28.0.
 - Deps: update `docx` to 9.10.0.
 - Deps: update `openai` to 7.32.0.
 
