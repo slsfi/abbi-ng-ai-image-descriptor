@@ -16,6 +16,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `openai` to 7.32.0.
 - Deps (dev): update `jsdom` to 30.1.2.
 
+### Fixed
+
+- Add `test:ci` npm command.
+
 ### Removed
 
 - The `gemini-3.7-flash` model. Use `gemini-3.8-flash` instead.
