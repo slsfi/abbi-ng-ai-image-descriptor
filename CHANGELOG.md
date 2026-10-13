@@ -8,15 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [4.2.0] – 2026-10-13
+
 ### Added
 
-- Support for the Google [`gemini-4-argon`](https://ai.google.dev/gemini-api/docs/models/gemini-4-argon) model. The model is the new default for transcription tasks.
+- Support for the Google [`gemini-4-argon`](https://ai.google.dev/gemini-api/docs/models/gemini-4-argon) model. The model is the new default for transcription tasks. ([b809ff2](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/b809ff2c72097d956ff87aca851f981c4a7e9e50))
 
 ### Changed
 
-- Deps: update `@google/genai` to 2.29.1.
-- Deps: update `docx` to 9.11.0.
-- Deps (dev): update `vitest` to 5.0.4.
+- Deps: update `@google/genai` to 2.29.1. ([25e3120](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/25e31200d0383319e4d2800eb0bcf80f52a7f959))
+- Deps: update `docx` to 9.11.0. ([829d1c5](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/829d1c5b931c297a7b4d69761e63adf1d7662d04))
+- Deps (dev): update `vitest` to 5.0.4. ([0adb2ff](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/0adb2ff2dac335d5003f501f875bcc9a76cb836c))
 
 
 
@@ -581,7 +585,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.1.1...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.2.0...HEAD
+[4.2.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.1.1...4.2.0
 [4.1.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.1.0...4.1.1
 [4.1.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.0.1...4.1.0
 [4.0.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.0.0...4.0.1
