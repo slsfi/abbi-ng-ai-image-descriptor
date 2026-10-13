@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- Support for the Google [`gemini-4-argon`](https://ai.google.dev/gemini-api/docs/models/gemini-4-argon) model. The model is the new default for transcription tasks.
+
 
 
 ## [4.1.1] – 2026-10-12
