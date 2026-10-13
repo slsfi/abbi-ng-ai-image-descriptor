@@ -2,7 +2,7 @@ import { Model } from '../../app/types/model.types'
 import { TaskTypeId } from './prompts';
 
 export type ModelProvider = 'OpenAI' | 'Google';
-export type ModelId = 'gpt-4.1' | 'gpt-5.6-sol' | 'gpt-6.1-sol' | 'gemini-2.5-flash' | 'gemini-2.5-pro' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview';
+export type ModelId = 'gpt-4.1' | 'gpt-5.6-sol' | 'gpt-6.1-sol' | 'gemini-2.5-flash' | 'gemini-2.5-pro' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview' | 'gemini-4-argon';
 
 // provider = name of model creator
 // name = display name of the model
@@ -130,7 +130,7 @@ export const MODELS: Model[] = [
     provider: 'Google',
     name: 'Gemini 3.8 Flash',
     id: 'gemini-3.8-flash',
-    description: 'A fast and cost-efficient alternative to Gemini 3.1 Pro that delivers near-pro transcription quality, including handwritten text, with much higher throughput.',
+    description: 'A fast and cost-efficient model that delivers near-flagship level transcription quality, including for handwritten text.',
     inputPrice: 0.75,
     outputPrice: 3.75,
     rpm: 1000,
@@ -149,7 +149,7 @@ export const MODELS: Model[] = [
     provider: 'Google',
     name: 'Gemini 3.1 Pro Preview',
     id: 'gemini-3.1-pro-preview',
-    description: 'The most accurate model for transcription tasks, excelling at handwritten text, and the best choice when transcription quality is critical.',
+    description: 'Google\'s previous generation flagship model excelling at transcription tasks, including handwritten text.',
     inputPrice: { tiers: [{ upToTokens: 200000, per1M: 2.00 }, { upToTokens: null, per1M: 4.00 }] },
     outputPrice: { tiers: [{ upToTokens: 200000, per1M: 12.00 }, { upToTokens: null, per1M: 18.00 }] },
     rpm: 25,
@@ -160,6 +160,25 @@ export const MODELS: Model[] = [
       thinkingLevels: ['low', 'medium', 'high'],
       maxImageShortsidePx: null,
       mediaResolution: 'high'
+    },
+    supportsFilesApi: true
+  },
+  {
+    provider: 'Google',
+    name: 'Gemini 4 Argon',
+    id: 'gemini-4-argon',
+  description: 'Google\'s flagship model for the most accurate transcription tasks, excelling at handwritten text, and the best choice when transcription quality is critical.',
+    inputPrice: 2.00,
+    outputPrice: 10.00,
+    rpm: 25,
+    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
+    url: 'https://ai.google.dev/gemini-api/docs/models/gemini-4-argon',
+    parameters: {
+      thinkingLevel: 'medium',
+      thinkingLevels: ['low', 'medium', 'high'],
+      maxImageShortsidePx: null,
+      mediaResolution: 'high',
+      supportsTemperatureSampling: false
     },
     supportsFilesApi: true
   }
