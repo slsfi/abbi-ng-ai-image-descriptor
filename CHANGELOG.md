@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - Deps: update `@google/genai` to 2.29.1.
+- Deps: update `docx` to 9.11.0.
 
 
 
