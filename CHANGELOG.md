@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+
+- Docker: upgrade Alpine packages and log versions.
+
 
 
 ## [4.2.0] – 2026-10-13
