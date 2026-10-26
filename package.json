@@ -35,7 +35,7 @@
     "@angular/material": "^22.2.4",
     "@angular/platform-browser": "^22.2.3",
     "@angular/router": "^22.2.3",
-    "@google/genai": "^2.29.1",
+    "@google/genai": "^2.31.0",
     "docx": "^9.11.0",
     "fflate": "^0.8.3",
     "openai": "^7.32.0",
@@ -53,7 +53,7 @@
     "vitest": "^5.0.4"
   },
   "allowScripts": {
-    "@google/genai@2.29.1": true,
+    "@google/genai@2.31.0": true,
     "@parcel/watcher@2.6.0": true,
     "esbuild@0.28.2": true,
     "fsevents@2.3.3": true,
