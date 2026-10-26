@@ -8,17 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [4.2.1] – 2026-10-26
+
 ### Changed
 
-- Docker: upgrade Alpine packages and log versions.
-- Update `nginx` to 1.30.6.
-- Deps: update `@angular/core` to 22.2.3 and `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.4.
-- Deps: update `@google/genai` to 2.31.0.
-- Deps: update `docx` to 9.14.0.
-- Deps: update `openai` to 7.43.0.
-- Deps (dev): update `jsdom` to 30.1.3.
-- Deps (dev): update `vitest` to 5.0.5.
-- Deps: update transitive dependencies.
+- Docker: upgrade Alpine packages and log versions. ([4afe62a](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/4afe62a2a3afc17fec5a5f60539853f85552ddb2))
+- Update `nginx` to 1.30.6. ([7182b19](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/7182b1923a7ea8d85a0f534e6aaf4bf537bc7b8d))
+- Deps: update `@angular/core` to 22.2.3 and `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.4. ([248a2a5](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/248a2a5500c36bcb0cfb5a0079e60efe5f842996))
+- Deps: update `@google/genai` to 2.31.0. ([940e53f](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/940e53f84ea235385de735c1ca184b824784ef68))
+- Deps: update `docx` to 9.14.0. ([e30f6f8](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/e30f6f8a32f985091bc92c6641ec8d83f0e657cf))
+- Deps: update `openai` to 7.43.0. ([a143eee](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/a143eee7d197d242e988e6acc50034b446983ade))
+- Deps (dev): update `jsdom` to 30.1.3. ([808785c](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/808785c78849b72abd8ce4b85c96fe68dd23c512))
+- Deps (dev): update `vitest` to 5.0.5. ([d1a25a3](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/d1a25a3774d80a92a3b9788a2e5e0af346762897))
+- Deps: update transitive dependencies. ([b9b95ea](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/b9b95eac1b728eb4566513f2683a288c4081fd4a))
 
 
 
@@ -597,7 +601,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.2.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.2.1...HEAD
+[4.2.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.2.0...4.2.1
 [4.2.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.1.1...4.2.0
 [4.1.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.1.0...4.1.1
 [4.1.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.0.1...4.1.0
