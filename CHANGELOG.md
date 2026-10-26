@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - Docker: upgrade Alpine packages and log versions.
+- Update `nginx` to 1.30.6.
 
 
 
