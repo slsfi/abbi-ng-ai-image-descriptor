@@ -19,6 +19,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps (dev): update `vitest` to 5.1.0.
 - Deps: update transitive dependencies.
 
+### Removed
+
+- The `gemini-2.5-flash` and `gemini-2.5-pro` models (deprecated by Google). Use `gemini-3.8-flash` instead.
+
 
 
 ## [4.2.1] – 2026-10-26
