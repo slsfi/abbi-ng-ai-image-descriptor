@@ -8,25 +8,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [4.3.0] – 2026-11-06
+
 ### Added
 
-- Support for the OpenAI [`gpt-6.1-terra`](https://developers.openai.com/api/docs/models/gpt-6.1-terra) model. It replaces `gpt-4.1` as the default model for alt text generation, as `gpt-4.1` is deprecated and will be removed in an upcoming release.
+- Support for the OpenAI [`gpt-6.1-terra`](https://developers.openai.com/api/docs/models/gpt-6.1-terra) model. It replaces `gpt-4.1` as the default model for alt text generation, as `gpt-4.1` is deprecated and will be removed in an upcoming release. ([b3ddc6b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/b3ddc6ba4356f4336ee802f790ee580ef283fd6f))
 
 ### Changed
 
-- Clarify API key requirements and data-use policies in the app and README.
-- Deps: update `@angular/core` to 22.2.4 and `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.6.
-- Deps: update `@google/genai` to 2.32.0.
-- Deps: update `docx` to 9.15.2.
-- Deps: update `openai` to 7.53.0.
-- Deps: update `tslib` to 2.9.1.
-- Deps (dev): update `vitest` to 5.1.0.
-- Deps: update transitive dependencies.
+- Clarify API key requirements and data-use policies in the app and README. ([ab627a0](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/ab627a0f1ce1a7cdf454e125ab27a11c5047174c))
+- Deps: update `@angular/core` to 22.2.4 and `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.6. ([523c9a5](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/523c9a51e3c294fcc999edd04901f4ee232cde5b))
+- Deps: update `@google/genai` to 2.32.0. ([336425e](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/336425e95090a98e0c72bd30aaba827bf08e787e))
+- Deps: update `docx` to 9.15.2. ([a630bc1](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/a630bc1deef50b7703ae418fb5f7d08f918a66d6))
+- Deps: update `openai` to 7.53.0. ([6b70860](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/6b70860ebabfb49dd77e59551b252d9d7c9b3c5a))
+- Deps: update `tslib` to 2.9.1. ([3a4a10d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/3a4a10d403e73ab964ce0c59839359d6f6a941d5))
+- Deps (dev): update `vitest` to 5.1.0. ([bff7e9c](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/bff7e9c49bd8194f72e1975d4a7a37a0dbfbcd84))
+- Deps: update transitive dependencies. ([9267d02](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/9267d020496aa4398ec1b321043705f8e925a0bf))
 
 ### Removed
 
-- The `gemini-2.5-flash` and `gemini-2.5-pro` models (deprecated by Google). Use `gemini-3.8-flash` instead.
-- The `gpt-5.6-sol` model. Use `gpt-6.1-sol` instead.
+- The `gemini-2.5-flash` and `gemini-2.5-pro` models (deprecated by Google). Use `gemini-3.8-flash` instead. ([72abf67](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/72abf67b7f4b0db45f140d5f93e15e1279c6118f))
+- The `gpt-5.6-sol` model. Use `gpt-6.1-sol` instead. ([306c8ff](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/306c8ff3c3f6eaf54e4a52110136f2be471c4389))
 
 
 
@@ -621,7 +625,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.2.1...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.3.0...HEAD
+[4.3.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.2.1...4.3.0
 [4.2.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.2.0...4.2.1
 [4.2.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.1.1...4.2.0
 [4.1.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.1.0...4.1.1
