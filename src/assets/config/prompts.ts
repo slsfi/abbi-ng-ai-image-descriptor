@@ -33,7 +33,7 @@ export const TASK_CONFIGS: TaskTypeConfig[] = [
       singular: 'alt text',
       plural: 'alt texts'
     },
-    defaultModel: 'gpt-4.1',
+    defaultModel: 'gpt-6.1-terra',
     variants: [
       {
         id: 'sv',

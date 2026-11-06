@@ -6,7 +6,7 @@ function createSettings(overrides: Partial<RequestSettings> = {}): RequestSettin
         model: {
             provider: 'OpenAI',
             name: 'Test model',
-            id: 'gpt-4.1',
+            id: 'gpt-6.1-terra',
             inputPrice: 0,
             outputPrice: 0,
             rpm: 1,
@@ -15,7 +15,7 @@ function createSettings(overrides: Partial<RequestSettings> = {}): RequestSettin
         },
         taskType: 'altText',
         temperature: 1,
-        reasoningEffort: null,
+        reasoningEffort: 'none',
         thinkingLevel: null,
         descriptionLength: 175,
         promptVariant: {

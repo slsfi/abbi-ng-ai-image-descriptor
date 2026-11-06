@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- Support for the OpenAI [`gpt-6.1-terra`](https://developers.openai.com/api/docs/models/gpt-6.1-terra) model. It replaces `gpt-4.1` as the default model for alt text generation, as `gpt-4.1` is deprecated and will be removed in an upcoming release.
+
 ### Changed
 
 - Clarify API key requirements and data-use policies in the app and README.

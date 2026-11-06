@@ -228,9 +228,9 @@ describe('AppComponent', () => {
     await fixture.whenStable();
     settings.updateSelectedTaskType('transcription');
     await fixture.whenStable();
-    settings.updateSelectedModelId('gpt-4.1');
+    settings.updateSelectedModelId('gpt-6.1-terra');
     await fixture.whenStable();
-    expect(fixture.nativeElement.querySelector('settings-form mat-select[name="model"]').textContent).toContain('GPT-4.1');
+    expect(fixture.nativeElement.querySelector('settings-form mat-select[name="model"]').textContent).toContain('GPT-6.1 Terra');
     expect(fixture.nativeElement.querySelector('#generate-step-title').textContent).toBe('Generate transcriptions');
 
     nextButton(0).click();
@@ -301,7 +301,7 @@ describe('AppComponent', () => {
     await fixture.whenStable();
     expect(ai.describeImage).toHaveBeenCalledTimes(1);
     expect(ai.describeImage).toHaveBeenCalledWith(
-      expect.objectContaining({ taskType: 'transcription', model: expect.objectContaining({ id: 'gpt-4.1' }) }),
+      expect.objectContaining({ taskType: 'transcription', model: expect.objectContaining({ id: 'gpt-6.1-terra' }) }),
       expect.any(String), 'data:image/jpeg;base64,cmVzaXplZA=='
     );
     expect(generateButton.disabled).toBe(true);
@@ -314,7 +314,7 @@ describe('AppComponent', () => {
     expect(generation.querySelector('mat-spinner')).toBeNull();
     expect(generateButton.disabled).toBe(false);
     expect(generateButton.textContent?.trim()).toBe('Regenerate');
-    expect(fixture.nativeElement.querySelector('.run-context-cost .run-context-value').textContent).toBe('$0.04');
+    expect(fixture.nativeElement.querySelector('.run-context-cost .run-context-value').textContent).toBe('$0.023');
   });
 
   it.each([false, true])('reflects delayed validation (%s) in the step and defer condition without another interaction', async valid => {

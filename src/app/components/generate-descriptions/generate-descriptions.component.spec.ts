@@ -50,7 +50,7 @@ describe('GenerateDescriptionsComponent', () => {
   }
 
   function description(text: string, teiEncoded = false): DescriptionData {
-    return { description: text, language: 'en', model: 'gpt-4.1', inputTokens: 0, outputTokens: 0, cost: 0, teiEncoded };
+    return { description: text, language: 'en', model: 'gpt-6.1-terra', inputTokens: 0, outputTokens: 0, cost: 0, teiEncoded };
   }
 
   function image(descriptions: DescriptionData[] = [], activeDescriptionIndex = 0): ImageData {

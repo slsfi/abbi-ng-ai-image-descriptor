@@ -28,7 +28,7 @@ describe('EditDescriptionDialogComponent', () => {
       activeDescriptionIndex: 0, generating: false,
       descriptions: [{
         description: 'Test description', teiEncoded: false,
-        model: 'gpt-4.1', inputTokens: 0, outputTokens: 0, cost: 0
+        model: 'gpt-6.1-terra', inputTokens: 0, outputTokens: 0, cost: 0
       }]
     };
     await TestBed.configureTestingModule({
