@@ -2,7 +2,7 @@ import { Model } from '../../app/types/model.types'
 import { TaskTypeId } from './prompts';
 
 export type ModelProvider = 'OpenAI' | 'Google';
-export type ModelId = 'gpt-4.1' | 'gpt-5.6-sol' | 'gpt-6.1-sol' | 'gemini-2.5-flash' | 'gemini-2.5-pro' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview' | 'gemini-4-argon';
+export type ModelId = 'gpt-4.1' | 'gpt-5.6-sol' | 'gpt-6.1-sol' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview' | 'gemini-4-argon';
 
 // provider = name of model creator
 // name = display name of the model
@@ -89,40 +89,6 @@ export const MODELS: Model[] = [
       reasoningEffort: 'low',
       reasoningEfforts: ['low', 'medium', 'high', 'xhigh'],
       reasoningSupportsTemperature: false
-    },
-    supportsFilesApi: true
-  },
-  {
-    provider: 'Google',
-    name: 'Gemini 2.5 Flash',
-    id: 'gemini-2.5-flash',
-    description: 'A fast and economical model for large-scale alt text and transcription tasks, providing good overall accuracy with excellent throughput.',
-    inputPrice: 0.30,
-    outputPrice: 2.50,
-    rpm: 1000,
-    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
-    url: 'https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash',
-    parameters: {
-      thinkingBudget: 512,
-      maxImageShortsidePx: null,
-      mediaResolution: 'high'
-    },
-    supportsFilesApi: true
-  },
-  {
-    provider: 'Google',
-    name: 'Gemini 2.5 Pro',
-    id: 'gemini-2.5-pro',
-    description: 'A high-quality general-purpose model that performs well for both alt text and transcription, offering strong accuracy but falling short of Gemini 3 Pro on handwritten text.',
-    inputPrice: { tiers: [{ upToTokens: 200000, per1M: 1.25 }, { upToTokens: null, per1M: 2.50 }] },
-    outputPrice: { tiers: [{ upToTokens: 200000, per1M: 10.00 }, { upToTokens: null, per1M: 15.00 }] },
-    rpm: 150,
-    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
-    url: 'https://ai.google.dev/gemini-api/docs/models#gemini-2.5-pro',
-    parameters: {
-      thinkingBudget: 512,
-      maxImageShortsidePx: null,
-      mediaResolution: 'high'
     },
     supportsFilesApi: true
   },
