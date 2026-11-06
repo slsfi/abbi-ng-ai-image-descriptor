@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+
+- Deps: update `@angular/core` to 22.2.4 and `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.6.
+
 
 
 ## [4.2.1] – 2026-10-26
