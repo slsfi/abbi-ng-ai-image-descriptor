@@ -2,7 +2,7 @@ import { Model } from '../../app/types/model.types'
 import { TaskTypeId } from './prompts';
 
 export type ModelProvider = 'OpenAI' | 'Google';
-export type ModelId = 'gpt-4.1' | 'gpt-5.6-sol' | 'gpt-6.1-sol' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview' | 'gemini-4-argon';
+export type ModelId = 'gpt-4.1' | 'gpt-5.6-sol' | 'gpt-6.1-terra' | 'gpt-6.1-sol' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview' | 'gemini-4-argon';
 
 // provider = name of model creator
 // name = display name of the model
@@ -64,6 +64,25 @@ export const MODELS: Model[] = [
     rpm: 5000,
     supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
     url: 'https://developers.openai.com/api/docs/models/gpt-5.6-sol',
+    parameters: {
+      imageDetail: 'original',
+      maxImageShortsidePx: null,
+      reasoningEffort: 'none',
+      reasoningEfforts: ['none', 'low', 'medium', 'high', 'xhigh'],
+      reasoningSupportsTemperature: false
+    },
+    supportsFilesApi: true
+  },
+  {
+    provider: 'OpenAI',
+    name: 'GPT-6.1 Terra',
+    id: 'gpt-6.1-terra',
+    description: 'An efficient, high-quality model suitable for clear, accurate, and well-structured alt text.',
+    inputPrice: { tiers: [{ upToTokens: 272000, per1M: 1.00 }, { upToTokens: null, per1M: 2.00 }] },
+    outputPrice: { tiers: [{ upToTokens: 272000, per1M: 5.00 }, { upToTokens: null, per1M: 7.50 }] },
+    rpm: 5000,
+    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
+    url: 'https://developers.openai.com/api/docs/models/gpt-6.1-terra',
     parameters: {
       imageDetail: 'original',
       maxImageShortsidePx: null,

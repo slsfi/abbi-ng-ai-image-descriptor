@@ -9,7 +9,7 @@ describe('ImageListService', () => {
   let service: ImageListService;
 
   function description(text: string): DescriptionData {
-    return { description: text, model: 'gpt-4.1', inputTokens: 0, outputTokens: 0, cost: 0 };
+    return { description: text, model: 'gpt-6.1-terra', inputTokens: 0, outputTokens: 0, cost: 0 };
   }
 
   function image(descriptions: DescriptionData[] = [], activeDescriptionIndex = 0): ImageData {
