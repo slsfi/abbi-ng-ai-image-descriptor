@@ -1,6 +1,13 @@
 # aBBi – AI-generated image descriptions
 
-aBBi (“AI-bildbeskrivningar”) is a web app for generating alt texts for images and transcribing text in images using AI. It can also TEI ([Text Encoding Initiative](https://tei-c.org/)) XML encode the transcriptions. It currently supports OpenAI and Google models with vision capabilities. You need an OpenAI or Google API key to use the tool. It is a frontend app without the need of a backend.
+aBBi (“AI-bildbeskrivningar”) is a web app for generating alt texts for images and transcribing text in images using AI. It can also TEI ([Text Encoding Initiative](https://tei-c.org/)) XML encode the transcriptions. It currently supports OpenAI and Google models with vision capabilities. You need an OpenAI or Google Gemini API key to use the tool. It is a frontend app without the need of a backend.
+
+You can create OpenAI API keys on the [OpenAI API Platform](https://platform.openai.com/api-keys) and Google Gemini API keys in [Google AI Studio](https://aistudio.google.com/). The app does not currently support Vertex AI.
+
+Data use depends on your provider, API usage tier, region and data-sharing settings:
+
+- **OpenAI:** API data is not used for model training unless you explicitly opt in. See [OpenAI’s data controls](https://developers.openai.com/api/docs/guides/your-data).
+- **Google Gemini:** Free-tier data may be used for product improvement, including model training. Use a key for a Cloud project with active billing to receive the data protections for paid services: prompts, images and responses are not used to improve Google’s products by default. Google also applies these protections to free-tier users in the EEA, Switzerland and the UK. See the [Gemini API terms](https://ai.google.dev/gemini-api/terms).
 
 The app is built on [Angular][angular] and uses [Angular Material][material] web components.
 

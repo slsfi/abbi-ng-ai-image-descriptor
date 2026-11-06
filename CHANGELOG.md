@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 
+- Clarify API key requirements and data-use policies in the app and README.
 - Deps: update `@angular/core` to 22.2.4 and `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.6.
 - Deps: update `@google/genai` to 2.32.0.
 - Deps: update `docx` to 9.15.2.
