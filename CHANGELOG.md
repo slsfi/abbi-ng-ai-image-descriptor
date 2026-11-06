@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Deps: update `@angular/core` to 22.2.4 and `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.6.
 - Deps: update `tslib` to 2.9.1.
+- Deps (dev): update `vitest` to 5.1.0.
 
 
 
