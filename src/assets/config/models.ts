@@ -2,7 +2,7 @@ import { Model } from '../../app/types/model.types'
 import { TaskTypeId } from './prompts';
 
 export type ModelProvider = 'OpenAI' | 'Google';
-export type ModelId = 'gpt-4.1' | 'gpt-5.6-sol' | 'gpt-6.1-terra' | 'gpt-6.1-sol' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview' | 'gemini-4-argon';
+export type ModelId = 'gpt-4.1' | 'gpt-6.1-terra' | 'gpt-6.1-sol' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview' | 'gemini-4-argon';
 
 // provider = name of model creator
 // name = display name of the model
@@ -53,25 +53,6 @@ export const MODELS: Model[] = [
     parameters: {
       imageDetail: 'high'
     }
-  },
-  {
-    provider: 'OpenAI',
-    name: 'GPT-5.6 Sol',
-    id: 'gpt-5.6-sol',
-    description: 'The flagship model in the GPT-5.6 family, suitable for high-quality alt text and complex image understanding.',
-    inputPrice: { tiers: [{ upToTokens: 272000, per1M: 4.00 }, { upToTokens: null, per1M: 8.00 }] },
-    outputPrice: { tiers: [{ upToTokens: 272000, per1M: 20.00 }, { upToTokens: null, per1M: 30.00 }] },
-    rpm: 5000,
-    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
-    url: 'https://developers.openai.com/api/docs/models/gpt-5.6-sol',
-    parameters: {
-      imageDetail: 'original',
-      maxImageShortsidePx: null,
-      reasoningEffort: 'none',
-      reasoningEfforts: ['none', 'low', 'medium', 'high', 'xhigh'],
-      reasoningSupportsTemperature: false
-    },
-    supportsFilesApi: true
   },
   {
     provider: 'OpenAI',

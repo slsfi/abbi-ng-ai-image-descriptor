@@ -26,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Removed
 
 - The `gemini-2.5-flash` and `gemini-2.5-pro` models (deprecated by Google). Use `gemini-3.8-flash` instead.
+- The `gpt-5.6-sol` model. Use `gpt-6.1-sol` instead.
 
 
 
