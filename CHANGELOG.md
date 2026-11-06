@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `openai` to 7.53.0.
 - Deps: update `tslib` to 2.9.1.
 - Deps (dev): update `vitest` to 5.1.0.
+- Deps: update transitive dependencies.
 
 
 
