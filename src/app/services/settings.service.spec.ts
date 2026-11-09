@@ -13,6 +13,19 @@ describe('SettingsService', () => {
     expect(service.selectedTemperature()).toBe(1.0);
   });
 
+  it('enables line break encoding by default and includes changes in request settings', () => {
+    const service = TestBed.inject(SettingsService);
+
+    expect(service.encodeLineBreakTypes()).toBe(true);
+    expect(service.getSettings().encodeLineBreakTypes).toBe(true);
+
+    service.updateEncodeLineBreakTypes(false);
+    expect(service.getSettings().encodeLineBreakTypes).toBe(false);
+
+    service.updateEncodeLineBreakTypes(true);
+    expect(service.getSettings().encodeLineBreakTypes).toBe(true);
+  });
+
   it('does not change temperature when switching task types', () => {
     const service = TestBed.inject(SettingsService);
 

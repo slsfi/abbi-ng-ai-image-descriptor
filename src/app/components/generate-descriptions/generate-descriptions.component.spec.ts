@@ -527,6 +527,40 @@ describe('GenerateDescriptionsComponent', () => {
     expect(code.querySelector('.token.tag')).not.toBeNull();
   });
 
+  it.each([
+    { encode: true, allImages: false },
+    { encode: false, allImages: false },
+    { encode: true, allImages: true },
+    { encode: false, allImages: true }
+  ])('uses line break encoding setting $encode for per-image TEI transcription (all images: $allImages)', async ({ encode, allImages }) => {
+    const targets = allImages ? [image(), image()] : [image()];
+    await showImages(...targets);
+    await enableTei();
+    settings.updateEncodeLineBreakTypes(encode);
+    const text = '<body><p><lb/>First line\n<lb/>hyphen-\n<lb/>ated word</p></body>';
+    for (let i = 0; i < targets.length; i++) {
+      ai.describeImagesFilesApi
+        .mockResolvedValueOnce({ text: 'Transcribed text' })
+        .mockResolvedValueOnce({ text });
+    }
+
+    if (allImages) {
+      await component.generateAll();
+    } else {
+      await component.generate(targets[0]);
+    }
+    await fixture.whenStable();
+
+    const expected = encode
+      ? '<p><lb break="line"/>First line\n<lb break="line"/>hyphen-\n<lb break="word"/>ated word</p>'
+      : '<p><lb/>First line\n<lb/>hyphen-\n<lb/>ated word</p>';
+    for (const target of targets) {
+      expect(target.descriptions[0].teiEncoded).toBe(true);
+      expect(target.descriptions[0].description).toBe(expected);
+      expect(row(target).querySelector('code')!.textContent).toBe(expected);
+    }
+  });
+
   it('keeps a TEI highlighting request until upload cleanup finishes and its code actually renders', async () => {
     const target = image();
     await showImages(target);
@@ -624,6 +658,30 @@ describe('GenerateDescriptionsComponent', () => {
     expect(exportFile).toHaveBeenCalledWith('csv', 'reviewed-images');
     expect(component.exporting()).toBe(false);
     expect(buttonWithText('Export').disabled).toBe(false);
+  });
+
+  it.each([true, false])('uses line break encoding setting %s for new batches and the updated setting for regeneration', async encode => {
+    await showCompletedBatches(1);
+    settings.updateEncodeLineBreakTypes(encode);
+    const text = '<body><p><lb/>First line\n<lb/>hyphen-\n<lb/>ated word</p></body>';
+    ai.describeImagesFilesApi.mockResolvedValue({ text });
+
+    await component.generateAll();
+    await fixture.whenStable();
+    const batch = component.batchResults.results()[0];
+    expect(batch.status).toBe('success');
+    expect(batch.teiBody).toBe(encode
+      ? '<p><lb break="line"/>First line\n<lb break="line"/>hyphen-\n<lb break="word"/>ated word</p>'
+      : '<p><lb/>First line\n<lb/>hyphen-\n<lb/>ated word</p>');
+
+    settings.updateEncodeLineBreakTypes(!encode);
+    await component.transcribeAndTeiEncodeBatch(batch);
+    await fixture.whenStable();
+    const regenerated = component.batchResults.results()[0];
+    expect(regenerated.status).toBe('success');
+    expect(regenerated.teiBody).toBe(encode
+      ? '<p><lb/>First line\n<lb/>hyphen-\n<lb/>ated word</p>'
+      : '<p><lb break="line"/>First line\n<lb break="line"/>hyphen-\n<lb break="word"/>ated word</p>');
   });
 
   it('renders batch cancellation immediately and does not overwrite it with a late result', async () => {
