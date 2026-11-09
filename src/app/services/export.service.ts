@@ -12,6 +12,7 @@ import { ImageData } from '../types/image-data.types';
 import { ExportFormatOption } from '../types/export.types';
 
 const FALLBACK_FILENAME: string = 'image-descriptions';
+const XML_MARKUP_PATTERN = /<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<(?:"[^"]*"|'[^']*'|[^<>'"])*>/g;
 
 export const EXPORT_FORMAT_OPTIONS: ExportFormatOption[] = [
   { fileFormat: 'docx-table', label: 'Word-document, table-formatted (*.docx)', fileExt: 'docx' },
@@ -514,18 +515,63 @@ export class ExportService {
     return !s.endsWith(newLine) ? s += newLine : s;
   }
 
+  /**
+   * Sets break="word" on the first <lb> on a line when the preceding line
+   * ends in a hyphen that is not preceded by a space.
+   *
+   * Expects ordinary line breaks to have break="line" already. Preserves
+   * other attributes and the input's LF/CRLF newline style, and ignores
+   * apparent <lb> tags inside comments or CDATA.
+   */
   private fixLbEncoding(s: string): string {
     const newLine = s.includes('\r\n') ? '\r\n' : '\n';
     const text = s.replaceAll('\r', '');
-    const lines = text.split('\n');
+    let lastLbLineStart = -1;
 
-    for (let i = 0; i < lines.length; i++) {
-      if (i > 0 && lines[i-1].endsWith('-') && !lines[i-1].endsWith(' -')) {
-        lines[i] = lines[i].replace('<lb break="line"/>', '<lb break="word"/>');
+    const fixed = this.mapLbTags(text, (tag, offset) => {
+      const lineStart = text.lastIndexOf('\n', offset - 1) + 1;
+      if (lineStart === lastLbLineStart) return tag;
+      lastLbLineStart = lineStart;
+
+      if (lineStart > 0) {
+        const previousLineStart = text.lastIndexOf('\n', lineStart - 2) + 1;
+        const previousLine = text.slice(previousLineStart, lineStart - 1);
+        if (previousLine.endsWith('-') && !previousLine.endsWith(' -')) {
+          return this.setLbBreakAttribute(tag, 'word');
+        }
       }
-    }
 
-    return lines.join(newLine);
+      return tag;
+    });
+
+    return fixed.replaceAll('\n', newLine);
+  }
+
+  /**
+   * Transforms each unprefixed <lb> opening or self-closing tag, passing
+   * the complete tag and its zero-based character offset in input.
+   * Leaves text and other XML markup unchanged, including comments,
+   * CDATA, and tag-like content inside quoted attribute values.
+   */
+  private mapLbTags(input: string, transform: (tag: string, offset: number) => string): string {
+    return input.replace(XML_MARKUP_PATTERN, (tag, offset: number) =>
+      /^<lb(?=[\s/>])/.test(tag) ? transform(tag, offset) : tag
+    );
+  }
+
+  /**
+   * Sets a single double-quoted break attribute on an unprefixed <lb>
+   * opening or self-closing tag, removing any existing break attributes.
+   * Preserves other attributes, their quoting and spacing, and the tag's
+   * closing form. Attribute-like text inside quoted values is left intact.
+   */
+  private setLbBreakAttribute(tag: string, breakType: 'line' | 'word'): string {
+    // Match whole attributes so text such as break="no" inside another value is preserved.
+    const attributes = tag.slice(3, -1).replace(
+      /\s+([^\s=/>]+)\s*=\s*(?:"[^"]*"|'[^']*')/g,
+      (attribute, name: string) => name === 'break' ? '' : attribute
+    );
+    return `<lb break="${breakType}"${attributes}>`;
   }
 
   private normaliseForExport(s: string, newline = '\r\n', teiEncoded = false): string {
@@ -590,7 +636,9 @@ export class ExportService {
     // Replace em dash with en dash
     text = text.replaceAll('—', '–');
     // Replace apostrophe-like characters
-    text = text.replaceAll("'", '’');
+    if (!teiEncoded) {
+      text = text.replaceAll("'", '’');
+    }
     text = text.replaceAll('´', '’');
     // Entity encoding
     text = text.replaceAll('& ', '&amp; ');
@@ -649,10 +697,10 @@ export class ExportService {
       text = this.tightenFootnoteSpacing(text);
       text = this.fixMisplacedParagraphBreaksAroundPb(text);
       text = this.stripShortPlainItalicHiTags(text);
-      text = this.replaceStraightDoubleQuotesOutsideTags(text, '”');
+      text = this.replaceStraightQuotesOutsideTags(text);
 
       if (encodeLineBreakTypes) {
-        text = text.replaceAll('<lb/>', '<lb break="line"/>');
+        text = this.mapLbTags(text, tag => this.setLbBreakAttribute(tag, 'line'));
         text = this.fixLbEncoding(text);
       }
     } else {
@@ -664,29 +712,37 @@ export class ExportService {
   }
 
   /**
-   * - Strip whitespace at start of a line before <lb/>
-   * - If <lb/> is not at start of a line: remove any whitespace right before it and insert '\n' before it
+   * - Strip whitespace at start of a line before <lb>, with or without attributes
+   * - If <lb> is not at start of a line: remove any whitespace right before it and insert '\n' before it
    * - <p>\n... -> <p>...
    * - Strip whitespace immediately before </p>
    */
   private normaliseTeiStructureBeforeLb(s: string): string {
     let text = s.replaceAll('\r', '');
 
-    // 1) Line-start whitespace before <lb/> is removed
-    //    (also handles tabs/spaces; keeps newline)
-    text = text.replace(/^[ \t]+(?=<lb\/>)/gm, '');
+    // Place each <lb> at the start of a line without touching other XML markup.
+    let normalized = '';
+    let lastIndex = 0;
+    for (const match of text.matchAll(XML_MARKUP_PATTERN)) {
+      let precedingText = text.slice(lastIndex, match.index);
+      const tag = match[0];
+      if (/^<lb(?=[\s/>])/.test(tag)) {
+        precedingText = precedingText.replace(/[ \t]+$/, '');
+        normalized += precedingText;
+        if (normalized && !normalized.endsWith('\n')) normalized += '\n';
+      } else {
+        normalized += precedingText;
+      }
+      normalized += tag;
+      lastIndex = match.index + tag.length;
+    }
+    text = normalized + text.slice(lastIndex);
 
-    // 2) If <lb/> occurs not at start of a line, insert newline before it
-    //    and strip whitespace right before it.
-    //    This turns: "word   <lb/>" into "word\n<lb/>"
-    //    It will NOT affect cases already at line-start because those are preceded by '\n'
-    text = text.replace(/([^\n])[ \t]*<lb\/>/g, '$1\n<lb/>');
-
-    // 3) <p ...> followed by newline becomes <p ...> (and also eats leading whitespace after that newline)
+    // <p ...> followed by newline becomes <p ...> (and also eats leading whitespace after that newline)
     //    Example: "<p rend="noIndent">\n   Text" -> "<p rend="noIndent">Text"
     text = text.replace(/(<p\b[^>]*>)\s*\n\s*/g, '$1');
 
-    // 4) Strip whitespace immediately before </p>
+    // Strip whitespace immediately before </p>
     //    Example: "Text   </p>" or "Text\n</p>" -> "Text</p>"
     text = text.replace(/\s+<\/p>/g, '</p>');
 
@@ -694,36 +750,23 @@ export class ExportService {
   }
 
   /**
-   * Replaces straight double quotes only when NOT inside tags.
+   * Replaces straight quotation marks and apostrophes only outside XML markup.
    * i.e. transforms:  <p foo="bar">He said "hi"</p>
    * into:             <p foo="bar">He said ”hi”</p>
+   * and transforms:   <p foo='bar'>It's 'quoted'</p>
+   * into:             <p foo='bar'>It’s ’quoted’</p>
    */
-  private replaceStraightDoubleQuotesOutsideTags(input: string, replacement: string): string {
+  private replaceStraightQuotesOutsideTags(input: string): string {
     let out = '';
-    let inTag = false;
+    let lastIndex = 0;
+    const replaceQuotes = (text: string) => text.replaceAll('"', '”').replaceAll("'", '’');
 
-    for (let i = 0; i < input.length; i++) {
-      const ch = input[i];
-
-      if (ch === '<') {
-        inTag = true;
-        out += ch;
-        continue;
-      }
-      if (ch === '>') {
-        inTag = false;
-        out += ch;
-        continue;
-      }
-
-      if (!inTag && ch === '"') {
-        out += replacement;
-      } else {
-        out += ch;
-      }
+    for (const match of input.matchAll(XML_MARKUP_PATTERN)) {
+      out += replaceQuotes(input.slice(lastIndex, match.index)) + match[0];
+      lastIndex = match.index + match[0].length;
     }
 
-    return out;
+    return out + replaceQuotes(input.slice(lastIndex));
   }
 
   /**
