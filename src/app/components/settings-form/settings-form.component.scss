@@ -15,6 +15,15 @@ mat-expansion-panel.mat-expansion-panel {
 
 mat-slide-toggle.mat-mdc-slide-toggle {
   --mat-slide-toggle-label-text-size: 1rem;
+
+  code {
+    background-color: #eee;
+    border-radius: 3px;
+    font-family: "Cascadia Mono", "Fira Code", monospace;
+    font-size: 0.9em;
+    padding: 0.1em 0.3em;
+    white-space: nowrap;
+  }
 }
 
 .parameters-wrapper {
@@ -45,6 +54,10 @@ mat-slide-toggle.mat-mdc-slide-toggle {
 .form-field-wrapper {
   align-items: center;
   display: flex;
+
+  &.dependent-setting {
+    padding-inline-start: 1.5rem;
+  }
 
   mat-form-field {
     width: 100%;

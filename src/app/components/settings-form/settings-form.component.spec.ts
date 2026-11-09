@@ -51,7 +51,7 @@ describe('SettingsFormComponent', () => {
     const tooltip = toggle.injector.get(MatTooltip).message;
     expect(tooltip).toContain('break="line"');
     expect(tooltip).toContain('break="word"');
-    expect(tooltip).toContain('newly generated or regenerated TEI transcriptions');
+    expect(tooltip).toContain('Changing this setting does not modify existing results.');
 
     button.click();
     await fixture.whenStable();
