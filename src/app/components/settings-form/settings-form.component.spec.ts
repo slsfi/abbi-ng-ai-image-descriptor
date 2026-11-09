@@ -1,6 +1,8 @@
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
+import { MatTooltip } from '@angular/material/tooltip';
+import { By } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 
 import { SettingsFormComponent } from './settings-form.component';
@@ -27,6 +29,77 @@ describe('SettingsFormComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('shows a default-on line break toggle with a tooltip for batched TEI transcription', async () => {
+    const label = 'Encode line break types with @break in <lb/>';
+    const findToggle = () => fixture.debugElement.queryAll(By.css('mat-slide-toggle'))
+      .find(toggle => toggle.nativeElement.textContent.trim() === label);
+
+    expect(findToggle()).toBeUndefined();
+    settings.updateSelectedTaskType('transcription');
+    await fixture.whenStable();
+    expect(findToggle()).toBeUndefined();
+
+    settings.updateSelectedTaskType('transcriptionBatchTei');
+    await fixture.whenStable();
+    const toggle = findToggle()!;
+    const button: HTMLButtonElement = toggle.nativeElement.querySelector('button[role="switch"]');
+    expect(toggle.nativeElement.closest('.parameters-wrapper').querySelector('h3').textContent)
+      .toContain('Output settings');
+    expect(button.getAttribute('aria-checked')).toBe('true');
+    const tooltip = toggle.injector.get(MatTooltip).message;
+    expect(tooltip).toContain('break="line"');
+    expect(tooltip).toContain('break="word"');
+    expect(tooltip).toContain('newly generated or regenerated TEI transcriptions');
+
+    button.click();
+    await fixture.whenStable();
+    expect(button.getAttribute('aria-checked')).toBe('false');
+    expect(settings.getSettings().encodeLineBreakTypes).toBe(false);
+
+    button.click();
+    await fixture.whenStable();
+    expect(button.getAttribute('aria-checked')).toBe('true');
+    expect(settings.getSettings().encodeLineBreakTypes).toBe(true);
+  });
+
+  it('shows the shared line break setting only while per-image TEI encoding is enabled', async () => {
+    settings.updateSelectedTaskType('transcription');
+    await fixture.whenStable();
+    const root: HTMLElement = fixture.nativeElement;
+    const findSwitch = (label: string) => Array.from(root.querySelectorAll('mat-slide-toggle'))
+      .find(toggle => toggle.textContent?.trim() === label)
+      ?.querySelector<HTMLButtonElement>('button[role="switch"]');
+    const teiSwitch = findSwitch('TEI encode each image transcription separately')!;
+    const lineBreakSwitch = () => findSwitch('Encode line break types with @break in <lb/>');
+
+    expect(teiSwitch.getAttribute('aria-checked')).toBe('false');
+    expect(lineBreakSwitch()).toBeUndefined();
+
+    teiSwitch.click();
+    await fixture.whenStable();
+    expect(settings.teiEncode()).toBe(true);
+    expect(teiSwitch.getAttribute('aria-checked')).toBe('true');
+    expect(lineBreakSwitch()!.getAttribute('aria-checked')).toBe('true');
+
+    lineBreakSwitch()!.click();
+    await fixture.whenStable();
+    expect(settings.encodeLineBreakTypes()).toBe(false);
+
+    teiSwitch.click();
+    await fixture.whenStable();
+    expect(settings.teiEncode()).toBe(false);
+    expect(lineBreakSwitch()).toBeUndefined();
+
+    settings.updateTeiEncode(true);
+    await fixture.whenStable();
+    expect(teiSwitch.getAttribute('aria-checked')).toBe('true');
+    expect(lineBreakSwitch()!.getAttribute('aria-checked')).toBe('false');
+
+    settings.updateSelectedTaskType('transcriptionBatchTei');
+    await fixture.whenStable();
+    expect(lineBreakSwitch()!.getAttribute('aria-checked')).toBe('false');
   });
 
   it('renders task, model, and batch-size changes from the existing signals', async () => {

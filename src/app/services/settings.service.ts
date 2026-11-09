@@ -28,6 +28,7 @@ export class SettingsService {
   readonly selectedReasoningEffort = signal<OpenAiReasoningEffort | null>(null);
   readonly selectedThinkingLevel = signal<GeminiThinkingLevel | null>(null);
   readonly teiEncode = signal<boolean>(false);
+  readonly encodeLineBreakTypes = signal<boolean>(true);
 
   readonly batchSizeMin = signal<number>(BATCH_SIZE_MIN);
   readonly batchSizeMax = signal<number>(BATCH_SIZE_MAX);
@@ -176,6 +177,7 @@ export class SettingsService {
       promptVariant: this.selectedVariant(),
       includeFilename: this.includeFilename(),
       teiEncode: this.teiEncode(),
+      encodeLineBreakTypes: this.encodeLineBreakTypes(),
       batchSize: this.batchSize(),
     };
   }
@@ -222,6 +224,10 @@ export class SettingsService {
 
   updateTeiEncode(value: boolean) {
     this.teiEncode.set(value);
+  }
+
+  updateEncodeLineBreakTypes(value: boolean) {
+    this.encodeLineBreakTypes.set(value);
   }
 
   updateBatchSize(value: number) {

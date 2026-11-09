@@ -574,7 +574,7 @@ export class ExportService {
     return t.trim();
   }
 
-  normaliseCharacters(s: string, teiEncoded: boolean = false): string {
+  normaliseCharacters(s: string, teiEncoded: boolean = false, encodeLineBreakTypes: boolean = true): string {
     // Remove all carriage returns
     let text = s.replaceAll('\r', '');
     // Remove soft hyphen (U+00AD; &shy;) (invisible in VS Code)
@@ -651,8 +651,10 @@ export class ExportService {
       text = this.stripShortPlainItalicHiTags(text);
       text = this.replaceStraightDoubleQuotesOutsideTags(text, '”');
 
-      text = text.replaceAll('<lb/>', '<lb break="line"/>');
-      text = this.fixLbEncoding(text);
+      if (encodeLineBreakTypes) {
+        text = text.replaceAll('<lb/>', '<lb break="line"/>');
+        text = this.fixLbEncoding(text);
+      }
     } else {
       // Replace all double quotes only if not teiEncoded text
       text = text.replaceAll('"', '”');

@@ -58,7 +58,6 @@ export class SettingsFormComponent {
     return Array.from(groups, ([provider, models]) => ({ provider, models }));
   });
 
-  teiEncode = signal<boolean>(false);
   transcribeHeaders = signal<boolean>(true);
 
   descLengthMax: number = 300;
@@ -76,6 +75,10 @@ export class SettingsFormComponent {
 
   setTeiEncode(event: MatSlideToggleChange): void {
     this.settings.updateTeiEncode(event.checked);
+  }
+
+  setEncodeLineBreakTypes(event: MatSlideToggleChange): void {
+    this.settings.updateEncodeLineBreakTypes(event.checked);
   }
 
   setTranscribeHeaders(event: MatSlideToggleChange): void {

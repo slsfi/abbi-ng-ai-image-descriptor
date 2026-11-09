@@ -589,8 +589,7 @@ export class GenerateDescriptionsComponent implements OnInit {
         }
 
         if (res) {
-          // normaliseCharacters already strips/normalizes; pass teiEncoded=true
-          const teiBody = this.exportService.normaliseCharacters(res.text, true);
+          const teiBody = this.exportService.normaliseCharacters(res.text, true, settings.encodeLineBreakTypes);
 
           this.batchResults.update(batchId, {
             status: 'success',
@@ -697,8 +696,7 @@ export class GenerateDescriptionsComponent implements OnInit {
       }
 
       if (res) {
-        // normaliseCharacters already strips/normalizes; pass teiEncoded=true
-        const teiBody = this.exportService.normaliseCharacters(res.text, true);
+        const teiBody = this.exportService.normaliseCharacters(res.text, true, settings.encodeLineBreakTypes);
 
         this.batchResults.update(batchId, {
           status: 'success',
@@ -1341,7 +1339,7 @@ export class GenerateDescriptionsComponent implements OnInit {
     teiEncoded?: boolean
   ): DescriptionData {
     return {
-      description: this.exportService.normaliseCharacters(text, teiEncoded),
+      description: this.exportService.normaliseCharacters(text, teiEncoded, settings.encodeLineBreakTypes),
       language,
       model: settings.model?.id ?? '',
       inputTokens: usage?.inputTokens ?? 0,

@@ -26,6 +26,7 @@ function createSettings(overrides: Partial<RequestSettings> = {}): RequestSettin
         },
         includeFilename: true,
         teiEncode: false,
+        encodeLineBreakTypes: true,
         batchSize: 10,
         ...overrides,
     };

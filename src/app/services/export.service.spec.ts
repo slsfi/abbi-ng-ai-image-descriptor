@@ -30,6 +30,22 @@ describe('ExportService', () => {
     service = TestBed.inject(ExportService);
   });
 
+  it('encodes ordinary and hyphenated TEI line breaks by default', () => {
+    const input = '<body><p><lb/>First line\n<lb/>hyphen-\n<lb/>ated word</p></body>';
+
+    expect(service.normaliseCharacters(input, true)).toBe(
+      '<p><lb break="line"/>First line\n<lb break="line"/>hyphen-\n<lb break="word"/>ated word</p>'
+    );
+  });
+
+  it('skips both line break encoding steps when disabled while retaining other TEI cleanup', () => {
+    const input = '<body><p>\n<lb/>A <hi rend="italics">short</hi> line\n<lb/>hyphen-\n<lb/>ated word-\n<lb break="line"/>existing encoding</p></body>';
+
+    expect(service.normaliseCharacters(input, true, false)).toBe(
+      '<p><lb/>A short line\n<lb/>hyphen-\n<lb/>ated word-\n<lb break="line"/>existing encoding</p>'
+    );
+  });
+
   it('merges a paragraph split around a page break when the text clearly continues', () => {
     const input = `a paragraph that should</p>
 <pb n="32"/>

@@ -132,7 +132,7 @@
 
       <div class="form-field-wrapper">
         <mat-slide-toggle
-              [checked]="teiEncode()"
+              [checked]="settings.teiEncode()"
               (change)="setTeiEncode($event)"
               matTooltip="Enable this to TEI XML encode the transcribed text of each image separately."
         >TEI encode each image transcription separately</mat-slide-toggle>
@@ -160,6 +160,16 @@
                   #batchSizeSlider>
           </mat-slider>
         </div>
+      </div>
+    }
+
+    @if (selectedTaskTypeValue === 'transcriptionBatchTei' || (selectedTaskTypeValue === 'transcription' && settings.teiEncode())) {
+      <div class="form-field-wrapper">
+        <mat-slide-toggle
+              [checked]="settings.encodeLineBreakTypes()"
+              (change)="setEncodeLineBreakTypes($event)"
+              matTooltip="Adds break=&quot;line&quot; to &lt;lb/&gt; and uses break=&quot;word&quot; for line breaks following a hyphenated word. Turn off to keep the generated line break attributes. Applies to newly generated or regenerated TEI transcriptions."
+        >Encode line break types with &#64;break in &lt;lb/&gt;</mat-slide-toggle>
       </div>
     }
   </div>
