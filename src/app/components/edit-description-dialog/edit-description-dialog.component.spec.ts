@@ -20,6 +20,13 @@ describe('EditDescriptionDialogComponent', () => {
     await fixture.whenStable();
   }
 
+  function expectTransform(img: HTMLImageElement, transform: string): void {
+    // Compare CSSOM serialization, which can omit a zero Y translation.
+    const style = document.createElement('div').style;
+    style.transform = transform;
+    expect(img.style.transform).toBe(style.transform);
+  }
+
   beforeEach(async () => {
     close = vi.fn();
     image = {
@@ -102,12 +109,12 @@ describe('EditDescriptionDialogComponent', () => {
     viewport.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 10, clientY: 5 }));
     viewport.dispatchEvent(new MouseEvent('pointerup', { bubbles: true }));
     await fixture.whenStable();
-    expect(img.style.transform).toBe('translate(10px, 5px) scale(1.25)');
+    expectTransform(img, 'translate(10px, 5px) scale(1.25)');
 
     viewportRect.mockReturnValue(new DOMRect(0, 0, 250, 125));
     window.dispatchEvent(new Event('resize'));
     await fixture.whenStable();
-    expect(img.style.transform).toBe('translate(0px, 0px) scale(1.25)');
+    expectTransform(img, 'translate(0px, 0px) scale(1.25)');
 
     viewport.dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: -1 }));
     await fixture.whenStable();
@@ -115,7 +122,7 @@ describe('EditDescriptionDialogComponent', () => {
     reset.click();
     await fixture.whenStable();
     expect(zoomLabel.textContent).toBe('100%');
-    expect(img.style.transform).toBe('translate(0px, 0px) scale(1)');
+    expectTransform(img, 'translate(0px, 0px) scale(1)');
     expect(viewport.classList.contains('zoomed')).toBe(false);
     expect(reset.disabled).toBe(true);
   });

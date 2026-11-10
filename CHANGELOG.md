@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `@angular/core` to 22.2.5.
 - Deps: update `docx` to 9.15.3.
 - Deps: update `openai` to 7.55.0.
+- Deps (dev): update `jsdom` to 31.0.0.
 
 ### Fixed
 
