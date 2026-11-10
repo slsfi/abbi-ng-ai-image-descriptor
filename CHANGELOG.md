@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - An output setting, enabled by default, to control `@break` encoding on `<lb/>` elements in batched TEI transcription and in Transcribe when TEI encoding is enabled. Turning it off preserves the AI's `@break` attributes.
 
+### Changed
+
+- Deps: update `@angular/core` to 22.2.5.
+
 ### Fixed
 
 - Correct `@break` encoding on `<lb>` elements with attributes, preserve XML attribute quotes, and keep the per-image TEI-encoding toggle synchronized with its setting.
