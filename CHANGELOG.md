@@ -8,20 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [4.4.0] – 2026-11-10
+
 ### Added
 
-- An output setting, enabled by default, to control `@break` encoding on `<lb/>` elements in batched TEI transcription and in Transcribe when TEI encoding is enabled. Turning it off preserves the AI's `@break` attributes.
+- An output setting, enabled by default, to control `@break` encoding on `<lb/>` elements in batched TEI transcription and in Transcribe when TEI encoding is enabled. Turning it off preserves the AI's `@break` attributes. ([c4007f5](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/c4007f5f19edc5017284b2bad03df2a7a8c12057))
 
 ### Changed
 
-- Deps: update `@angular/core` to 22.2.5.
-- Deps: update `docx` to 9.15.3.
-- Deps: update `openai` to 7.55.0.
-- Deps (dev): update `jsdom` to 31.0.0.
+- Deps: update `@angular/core` to 22.2.5. ([e8671a0](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/e8671a016d16c67809efa9675f776d456f9ae1d9))
+- Deps: update `docx` to 9.15.3. ([1304403](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/1304403ddedc62ddad65cf004813b300d299bdf8))
+- Deps: update `openai` to 7.55.0. ([d98ade1](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/d98ade1339dd9117b541123f8c37dc2f8746ec88))
+- Deps (dev): update `jsdom` to 31.0.0. ([50e4ad1](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/50e4ad12210a0efb3e1626662261238f9442dc59))
 
 ### Fixed
 
-- Correct `@break` encoding on `<lb>` elements with attributes, preserve XML attribute quotes, and keep the per-image TEI-encoding toggle synchronized with its setting.
+- Correct `@break` encoding on `<lb>` elements with attributes, preserve XML attribute quotes, and keep the per-image TEI-encoding toggle synchronized with its setting. ([c4007f5](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/c4007f5f19edc5017284b2bad03df2a7a8c12057))
 
 
 
@@ -640,7 +644,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.3.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.4.0...HEAD
+[4.4.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.3.0...4.4.0
 [4.3.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.2.1...4.3.0
 [4.2.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.2.0...4.2.1
 [4.2.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.1.1...4.2.0
