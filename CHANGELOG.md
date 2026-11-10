@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - Deps: update `@angular/core` to 22.2.5.
+- Deps: update `docx` to 9.15.3.
 
 ### Fixed
 
