@@ -2,7 +2,7 @@ import { Model } from '../../app/types/model.types'
 import { TaskTypeId } from './prompts';
 
 export type ModelProvider = 'OpenAI' | 'Google';
-export type ModelId = 'gpt-4.1' | 'gpt-6.1-terra' | 'gpt-6.1-sol' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview' | 'gemini-4-argon';
+export type ModelId = 'gpt-4.1' | 'gpt-6.1-terra' | 'gpt-6.1-sol' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview' | 'gemini-4-argon' | 'gemini-4-carbon';
 
 // provider = name of model creator
 // name = display name of the model
@@ -101,7 +101,7 @@ export const MODELS: Model[] = [
     outputPrice: 3.75,
     rpm: 1000,
     supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
-    url: 'https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash',
+    url: 'https://aistudio.google.com/docs/models/gemini-3.8-flash',
     parameters: {
       thinkingLevel: 'low',
       thinkingLevels: ['low', 'medium', 'high'],
@@ -120,7 +120,7 @@ export const MODELS: Model[] = [
     outputPrice: { tiers: [{ upToTokens: 200000, per1M: 12.00 }, { upToTokens: null, per1M: 18.00 }] },
     rpm: 25,
     supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
-    url: 'https://ai.google.dev/gemini-api/docs/models/gemini-3.1-pro-preview',
+    url: 'https://aistudio.google.com/docs/models/gemini-3.1-pro-preview',
     parameters: {
       thinkingLevel: 'low',
       thinkingLevels: ['low', 'medium', 'high'],
@@ -133,12 +133,31 @@ export const MODELS: Model[] = [
     provider: 'Google',
     name: 'Gemini 4 Argon',
     id: 'gemini-4-argon',
-  description: 'Google\'s flagship model for the most accurate transcription tasks, excelling at handwritten text, and the best choice when transcription quality is critical.',
+  description: 'A flagship-level model for the most accurate transcription tasks, excelling at handwritten text, and the best choice when transcription quality is critical.',
     inputPrice: 2.00,
     outputPrice: 10.00,
     rpm: 25,
     supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
-    url: 'https://ai.google.dev/gemini-api/docs/models/gemini-4-argon',
+    url: 'https://aistudio.google.com/docs/models/gemini-4-argon',
+    parameters: {
+      thinkingLevel: 'medium',
+      thinkingLevels: ['low', 'medium', 'high'],
+      maxImageShortsidePx: null,
+      mediaResolution: 'high',
+      supportsTemperatureSampling: false
+    },
+    supportsFilesApi: true
+  },
+  {
+    provider: 'Google',
+    name: 'Gemini 4 Carbon',
+    id: 'gemini-4-carbon',
+  description: 'A flagship-level model that performs as well as or better than Gemini 4 Argon. It is slower and uses more thinking tokens than Argon.',
+    inputPrice: 2.00,
+    outputPrice: 10.00,
+    rpm: 25,
+    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
+    url: 'https://aistudio.google.com/docs/models/gemini-4-carbon',
     parameters: {
       thinkingLevel: 'medium',
       thinkingLevels: ['low', 'medium', 'high'],

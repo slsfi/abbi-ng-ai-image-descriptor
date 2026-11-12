@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- Support for the Google [`gemini-4-carbon`](https://aistudio.google.com/docs/models/gemini-4-carbon) model. Note that both Gemini 4 Argon and Carbon are available for an introductory price through 30 Nov 2026. Starting 1 Dec 2026 the pricing of both models will double.
+
 
 
 ## [4.4.0] – 2026-11-10
