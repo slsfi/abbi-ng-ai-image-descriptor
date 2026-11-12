@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { from, Observable } from 'rxjs';
-import { ApiError, File, GenerateContentResponse, GoogleGenAI, MediaResolution,
-         ThinkingLevel, createPartFromUri, createUserContent
-        } from '@google/genai';
+import { ApiError, File, GoogleGenAI } from '@google/genai';
+import type { Interactions } from '@google/genai';
 
 import { AiResult } from '../types/ai.types';
 import { GoogleFilesApiUploadedFile } from '../types/files-api.types';
@@ -44,8 +43,6 @@ export class GoogleService {
    * Updates (or initializes) the Google GenAI SDK client for the given API key.
    *
    * The SDK client is recreated whenever the key changes.
-   * Note: we intentionally do not force an apiVersion because preview models may
-   * require v1beta for some config fields (thinkingConfig, mediaResolution).
    */
   updateClient(apiKey: string): void {
     if (apiKey !== this.apiKey) {
@@ -70,7 +67,7 @@ export class GoogleService {
   isValidApiKey(apiKey: string): Observable<boolean> {
     const client = new GoogleGenAI({
       apiKey: apiKey,
-      apiVersion: 'v1'
+      apiVersion: 'v1beta'
     });
 
     return from(
@@ -101,25 +98,28 @@ export class GoogleService {
     }
 
     try {
+      const mediaResolution = settings.model.parameters?.mediaResolution;
       const payload = {
         model: settings.model.id,
-        contents: [
+        input: [
+          { type: 'text', text: prompt },
           {
-            inlineData: {
-              mimeType: parsed.mimeType,
-              data: parsed.dataBase64,
-            },
+            type: 'image',
+            data: parsed.dataBase64,
+            mime_type: parsed.mimeType,
+            ...(mediaResolution ? { resolution: mediaResolution } : {})
           },
-          { text: prompt },
         ],
-        config: this.buildGenerateContentConfig(settings, {
-          maxOutputTokens: this.maxOutputTokensFromSettings(settings)
-        })
-      };
+        generation_config: this.buildInteractionsGenerationConfig(
+          settings,
+          { maxOutputTokens: this.maxOutputTokensFromSettings(settings) }
+        ),
+        store: false
+      } satisfies Interactions.CreateModelInteractionParamsNonStreaming;
       // console.log(payload);
 
-      const resp = await this.client.models.generateContent(payload);
-      return this.responseToAiResult(resp);
+      const resp = await this.client.interactions.create(payload);
+      return this.interactionToAiResult(resp);
     } catch (e) {
       return this.toAiResultErrorGoogle(e);
     }
@@ -149,25 +149,28 @@ export class GoogleService {
     }
 
     try {
-      // Build contents as: [inlineData, inlineData, ..., {text: prompt}]
-      const contents: any[] = parsedImages.map(p => ({
-        inlineData: {
-          mimeType: p.mimeType,
-          data: p.dataBase64
-        }
-      }));
-      contents.push({ text: prompt });
+      const mediaResolution = settings.model.parameters?.mediaResolution;
+      const input: Interactions.Content[] = [
+        { type: 'text', text: prompt },
+        ...parsedImages.map((p): Interactions.ImageContent => ({
+          type: 'image',
+          data: p.dataBase64,
+          mime_type: p.mimeType,
+          ...(mediaResolution ? { resolution: mediaResolution } : {})
+        }))
+      ];
 
       const payload = {
         model: settings.model.id,
-        contents,
-        config: this.buildGenerateContentConfig(settings, {
+        input,
+        generation_config: this.buildInteractionsGenerationConfig(settings, {
           maxOutputTokens: this.maxOutputTokensFromSettings(settings)
-        })
-      };
+        }),
+        store: false
+      } satisfies Interactions.CreateModelInteractionParamsNonStreaming;
 
-      const resp = await this.client.models.generateContent(payload);
-      return this.responseToAiResult(resp);
+      const resp = await this.client.interactions.create(payload);
+      return this.interactionToAiResult(resp);
     } catch (e) {
       return this.toAiResultErrorGoogle(e);
     }
@@ -176,8 +179,8 @@ export class GoogleService {
   /**
    * Runs a multi-image request using Google’s Files API:
    *  1) Upload each image via Files API
-   *  2) Build prompt parts using the resulting file URIs
-   *  3) Call models.generateContent(...)
+   *  2) Build input with the prompt first, followed by image file URIs
+   *  3) Call interactions.create(...)
    *
    * Cancellation:
    * - If `options.signal` is aborted while uploading or generating, this method returns
@@ -206,9 +209,10 @@ export class GoogleService {
     }
 
     try {
-      // Upload/ensure uploaded in order
-      const parts: any[] = [];
+      const mediaResolution = settings.model.parameters?.mediaResolution;
+      const input: Interactions.Content[] = [{ type: 'text', text: prompt }];
 
+      // Upload/ensure uploaded in order, keeping the prompt before all images.
       for (let i = 0; i < images.length; i++) {
         if (signal?.aborted) {
           throw new DOMException('Aborted', 'AbortError');
@@ -218,23 +222,30 @@ export class GoogleService {
         if (!up) {
           return { text: '', error: { code: 400, message: `Failed to upload image at index ${i}.` } };
         }
-        parts.push(createPartFromUri(up.uri, up.mimeType));
+        input.push({
+          type: 'image',
+          uri: up.uri,
+          mime_type: up.mimeType,
+          ...(mediaResolution ? { resolution: mediaResolution } : {})
+        });
       }
 
-      // Then add the prompt text
-      parts.push(prompt);
+      if (signal?.aborted) {
+        throw new DOMException('Aborted', 'AbortError');
+      }
 
       const payload = {
         model: settings.model.id,
-        contents: createUserContent(parts),
-        config: this.buildGenerateContentConfig(settings)
-      };
+        input,
+        generation_config: this.buildInteractionsGenerationConfig(settings),
+        store: false
+      } satisfies Interactions.CreateModelInteractionParamsNonStreaming;
 
-      const resp = await abortable<GenerateContentResponse>(
-        this.client.models.generateContent(payload),
+      const resp = await abortable(
+        this.client.interactions.create(payload),
         signal
       );
-      return this.responseToAiResult(resp);
+      return this.interactionToAiResult(resp);
     } catch (e) {
       // If aborted, surface a clean error object; the caller will typically ignore it.
       if (e instanceof DOMException && e.name === 'AbortError') {
@@ -258,15 +269,16 @@ export class GoogleService {
 
       const payload = {
         model: settings.model.id,
-        contents: prompt,
-        config: {
-          ...(thinkingLevel ? { thinkingConfig: { thinkingLevel: thinkingLevel } } : {})
-        }
-      };
+        input: prompt,
+        generation_config: {
+          ...(thinkingLevel ? { thinking_level: thinkingLevel } : {})
+        },
+        store: false
+      } satisfies Interactions.CreateModelInteractionParamsNonStreaming;
       // console.log(payload);
 
-      const resp = await this.client.models.generateContent(payload);
-      return this.responseToAiResult(resp);
+      const resp = await this.client.interactions.create(payload);
+      return this.interactionToAiResult(resp);
     } catch (e) {
       return this.toAiResultErrorGoogle(e);
     }
@@ -475,21 +487,6 @@ export class GoogleService {
   }
 
   /**
-   * Maps the UI model parameter (low/medium/high) to the SDK MediaResolution enum.
-   */
-  private mediaResolutionFromModel(settings: RequestSettings): MediaResolution | null {
-    const modelMediaResolution = settings.model.parameters?.mediaResolution ?? null;
-    const mediaResolution = modelMediaResolution === 'low'
-      ? MediaResolution.MEDIA_RESOLUTION_LOW
-      : modelMediaResolution === 'medium'
-      ? MediaResolution.MEDIA_RESOLUTION_MEDIUM
-      : modelMediaResolution === 'high'
-      ? MediaResolution.MEDIA_RESOLUTION_HIGH
-      : null
-    return mediaResolution;
-  }
-
-  /**
    * Resolves the effective max output token limit for UI tasks that use one.
    */
   private maxOutputTokensFromSettings(settings: RequestSettings): number | null {
@@ -500,14 +497,14 @@ export class GoogleService {
   }
 
   /**
-   * Builds the shared Google `generateContent` config object used by inline-image,
-   * multi-image, and Files API requests.
+   * Interactions uses snake_case fields and lowercase thinking levels.
+   * Image resolution belongs on each image input; thinking budgets are not exposed.
+   * See https://aistudio.google.com/api-reference/interactions-api/create-interaction
    */
-  private buildGenerateContentConfig(
+  private buildInteractionsGenerationConfig(
     settings: RequestSettings,
     options?: { maxOutputTokens?: number | null }
-  ) {
-    const mediaResolution = this.mediaResolutionFromModel(settings);
+  ): Interactions.GenerationConfig {
     const thinkingLevel = this.thinkingLevelFromSettings(settings);
     const supportsTemperature = isTemperatureSupportedForModel(
       settings.model,
@@ -515,76 +512,43 @@ export class GoogleService {
       settings.thinkingLevel
     );
 
-    let thinkingBudget: number | null = settings.model.parameters?.thinkingBudget ?? null;
-    if (thinkingLevel) {
-      thinkingBudget = null;
-    }
-
     return {
-      ...(options?.maxOutputTokens ? { maxOutputTokens: options.maxOutputTokens } : {}),
-      ...(mediaResolution ? { mediaResolution } : {}),
+      ...(options?.maxOutputTokens ? { max_output_tokens: options.maxOutputTokens } : {}),
       ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {}),
-      ...(thinkingLevel ? { thinkingConfig: { thinkingLevel } } : {}),
-      ...(thinkingBudget !== null ? { thinkingConfig: { thinkingBudget } } : {})
+      ...(thinkingLevel ? { thinking_level: thinkingLevel } : {})
     };
   }
 
   /**
-   * Maps the selected UI thinking level (minimal/low/medium/high)
-   * to the SDK ThinkingLevel enum.
+   * Resolves the selected UI thinking level or the model's default.
+   * Interactions uses the same lowercase values as the settings.
    */
-  private thinkingLevelFromSettings(settings: RequestSettings): ThinkingLevel | null {
-    const selectedThinkingLevel = settings.thinkingLevel ?? settings.model.parameters?.thinkingLevel ?? null;
-    const thinkingLevel = selectedThinkingLevel === 'minimal'
-      ? ThinkingLevel.MINIMAL
-      : selectedThinkingLevel === 'low'
-      ? ThinkingLevel.LOW
-      : selectedThinkingLevel === 'medium'
-      ? ThinkingLevel.MEDIUM
-      : selectedThinkingLevel === 'high'
-      ? ThinkingLevel.HIGH
-      : null
-    return thinkingLevel;
+  private thinkingLevelFromSettings(settings: RequestSettings): Interactions.ThinkingLevel | null {
+    return settings.thinkingLevel ?? settings.model.parameters?.thinkingLevel ?? null;
   }
 
-  /**
-   * Converts an SDK GenerateContentResponse to the app's AiResult format.
-   *
-   * Keeps the raw response for debugging and attaches token usage if available.
-   */
-  private responseToAiResult(response?: GenerateContentResponse): AiResult {
-    return {
-      text: this.resolveResponseText(response),
+  /** Converts an Interactions response, including output and thinking token usage. */
+  private interactionToAiResult(response: Interactions.Interaction): AiResult {
+    const result: AiResult = {
+      text: response.output_text ?? '',
       usage: {
-        inputTokens: this.resolveinputTokenCount(response),
-        outputTokens: this.resolveOutputTokenCount(response)
+        inputTokens: response.usage?.total_input_tokens ?? 0,
+        outputTokens: (response.usage?.total_output_tokens ?? 0) + (response.usage?.total_thought_tokens ?? 0)
       },
       raw: response
     };
-  }
 
-  /**
-   * Extracts the response text from the SDK response.
-   */
-  private resolveResponseText(response?: GenerateContentResponse): string {
-    // return response?.text ?? response?.candidates?.[0].content?.parts?.[0].text ?? '';
-    return response?.text ?? '';
-  } 
+    if (response.status === 'failed') {
+      const error = response.errors?.[0];
+      result.error = {
+        code: error?.code ?? 500,
+        message: error?.message ?? 'Google interaction failed.'
+      };
+    } else if (response.status === 'cancelled') {
+      result.error = { code: 499, message: 'Request cancelled.' };
+    }
 
-  /**
-   * Extracts prompt/input token count if the model provided usage metadata.
-   */
-  private resolveinputTokenCount(response?: GenerateContentResponse): number {
-    return response?.usageMetadata?.promptTokenCount ?? 0;
-  }
-
-  /**
-   * Extracts output token count (candidates + thoughts) if the model provided usage metadata.
-   */
-  private resolveOutputTokenCount(response?: GenerateContentResponse): number {
-    const candidatesTokens = response?.usageMetadata?.candidatesTokenCount ?? 0;
-    const thoughtsTokens = response?.usageMetadata?.thoughtsTokenCount ?? 0;
-    return candidatesTokens + thoughtsTokens;
+    return result;
   }
 
   /**
@@ -597,7 +561,8 @@ export class GoogleService {
    *  - Unexpected errors are safely converted to a generic 500 error
    */
   private toAiResultErrorGoogle(e: any): AiResult {
-    if (e instanceof ApiError) {
+    // Interactions HTTP errors expose status but use a different SDK error class.
+    if (e instanceof ApiError || typeof e?.status === 'number') {
       console.error('Google API Error:', e);
       return {
         text: '',
@@ -633,7 +598,7 @@ export class GoogleService {
    * This ensures that UI-facing error messages remain concise and readable,
    * and prevents leaking raw JSON blobs into snackbars or logs.
    */
-  private extractGoogleApiMessage(e: ApiError): string {
+  private extractGoogleApiMessage(e: { message?: unknown }): string {
     const raw = String(e.message ?? '').trim();
     const jsonStart = raw.indexOf('{');
     if (jsonStart >= 0) {
