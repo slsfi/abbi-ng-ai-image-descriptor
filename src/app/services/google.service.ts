@@ -51,10 +51,13 @@ export class GoogleService {
     if (apiKey !== this.apiKey) {
       this.apiKey = apiKey;
       this.client = new GoogleGenAI({
-        apiKey: apiKey
-        // NOTE: Do not force apiVersion to 'v1'.
-        // Preview models (e.g. Gemini 3 Pro Preview) require v1beta
-        // for thinkingConfig and mediaResolution.
+        apiKey: apiKey,
+        // NOTE: Force apiVersion to 'v1beta'
+        // because Gemini 3.1 Pro Preview requires v1beta
+        // and does not work on the default 'v1'.
+        // Remove explicit apiVersion when Gemini 3.1 Pro Preview
+        // is removed from the app.
+        apiVersion: 'v1beta'
       });
     }
   }
