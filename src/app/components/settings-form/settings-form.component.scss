@@ -34,6 +34,7 @@ mat-slide-toggle.mat-mdc-slide-toggle {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin: 0 0 1.5rem 0;
   }
 
   > mat-form-field,
@@ -45,9 +46,20 @@ mat-slide-toggle.mat-mdc-slide-toggle {
     }
 
     mat-slide-toggle.mat-mdc-slide-toggle {
-      margin: 0 0 1rem 0;
       --mat-slide-toggle-label-text-tracking: normal;
     }
+  }
+}
+
+.column-info {
+  border-radius: 50%;
+  cursor: help;
+  flex-shrink: 0;
+  padding: 0 0 0 12px;
+
+  &:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
   }
 }
 
