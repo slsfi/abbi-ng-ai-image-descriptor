@@ -40,6 +40,18 @@ describe('SettingsService', () => {
     expect(service.selectedTemperature()).toBe(0.4);
   });
 
+  it('removes short italic highlighting by default and includes changes in request settings', () => {
+    const service = TestBed.inject(SettingsService);
+
+    expect(service.getSettings().stripShortPlainItalicHiTags).toBe(true);
+
+    service.updateStripShortPlainItalicHiTags(false);
+    expect(service.getSettings().stripShortPlainItalicHiTags).toBe(false);
+
+    service.updateStripShortPlainItalicHiTags(true);
+    expect(service.getSettings().stripShortPlainItalicHiTags).toBe(true);
+  });
+
   it('reports temperature as unsupported for Gemini 3.7 Flash', () => {
     const service = TestBed.inject(SettingsService);
 

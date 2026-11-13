@@ -122,6 +122,42 @@ describe('SettingsFormComponent', () => {
     expect(fixture.nativeElement.querySelector('.slider-value-label').textContent).toBe('7 images');
   });
 
+  it('shows the shared italic cleanup toggle for TEI transcription and preserves its value across tasks', async () => {
+    const findToggle = () => fixture.debugElement.queryAll(By.css('mat-slide-toggle'))
+      .find(toggle => toggle.nativeElement.textContent.trim() === 'Remove short italic highlighting');
+    const findSwitch = () => findToggle()?.nativeElement.querySelector('button[role="switch"]') as HTMLButtonElement | undefined;
+
+    expect(findToggle()).toBeUndefined();
+    settings.updateSelectedTaskType('transcription');
+    await fixture.whenStable();
+    expect(findToggle()).toBeUndefined();
+
+    settings.updateTeiEncode(true);
+    await fixture.whenStable();
+    expect(findSwitch()!.getAttribute('aria-checked')).toBe('true');
+    expect(findToggle()!.injector.get(MatTooltip).message).toContain('up to 30 characters');
+    expect(findToggle()!.injector.get(MatTooltip).message)
+      .toContain('Changing this setting does not modify existing results.');
+
+    findSwitch()!.click();
+    await fixture.whenStable();
+    expect(settings.getSettings().stripShortPlainItalicHiTags).toBe(false);
+    expect(settings.encodeLineBreakTypes()).toBe(true);
+    expect(findSwitch()!.getAttribute('aria-checked')).toBe('false');
+
+    settings.updateTeiEncode(false);
+    await fixture.whenStable();
+    expect(findToggle()).toBeUndefined();
+
+    settings.updateSelectedTaskType('transcriptionBatchTei');
+    await fixture.whenStable();
+    expect(findSwitch()!.getAttribute('aria-checked')).toBe('false');
+    findSwitch()!.click();
+    await fixture.whenStable();
+    expect(settings.getSettings().stripShortPlainItalicHiTags).toBe(true);
+    expect(findSwitch()!.getAttribute('aria-checked')).toBe('true');
+  });
+
   it('renders the customised prompt indicator after the real editor dialog saves', async () => {
     settings.updateSelectedTaskType('transcriptionBatchTei');
     await fixture.whenStable();

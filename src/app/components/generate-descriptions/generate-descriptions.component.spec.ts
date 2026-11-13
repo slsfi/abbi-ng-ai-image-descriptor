@@ -586,6 +586,23 @@ describe('GenerateDescriptionsComponent', () => {
     expect(imageList.imageList[0]).toBe(target);
   });
 
+  it.each([true, false])('uses italic cleanup setting %s for per-image TEI transcription', async strip => {
+    const target = image();
+    await showImages(target);
+    await enableTei();
+    settings.updateStripShortPlainItalicHiTags(strip);
+    ai.describeImagesFilesApi
+      .mockResolvedValueOnce({ text: 'Transcribed text' })
+      .mockResolvedValueOnce({ text: '<body><p><hi rend="italics">Short</hi> text</p></body>' });
+
+    await component.generate(target);
+    await fixture.whenStable();
+
+    const expected = strip ? '<p>Short text</p>' : '<p><hi rend="italics">Short</hi> text</p>';
+    expect(target.descriptions[0].description).toBe(expected);
+    expect(row(target).querySelector('code')!.textContent).toBe(expected);
+  });
+
   it.each(['description', 'image'])('discards pending highlighting when the %s is removed before rendering', async removed => {
     const target = image();
     await showImages(target);
@@ -729,6 +746,23 @@ describe('GenerateDescriptionsComponent', () => {
     expect(component.batchResults.results()[0].teiBody).toBeUndefined();
     expect(first.generating).toBe(false);
     expect(second.generating).toBe(false);
+  });
+
+  it.each([true, false])('uses italic cleanup setting %s for new batches and the updated setting for regeneration', async strip => {
+    await showCompletedBatches(1);
+    settings.updateStripShortPlainItalicHiTags(strip);
+    ai.describeImagesFilesApi.mockResolvedValue({ text: '<body><p><hi rend="italics">Short</hi> text</p></body>' });
+
+    await component.generateAll();
+    await fixture.whenStable();
+    const batch = component.batchResults.results()[0];
+    expect(batch.teiBody).toBe(strip ? '<p>Short text</p>' : '<p><hi rend="italics">Short</hi> text</p>');
+
+    settings.updateStripShortPlainItalicHiTags(!strip);
+    await component.transcribeAndTeiEncodeBatch(batch);
+    await fixture.whenStable();
+    expect(component.batchResults.results()[0].teiBody)
+      .toBe(strip ? '<p><hi rend="italics">Short</hi> text</p>' : '<p>Short text</p>');
   });
 
   it('blocks regeneration after cancelling batch two so all five automatic batches are processed', async () => {

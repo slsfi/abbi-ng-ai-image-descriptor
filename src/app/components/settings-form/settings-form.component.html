@@ -164,12 +164,23 @@
     }
 
     @if (selectedTaskTypeValue === 'transcriptionBatchTei' || (selectedTaskTypeValue === 'transcription' && settings.teiEncode())) {
-      <div class="form-field-wrapper" [class.dependent-setting]="selectedTaskTypeValue === 'transcription'">
+      <h4>Postprocessing</h4>
+      <p class="p-petite">Automatically modifies the AI’s response after generation. These settings apply to newly generated results and do not change the prompt.</p>
+
+      <div class="form-field-wrapper">
         <mat-slide-toggle
               [checked]="settings.encodeLineBreakTypes()"
               (change)="setEncodeLineBreakTypes($event)"
               matTooltip="When enabled, sets @break on every &lt;lb/&gt; element: break=&quot;line&quot; for ordinary line breaks, or break=&quot;word&quot; for breaks within a word after a hyphen. Existing @break values from the AI are replaced. When disabled, preserves the AI’s @break attributes. Changing this setting does not modify existing results."
         >Encode line break types with <code>&#64;break</code> in <code>&lt;lb/&gt;</code></mat-slide-toggle>
+      </div>
+
+      <div class="form-field-wrapper">
+        <mat-slide-toggle
+              [checked]="settings.stripShortPlainItalicHiTags()"
+              (change)="setStripShortPlainItalicHiTags($event)"
+              matTooltip="When enabled, removes &lt;hi rend=&quot;italics&quot;&gt; tags around plain text of up to 30 characters. Longer spans and spans containing nested tags are preserved. When disabled, preserves any italic highlighting in the AI’s response. Changing this setting does not modify existing results."
+        >Remove short <code>&lt;hi rend=&quot;italics&quot;&gt;</code></mat-slide-toggle>
       </div>
     }
   </div>

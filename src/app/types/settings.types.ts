@@ -14,5 +14,6 @@ export interface RequestSettings {
   includeFilename: boolean;
   teiEncode: boolean;
   encodeLineBreakTypes: boolean;
+  stripShortPlainItalicHiTags: boolean;
   batchSize: number;
 };

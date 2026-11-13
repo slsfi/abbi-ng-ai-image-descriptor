@@ -81,6 +81,10 @@ export class SettingsFormComponent {
     this.settings.updateEncodeLineBreakTypes(event.checked);
   }
 
+  setStripShortPlainItalicHiTags(event: MatSlideToggleChange): void {
+    this.settings.updateStripShortPlainItalicHiTags(event.checked);
+  }
+
   setTranscribeHeaders(event: MatSlideToggleChange): void {
     if (event.checked) {
       this.settings.updateSelectedVariantId('default');
