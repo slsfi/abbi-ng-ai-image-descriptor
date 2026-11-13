@@ -8,29 +8,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [4.5.0] – 2026-11-13
+
 ### Added
 
-- Support for the Google [`gemini-4-carbon`](https://aistudio.google.com/docs/models/gemini-4-carbon) and [`gemini-4-hydrogen`](https://aistudio.google.com/docs/models/gemini-4-hydrogen) models. Note that both Gemini 4 Argon and Carbon are available for an introductory price through 30 Nov 2026. Starting 1 Dec 2026 the pricing of both models will double.
-- An output setting, enabled by default, to control removal of `<hi rend="italics">` tags around plain text of up to 30 characters in transcription tasks when TEI encoding is enabled. Turning it off preserves any italic highlighting in the AI’s response; existing results are unchanged.
-- A "Normalise characters" postprocessing setting, enabled by default, to control punctuation, fraction and spacing normalisation and soft-hyphen removal for new results. Exports retain each result’s character setting. Correction of `¬` before a newline to a hyphen remains automatic as it's likely always a transcription artifact.
-- A "Repair paragraph breaks across pages" postprocessing setting, enabled by default, to control merging of apparent paragraph continuations across page breaks in TEI transcription.
+- Support for the Google [`gemini-4-carbon`](https://aistudio.google.com/docs/models/gemini-4-carbon) and [`gemini-4-hydrogen`](https://aistudio.google.com/docs/models/gemini-4-hydrogen) models. Note that both Gemini 4 Argon and Carbon are available for an introductory price through 30 Nov 2026. Starting 1 Dec 2026 the pricing of both models will double. ([d2f6783](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/d2f678333c61d040985deb83b5ee9789c951b140), [b6772b3](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/b6772b3f5b48302803c2ea8e6bab7bacc518981d))
+- A postprocessing setting, enabled by default, to control removal of `<hi rend="italics">` tags around plain text of up to 30 characters in transcription tasks when TEI encoding is enabled. Turning it off preserves any italic highlighting in the AI’s response; existing results are unchanged. ([6c0bea7](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/6c0bea7cc9dc917a0aaa2acf3ab5bedfc1096f07))
+- A "Normalise characters" postprocessing setting, enabled by default, to control punctuation, fraction and spacing normalisation and soft-hyphen removal for new results. Exports retain each result’s character setting. Correction of `¬` before a newline to a hyphen remains automatic as it's likely always a transcription artifact. ([5ea3bf7](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/5ea3bf7c5e3d2000ff20b5a68933822005c62de6))
+- A "Repair paragraph breaks across pages" postprocessing setting, enabled by default, to control merging of apparent paragraph continuations across page breaks in TEI transcription. ([5ea3bf7](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/5ea3bf7c5e3d2000ff20b5a68933822005c62de6))
 
 ### Changed
 
-- Google: migrate image and text generation from `generateContent` to the Interactions API in the Google GenAI SDK. Set `store: false` on all Interactions API requests to disable response storage.
-- Alt text generation: remove explicit output-token caps from OpenAI and Google requests; alt text length remains controlled by the prompt.
-- Translations: use the selected temperature setting for both OpenAI and Google when supported by the model.
-- Model details: remove RPM.
-- OpenAI: set `store: false` on all Responses API requests to disable response storage.
-- Deps: update `@angular/core` to 22.2.6 and `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.7.
-- Deps: update `@google/genai` to 3.3.0.
-- Deps: update `openai` to 7.56.0.
-- Deps (dev): update `jsdom` to 31.0.1.
-- Deps: update transitive dependencies.
+- Google: migrate image and text generation from `generateContent` to the Interactions API in the Google GenAI SDK. Set `store: false` on all Interactions API requests to disable response storage. ([c9b258d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/c9b258d46f4edf8a7d35fd176c3bfb7a6061771e))
+- Alt text generation: remove explicit output-token caps from OpenAI and Google requests; alt text length remains controlled by the prompt. ([aa76a19](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/aa76a199a846e2100920e72836123e4aa90c5bff))
+- Translations: use the selected temperature setting for both OpenAI and Google when supported by the model. ([824735b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/824735b00a0730eba5d4e65f572de4f7a8aacb6e))
+- Model details: remove RPM. ([04a977a](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/04a977a37181b942d7926780f47f1c3b8c67aae3))
+- OpenAI: set `store: false` on all Responses API requests to disable response storage. ([ca09823](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/ca098235cbde55de8b491d5610b2954da3c8a6e5))
+- Deps: update `@angular/core` to 22.2.6 and `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.7. ([df85711](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/df857112b2ff3224b43519aab522632f220b59d0))
+- Deps: update `@google/genai` to 3.3.0. ([c9868c2](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/c9868c2af41049a14dd7a12f52c464ba922e418a), [77c14aa](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/77c14aab453eb03d36a6fff499cb154925094c51))
+- Deps: update `openai` to 7.56.0. ([1d32d19](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/1d32d193e9c5db5080b9d5e39dbaa6fb07a7c3da))
+- Deps (dev): update `jsdom` to 31.0.1. ([8042ad7](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/8042ad762ce17a86113a9aae1657c3ab5bd1f462))
+- Deps: update transitive dependencies. ([cdded41](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/cdded41325ec231fc4b6c37736746b136e69e19f))
 
 ### Fixed
 
-- Settings: improve semantics and accessibility of the three column help buttons.
+- Settings: improve semantics and accessibility of the three column help buttons. ([698a8bf](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/698a8bfc11fa01368e307a81774e8403777a0639))
 
 
 
@@ -668,7 +672,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.4.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.5.0...HEAD
+[4.5.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.4.0...4.5.0
 [4.4.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.3.0...4.4.0
 [4.3.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.2.1...4.3.0
 [4.2.1]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.2.0...4.2.1
