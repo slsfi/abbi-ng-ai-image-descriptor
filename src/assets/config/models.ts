@@ -32,7 +32,6 @@ export type ModelId = 'gpt-4.1' | 'gpt-6.1-terra' | 'gpt-6.1-sol' | 'gemini-3.8-
 //                                    only supported with provider-specific
 //                                    "no reasoning/thinking" settings;
 //                                    defaults to true if undefined
-//     thinkingBudget = (optional, Google Gemini only, required for 2.5)
 //     thinkingLevel = (optional, Google Gemini only, required for 3)
 //     thinkingLevels = (optional) selectable list of supported thinking levels
 

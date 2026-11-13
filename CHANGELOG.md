@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 
+- Google: migrate image and text generation from `generateContent` to the Interactions API in the Google GenAI SDK.
 - Deps: update `@angular/core` to 22.2.6 and `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.7.
 - Deps: update `@google/genai` to 3.2.0.
 

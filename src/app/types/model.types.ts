@@ -32,7 +32,6 @@ import type { ReasoningEffort } from 'openai/resources/shared';
 //                                    only supported with provider-specific
 //                                    "no reasoning/thinking" settings;
 //                                    defaults to true if undefined
-//     thinkingBudget = (optional, Google Gemini only, required for 2.5)
 //     thinkingLevel = (optional, Google Gemini only, required for 3)
 //     thinkingLevels = (optional) selectable list of supported thinking levels
 
@@ -73,7 +72,6 @@ export interface ModelParameters {
   reasoningSupportsTemperature?: boolean;
   thinkingLevel?: GeminiThinkingLevel;
   thinkingLevels?: GeminiThinkingLevel[];
-  thinkingBudget?: number;
 }
 
 // A fixed price in USD per one million tokens, independent of token count.
