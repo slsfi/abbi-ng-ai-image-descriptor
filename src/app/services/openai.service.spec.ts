@@ -53,7 +53,7 @@ function createImage(overrides: Partial<ImageData> = {}): ImageData {
 }
 
 describe('OpenAiService', () => {
-    it('keeps temperature in the payload when the model does not opt out', async () => {
+    it('keeps temperature and omits the output token cap when reasoning is disabled', async () => {
         const service = new OpenAiService();
         const createSpy = vi.fn().mockResolvedValue({
             output_text: 'ok',
@@ -66,10 +66,11 @@ describe('OpenAiService', () => {
             },
         } as any;
 
-        await service.describeImage(createSettings(), 'Prompt', 'data:image/png;base64,AAAA');
+        await service.describeImage(createSettings({ reasoningEffort: 'none' }), 'Prompt', 'data:image/png;base64,AAAA');
 
         const payload = vi.mocked(createSpy).mock.lastCall![0];
         expect(payload.temperature).toBe(0.7);
+        expect(payload).not.toHaveProperty('max_output_tokens');
     });
 
     it('omits temperature when the model opts out and reasoning is enabled', async () => {

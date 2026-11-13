@@ -313,9 +313,6 @@ export class OpenAiService {
       settings.reasoningEffort,
       settings.thinkingLevel
     );
-    const maxOutputTokens = settings.taskType === 'altText' && settings.descriptionLength
-      ? settings.descriptionLength + 1000
-      : null;
 
     return {
       model: settings.model.id,
@@ -331,10 +328,7 @@ export class OpenAiService {
         ],
       }],
       ...(reasoningEffort ? { reasoning: { effort: reasoningEffort } } : {}),
-      ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {}),
-      ...((!reasoningEffort || reasoningEffort === 'none') && maxOutputTokens !== null
-        ? { max_output_tokens: maxOutputTokens }
-        : {})
+      ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {})
     };
   }
  

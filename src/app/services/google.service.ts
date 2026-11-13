@@ -108,10 +108,7 @@ export class GoogleService {
             ...(mediaResolution ? { resolution: mediaResolution } : {})
           },
         ],
-        generation_config: this.buildInteractionsGenerationConfig(
-          settings,
-          { maxOutputTokens: this.maxOutputTokensFromSettings(settings) }
-        ),
+        generation_config: this.buildInteractionsGenerationConfig(settings),
         store: false
       } satisfies Interactions.CreateModelInteractionParamsNonStreaming;
       // console.log(payload);
@@ -161,9 +158,7 @@ export class GoogleService {
       const payload = {
         model: settings.model.id,
         input,
-        generation_config: this.buildInteractionsGenerationConfig(settings, {
-          maxOutputTokens: this.maxOutputTokensFromSettings(settings)
-        }),
+        generation_config: this.buildInteractionsGenerationConfig(settings),
         store: false
       } satisfies Interactions.CreateModelInteractionParamsNonStreaming;
 
@@ -485,24 +480,11 @@ export class GoogleService {
   }
 
   /**
-   * Resolves the effective max output token limit for UI tasks that use one.
-   */
-  private maxOutputTokensFromSettings(settings: RequestSettings): number | null {
-    if (settings.taskType !== 'altText') {
-      return null;
-    }
-    return settings.descriptionLength ? settings.descriptionLength + 1000 : null;
-  }
-
-  /**
    * Interactions uses snake_case fields and lowercase thinking levels.
    * Image resolution belongs on each image input; thinking budgets are not exposed.
    * See https://aistudio.google.com/api-reference/interactions-api/create-interaction
    */
-  private buildInteractionsGenerationConfig(
-    settings: RequestSettings,
-    options?: { maxOutputTokens?: number | null }
-  ): Interactions.GenerationConfig {
+  private buildInteractionsGenerationConfig(settings: RequestSettings): Interactions.GenerationConfig {
     const thinkingLevel = this.thinkingLevelFromSettings(settings);
     const supportsTemperature = isTemperatureSupportedForModel(
       settings.model,
@@ -511,7 +493,6 @@ export class GoogleService {
     );
 
     return {
-      ...(options?.maxOutputTokens ? { max_output_tokens: options.maxOutputTokens } : {}),
       ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {}),
       ...(thinkingLevel ? { thinking_level: thinkingLevel } : {})
     };

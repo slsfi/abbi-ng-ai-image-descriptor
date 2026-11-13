@@ -101,7 +101,6 @@ describe('GoogleService', () => {
         { type: 'image', data: 'AAAA', mime_type: 'image/png', resolution: 'high' },
       ],
       generation_config: {
-        max_output_tokens: 1175,
         temperature: 0.4,
         thinking_level: 'low',
       },
@@ -273,7 +272,7 @@ describe('GoogleService', () => {
         { type: 'image', data: 'AAAA', mime_type: 'image/png', resolution: 'high' },
         { type: 'image', data: 'BBBB', mime_type: 'image/jpeg', resolution: 'high' },
       ],
-      generation_config: { max_output_tokens: 1175, temperature: 0.4, thinking_level: 'low' },
+      generation_config: { temperature: 0.4, thinking_level: 'low' },
       store: false,
     });
     expect(result).toEqual({
