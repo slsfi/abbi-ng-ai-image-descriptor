@@ -13,6 +13,27 @@ describe('SettingsService', () => {
     expect(service.selectedTemperature()).toBe(1.0);
   });
 
+  it('enables character normalisation and paragraph repair by default and snapshots both independently', () => {
+    const service = TestBed.inject(SettingsService);
+    const initial = service.getSettings();
+    expect(initial.normaliseCharacters).toBe(true);
+    expect(initial.repairParagraphBreaksAcrossPages).toBe(true);
+
+    service.updateNormaliseCharacters(false);
+    expect(service.getSettings().normaliseCharacters).toBe(false);
+    expect(service.getSettings().repairParagraphBreaksAcrossPages).toBe(true);
+
+    service.updateRepairParagraphBreaksAcrossPages(false);
+    expect(service.getSettings().repairParagraphBreaksAcrossPages).toBe(false);
+    expect(initial.normaliseCharacters).toBe(true);
+    expect(initial.repairParagraphBreaksAcrossPages).toBe(true);
+
+    service.updateNormaliseCharacters(true);
+    service.updateRepairParagraphBreaksAcrossPages(true);
+    expect(service.getSettings().normaliseCharacters).toBe(true);
+    expect(service.getSettings().repairParagraphBreaksAcrossPages).toBe(true);
+  });
+
   it('enables line break encoding by default and includes changes in request settings', () => {
     const service = TestBed.inject(SettingsService);
 

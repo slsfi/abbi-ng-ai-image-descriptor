@@ -2,7 +2,14 @@ import { GeminiThinkingLevel, Model, OpenAiReasoningEffort } from "./model.types
 import { PromptVariant } from "./prompt.types";
 import { LanguageCode, TaskTypeId } from "../../assets/config/prompts";
 
-export interface RequestSettings {
+export interface PostprocessingSettings {
+  normaliseCharacters: boolean;
+  repairParagraphBreaksAcrossPages: boolean;
+  encodeLineBreakTypes: boolean;
+  stripShortPlainItalicHiTags: boolean;
+}
+
+export interface RequestSettings extends PostprocessingSettings {
   model: Model;
   language?: LanguageCode;
   taskType: TaskTypeId;
@@ -13,7 +20,5 @@ export interface RequestSettings {
   promptVariant: PromptVariant;
   includeFilename: boolean;
   teiEncode: boolean;
-  encodeLineBreakTypes: boolean;
-  stripShortPlainItalicHiTags: boolean;
   batchSize: number;
 };

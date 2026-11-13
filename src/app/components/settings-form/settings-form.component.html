@@ -163,9 +163,25 @@
       </div>
     }
 
+    <h4>Postprocessing</h4>
+    <p class="p-petite">Automatically modifies the AI’s response after generation. These settings apply to newly generated results and do not change the prompt.</p>
+
+    <div class="form-field-wrapper">
+      <mat-slide-toggle
+            [checked]="settings.normaliseCharacters()"
+            (change)="setNormaliseCharacters($event)"
+            matTooltip="When enabled, standardises quotation marks, apostrophes, dashes, fractions and spacing according to Swedish typographic conventions, inserts nonbreaking spaces in selected expressions, and removes soft hyphens. Changing this setting does not modify existing results."
+      >Normalise characters</mat-slide-toggle>
+    </div>
+
     @if (selectedTaskTypeValue === 'transcriptionBatchTei' || (selectedTaskTypeValue === 'transcription' && settings.teiEncode())) {
-      <h4>Postprocessing</h4>
-      <p class="p-petite">Automatically modifies the AI’s response after generation. These settings apply to newly generated results and do not change the prompt.</p>
+      <div class="form-field-wrapper">
+        <mat-slide-toggle
+              [checked]="settings.repairParagraphBreaksAcrossPages()"
+              (change)="setRepairParagraphBreaksAcrossPages($event)"
+              matTooltip="When enabled, merges paragraphs that appear to continue across a page break, based on punctuation and capitalization. When disabled, preserves the AI’s paragraph boundaries. Changing this setting does not modify existing results."
+        >Repair paragraph breaks across pages</mat-slide-toggle>
+      </div>
 
       <div class="form-field-wrapper">
         <mat-slide-toggle

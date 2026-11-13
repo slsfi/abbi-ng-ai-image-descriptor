@@ -245,6 +245,33 @@ describe('GenerateDescriptionsComponent', () => {
     expect(component.matTableDataSource.data).toEqual([first, second]);
   });
 
+  it.each([true, false])('retains the character setting %s for plain transcription and exports after the UI changes', async normalise => {
+    const target = image();
+    await showImages(target);
+    settings.updateSelectedTaskType('transcription');
+    settings.updateNormaliseCharacters(normalise);
+    await fixture.whenStable();
+    const result = deferred<AiResult>();
+    ai.describeImage.mockReturnValueOnce(result.promise);
+
+    const generating = component.generate(target);
+    await vi.waitFor(() => expect(ai.describeImage).toHaveBeenCalledOnce());
+    settings.updateNormaliseCharacters(!normalise);
+    result.resolve({ text: `"It's" — 1/2 unit` });
+    await generating;
+    await fixture.whenStable();
+
+    const expected = normalise ? '”It’s” – ½ unit' : `"It's" — 1/2 unit`;
+    expect(target.descriptions[0].normaliseCharacters).toBe(normalise);
+    expectText(target, expected, expected.length);
+
+    const exports = TestBed.inject(ExportService);
+    const download = vi.spyOn(exports as any, 'initiateDownload').mockImplementation(() => {});
+    exports.generateTXT([target]);
+    const blob = download.mock.calls[0][0] as Blob;
+    expect(await blob.text()).toContain(expected);
+  });
+
   it('renders async row progress and commits between sequential requests while global generation stays active', async () => {
     const first = image();
     const second = image();
@@ -586,6 +613,34 @@ describe('GenerateDescriptionsComponent', () => {
     expect(imageList.imageList[0]).toBe(target);
   });
 
+  it.each([true, false].flatMap(normalise => [true, false].flatMap(repair => [true, false].map(allImages => ({
+    normalise, repair, allImages
+  })))))('uses character setting $normalise and paragraph repair $repair for per-image TEI (all images: $allImages)', async ({ normalise, repair, allImages }) => {
+    const target = image();
+    await showImages(target);
+    await enableTei();
+    settings.updateNormaliseCharacters(normalise);
+    settings.updateRepairParagraphBreaksAcrossPages(repair);
+    ai.describeImagesFilesApi
+      .mockResolvedValueOnce({ text: 'Transcribed text' })
+      .mockResolvedValueOnce({ text: `<body><p>He said "don't" and continued</p>\n<pb n="2"/>\n<p rend="noIndent">on the next page</p></body>` });
+
+    if (allImages) {
+      await component.generateAll();
+    } else {
+      await component.generate(target);
+    }
+    await fixture.whenStable();
+
+    const quotation = normalise ? '”don’t”' : `"don't"`;
+    const expected = repair
+      ? `<p>He said ${quotation} and continued\n<pb n="2"/><lb break="line"/>on the next page</p>`
+      : `<p>He said ${quotation} and continued</p>\n<pb n="2"/>\n<p rend="noIndent">on the next page</p>`;
+    expect(target.descriptions[0].description).toBe(expected);
+    expect(target.descriptions[0].normaliseCharacters).toBe(normalise);
+    expect(row(target).querySelector('code')!.textContent).toBe(expected);
+  });
+
   it.each([true, false])('uses italic cleanup setting %s for per-image TEI transcription', async strip => {
     const target = image();
     await showImages(target);
@@ -834,6 +889,41 @@ describe('GenerateDescriptionsComponent', () => {
     expect(component.batchResults.results()[1].teiBody).toContain('Regenerated second batch');
     expect(regenerateButton(0).getAttribute('aria-disabled')).not.toBe('true');
   });
+
+  it.each([true, false].flatMap(normalise => [true, false].map(repair => ({ normalise, repair }))))(
+    'uses character setting $normalise and paragraph repair $repair for batches and updated settings for regeneration', async ({ normalise, repair }) => {
+      await showCompletedBatches(1);
+      settings.updateNormaliseCharacters(normalise);
+      settings.updateRepairParagraphBreaksAcrossPages(repair);
+      ai.describeImagesFilesApi.mockResolvedValue({
+        text: `<body><p>He said "don't" and continued</p>\n<pb n="2"/>\n<p rend="noIndent">on the next page</p></body>`
+      });
+      const expected = (normalise: boolean, repair: boolean) => {
+        const quotation = normalise ? '”don’t”' : `"don't"`;
+        return repair
+          ? `<p>He said ${quotation} and continued\n<pb n="2"/><lb break="line"/>on the next page</p>`
+          : `<p>He said ${quotation} and continued</p>\n<pb n="2"/>\n<p rend="noIndent">on the next page</p>`;
+      };
+
+      await component.generateAll();
+      await fixture.whenStable();
+      const batch = component.batchResults.results()[0];
+      expect(batch.teiBody).toBe(expected(normalise, repair));
+
+      settings.updateNormaliseCharacters(!normalise);
+      settings.updateRepairParagraphBreaksAcrossPages(!repair);
+      await component.transcribeAndTeiEncodeBatch(batch);
+      await fixture.whenStable();
+      expect(component.batchResults.results()[0].teiBody).toBe(expected(!normalise, !repair));
+
+      const download = vi.spyOn(TestBed.inject(ExportService) as any, 'initiateDownload').mockImplementation(() => {});
+      TestBed.inject(ExportService).generateXMLFromSingleBatch(component.batchResults.results()[0]);
+      const blob = download.mock.calls[0][0] as Blob;
+      const xml = new DOMParser().parseFromString(await blob.text(), 'application/xml');
+      expect(xml.querySelector('parsererror')).toBeNull();
+      expect(xml.querySelector('body')!.textContent).toContain(!normalise ? '”don’t”' : `"don't"`);
+    }
+  );
 
   it('enables regeneration after an automatic batch fails', async () => {
     await showImages(image());

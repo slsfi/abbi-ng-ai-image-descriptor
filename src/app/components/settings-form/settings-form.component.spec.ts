@@ -31,6 +31,64 @@ describe('SettingsFormComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('shows the default-on character setting for every task and retains its value when switching tasks', async () => {
+    const findToggle = () => fixture.debugElement.queryAll(By.css('mat-slide-toggle'))
+      .find(toggle => toggle.nativeElement.textContent.trim() === 'Normalise characters')!;
+    const findSwitch = () => findToggle().nativeElement.querySelector('button[role="switch"]') as HTMLButtonElement;
+
+    expect(findSwitch().getAttribute('aria-checked')).toBe('true');
+    expect(findToggle().injector.get(MatTooltip).message).toContain('soft hyphens');
+    expect(findToggle().injector.get(MatTooltip).message).toContain('fractions and spacing');
+    findSwitch().click();
+    await fixture.whenStable();
+    expect(settings.getSettings().normaliseCharacters).toBe(false);
+
+    for (const taskType of ['transcription', 'transcriptionBatchTei'] as const) {
+      settings.updateSelectedTaskType(taskType);
+      await fixture.whenStable();
+      expect(findSwitch().getAttribute('aria-checked')).toBe('false');
+      expect(findToggle().nativeElement.closest('.parameters-wrapper').querySelector('h4').textContent)
+        .toBe('Postprocessing');
+    }
+
+    findSwitch().click();
+    await fixture.whenStable();
+    expect(settings.getSettings().normaliseCharacters).toBe(true);
+    expect(findSwitch().getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('shows the default-on paragraph repair setting only for TEI and retains it across task changes', async () => {
+    const findToggle = () => fixture.debugElement.queryAll(By.css('mat-slide-toggle'))
+      .find(toggle => toggle.nativeElement.textContent.trim() === 'Repair paragraph breaks across pages');
+    const findSwitch = () => findToggle()?.nativeElement.querySelector('button[role="switch"]') as HTMLButtonElement | undefined;
+
+    expect(findToggle()).toBeUndefined();
+    settings.updateSelectedTaskType('transcription');
+    await fixture.whenStable();
+    expect(findToggle()).toBeUndefined();
+
+    settings.updateTeiEncode(true);
+    await fixture.whenStable();
+    expect(findSwitch()!.getAttribute('aria-checked')).toBe('true');
+    expect(findToggle()!.injector.get(MatTooltip).message).toContain('punctuation and capitalization');
+    findSwitch()!.click();
+    await fixture.whenStable();
+    expect(settings.getSettings().repairParagraphBreaksAcrossPages).toBe(false);
+    expect(settings.normaliseCharacters()).toBe(true);
+
+    settings.updateTeiEncode(false);
+    await fixture.whenStable();
+    expect(findToggle()).toBeUndefined();
+    settings.updateSelectedTaskType('transcriptionBatchTei');
+    await fixture.whenStable();
+    expect(findSwitch()!.getAttribute('aria-checked')).toBe('false');
+
+    findSwitch()!.click();
+    await fixture.whenStable();
+    expect(settings.getSettings().repairParagraphBreaksAcrossPages).toBe(true);
+    expect(findSwitch()!.getAttribute('aria-checked')).toBe('true');
+  });
+
   it('shows a default-on line break toggle with a tooltip for batched TEI transcription', async () => {
     const label = 'Encode line break types with @break in <lb/>';
     const findToggle = () => fixture.debugElement.queryAll(By.css('mat-slide-toggle'))
@@ -124,7 +182,7 @@ describe('SettingsFormComponent', () => {
 
   it('shows the shared italic cleanup toggle for TEI transcription and preserves its value across tasks', async () => {
     const findToggle = () => fixture.debugElement.queryAll(By.css('mat-slide-toggle'))
-      .find(toggle => toggle.nativeElement.textContent.trim() === 'Remove short italic highlighting');
+      .find(toggle => toggle.nativeElement.textContent.replace(/\s+/g, ' ').trim() === 'Remove short <hi rend="italics">');
     const findSwitch = () => findToggle()?.nativeElement.querySelector('button[role="switch"]') as HTMLButtonElement | undefined;
 
     expect(findToggle()).toBeUndefined();

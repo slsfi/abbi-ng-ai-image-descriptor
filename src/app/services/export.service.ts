@@ -10,6 +10,7 @@ import { BatchResult } from '../types/batch-result.types';
 import { DescriptionData } from '../types/description-data.types';
 import { ImageData } from '../types/image-data.types';
 import { ExportFormatOption } from '../types/export.types';
+import { PostprocessingSettings } from '../types/settings.types';
 
 const FALLBACK_FILENAME: string = 'image-descriptions';
 const XML_MARKUP_PATTERN = /<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<(?:"[^"]*"|'[^']*'|[^<>'"])*>/g;
@@ -95,7 +96,7 @@ export class ExportService {
                   text: imageObj.filename + ':',
                   bold: true
                 }),
-                new TextRun(' ' + this.normaliseForExport(descriptionObj?.description ?? ''))
+                new TextRun(' ' + this.normaliseForExport(descriptionObj))
               ],
               style: 'paragraph'
             });
@@ -149,7 +150,7 @@ export class ExportService {
             children: [
               new Paragraph({
                 children: [
-                  new TextRun(this.normaliseForExport(descriptionObj?.description ?? ''))
+                  new TextRun(this.normaliseForExport(descriptionObj))
                 ],
                 style: 'paragraph'
               })
@@ -257,7 +258,7 @@ export class ExportService {
     let data = '';
     imageFiles.forEach((imageObj: ImageData) => {
       const description = this.normaliseForExport(
-        this.getActiveDescription(imageObj)?.description ?? '',
+        this.getActiveDescription(imageObj),
         '\n'
       );
       data += imageObj.filename + '\n';
@@ -277,7 +278,7 @@ export class ExportService {
 
     imageFiles.forEach((imageObj: ImageData) => {
       const description = this.normaliseForExport(
-        this.getActiveDescription(imageObj)?.description ?? '',
+        this.getActiveDescription(imageObj),
         '\n'
       );
 
@@ -327,8 +328,7 @@ export class ExportService {
     // We are only interested in the image filename and description properties
     let contentStr = '';
     imageFiles.forEach((imageObj: ImageData) => {
-      let description = this.getActiveDescription(imageObj)?.description ?? '';
-      description = this.normaliseForExport(description);
+      let description = this.normaliseForExport(this.getActiveDescription(imageObj));
       description = this.escapeDelimitedValue(description, delimiter);
       const filename = this.escapeDelimitedValue(imageObj.filename, delimiter);
       contentStr += filename + delimiter + description + '\n';
@@ -347,8 +347,7 @@ export class ExportService {
     let bodyStr = '';
     imageFiles.forEach((imageObj: ImageData) => {
       imageCounter += 1;
-      let description = this.getActiveDescription(imageObj)?.description ?? '';
-      description = this.normaliseForExport(description, '\r\n', teiEncoded);
+      const description = this.normaliseForExport(this.getActiveDescription(imageObj), '\r\n', teiEncoded);
       if (teiEncoded) {
         bodyStr += description + '\r\n';
       } else {
@@ -574,15 +573,15 @@ export class ExportService {
     return `<lb break="${breakType}"${attributes}>`;
   }
 
-  private normaliseForExport(s: string, newline = '\r\n', teiEncoded = false): string {
+  private normaliseForExport(description: DescriptionData | null, newline = '\r\n', teiEncoded = false): string {
     // Remove all carriage returns
-    let text = s.replaceAll('\r', '');
+    let text = (description?.description ?? '').replaceAll('\r', '');
 
     if (teiEncoded) {
       text = text.trim();
       text = this.extractBody(text);
       text = text.trim();
-    } else {
+    } else if (description?.normaliseCharacters ?? true) {
       // Replace straight quotation characters
       text = text.replaceAll("'", '’');
       text = text.replaceAll('"', '”');
@@ -623,54 +622,66 @@ export class ExportService {
   normaliseCharacters(
     s: string,
     teiEncoded: boolean = false,
-    encodeLineBreakTypes: boolean = true,
-    stripShortPlainItalicHiTags: boolean = true
+    {
+      normaliseCharacters = true,
+      repairParagraphBreaksAcrossPages = true,
+      encodeLineBreakTypes = true,
+      stripShortPlainItalicHiTags = true
+    }: Partial<PostprocessingSettings> = {}
   ): string {
     // Remove all carriage returns
     let text = s.replaceAll('\r', '');
-    // Remove soft hyphen (U+00AD; &shy;) (invisible in VS Code)
-    text = text.replaceAll('­', '');
-    // Replace no-break spaces with ordinary spaces
-    // text = text.replaceAll(' ', ' ');
-    // Replace not signs with hyphens when followed by newlines
-    text = text.replaceAll('¬\n', '-\n');
-    // Replace hyphens with dashes when surrounded by combinations of space and newline
-    text = text.replaceAll(' -\n', ' –\n');
-    text = text.replaceAll('\n- ', '\n– ');
-    text = text.replaceAll(' - ', ' – ');
-    // Replace em dash with en dash
-    text = text.replaceAll('—', '–');
-    // Replace apostrophe-like characters
-    if (!teiEncoded) {
-      text = text.replaceAll("'", '’');
+
+    if (normaliseCharacters) {
+      // Replace no-break spaces before later matches that require ordinary spaces.
+      text = text.replaceAll('\u00A0', ' ');
+      // Remove soft hyphen (U+00AD; &shy;)
+      text = text.replaceAll('\u00AD', '');
     }
-    text = text.replaceAll('´', '’');
+
+    // Correct the transcription artifact regardless of character normalisation.
+    text = text.replaceAll('¬\n', '-\n');
     // Entity encoding
     text = text.replaceAll('& ', '&amp; ');
 
-    // Replace fractions (avoid when followed by a 2-, 3-, or 4-digit "year")
-    text = text.replace(/ 1\/2 (?!\d{2,4})/g, ' ½ ');
-    text = text.replace(/ 1\/3 (?!\d{2,4})/g, ' ⅓ ');
-    text = text.replace(/ 2\/3 (?!\d{2,4})/g, ' ⅔ ');
-    text = text.replace(/ 1\/4 (?!\d{2,4})/g, ' ¼ ');
-    text = text.replace(/ 3\/4 (?!\d{2,4})/g, ' ¾ ');
-    text = text.replace(/ 1\/5 (?!\d{2,4})/g, ' ⅕ ');
-    text = text.replace(/ 2\/5 (?!\d{2,4})/g, ' ⅖ ');
-    text = text.replace(/ 3\/5 (?!\d{2,4})/g, ' ⅗ ');
-    text = text.replace(/ 4\/5 (?!\d{2,4})/g, ' ⅘ ');
-    text = text.replace(/ 1\/6 (?!\d{2,4})/g, ' ⅙ ');
-    text = text.replace(/ 5\/6 (?!\d{2,4})/g, ' ⅚ ');
-    text = text.replace(/ 1\/7 (?!\d{2,4})/g, ' ⅐ ');
-    text = text.replace(/ 1\/8 (?!\d{2,4})/g, ' ⅛ ');
-    text = text.replace(/ 3\/8 (?!\d{2,4})/g, ' ⅜ ');
-    text = text.replace(/ 5\/8 (?!\d{2,4})/g, ' ⅝ ');
-    text = text.replace(/ 7\/8 (?!\d{2,4})/g, ' ⅞ ');
-    text = text.replace(/ 1\/9 (?!\d{2,4})/g, ' ⅑ ');
-    text = text.replace(/ 1\/10 (?!\d{2,4})/g, ' ⅒ ');
+    if (normaliseCharacters) {
+      // Replace hyphens with dashes when surrounded by combinations of space and newline
+      text = text.replaceAll(' -\n', ' –\n');
+      text = text.replaceAll('\n- ', '\n– ');
+      text = text.replaceAll(' - ', ' – ');
+      // Replace em dash with en dash
+      text = text.replaceAll('—', '–');
 
-    // Insert no-break spaces as customary
-    text = text.replaceAll('. . .', '. . .');
-    text = text.replaceAll('o. s. v.', 'o. s. v.');
+      // Replace straight quotation marks outside tags (' and "" to ’ and ”, respectively),
+      // preserving XML markup in TEI responses.
+      text = this.replaceStraightQuotes(text, teiEncoded);
+      // Replace apostrophe-like characters
+      text = text.replaceAll('´', '’');
+
+      // Replace fractions (avoid when followed by a 2-, 3-, or 4-digit "year")
+      text = text.replace(/ 1\/2 (?!\d{2,4})/g, ' ½ ');
+      text = text.replace(/ 1\/3 (?!\d{2,4})/g, ' ⅓ ');
+      text = text.replace(/ 2\/3 (?!\d{2,4})/g, ' ⅔ ');
+      text = text.replace(/ 1\/4 (?!\d{2,4})/g, ' ¼ ');
+      text = text.replace(/ 3\/4 (?!\d{2,4})/g, ' ¾ ');
+      text = text.replace(/ 1\/5 (?!\d{2,4})/g, ' ⅕ ');
+      text = text.replace(/ 2\/5 (?!\d{2,4})/g, ' ⅖ ');
+      text = text.replace(/ 3\/5 (?!\d{2,4})/g, ' ⅗ ');
+      text = text.replace(/ 4\/5 (?!\d{2,4})/g, ' ⅘ ');
+      text = text.replace(/ 1\/6 (?!\d{2,4})/g, ' ⅙ ');
+      text = text.replace(/ 5\/6 (?!\d{2,4})/g, ' ⅚ ');
+      text = text.replace(/ 1\/7 (?!\d{2,4})/g, ' ⅐ ');
+      text = text.replace(/ 1\/8 (?!\d{2,4})/g, ' ⅛ ');
+      text = text.replace(/ 3\/8 (?!\d{2,4})/g, ' ⅜ ');
+      text = text.replace(/ 5\/8 (?!\d{2,4})/g, ' ⅝ ');
+      text = text.replace(/ 7\/8 (?!\d{2,4})/g, ' ⅞ ');
+      text = text.replace(/ 1\/9 (?!\d{2,4})/g, ' ⅑ ');
+      text = text.replace(/ 1\/10 (?!\d{2,4})/g, ' ⅒ ');
+
+      // Insert no-break spaces as customary in Swedish typography
+      text = text.replaceAll('. . .', '. . .');
+      text = text.replaceAll('o. s. v.', 'o. s. v.');
+    }
 
     text = text.trim();
 
@@ -700,19 +711,16 @@ export class ExportService {
       text = this.normaliseTeiStructureBeforeLb(text);
       text = this.tightenPbLb(text);
       text = this.tightenFootnoteSpacing(text);
-      text = this.fixMisplacedParagraphBreaksAroundPb(text);
+      if (repairParagraphBreaksAcrossPages) {
+        text = this.fixMisplacedParagraphBreaksAroundPb(text);
+      }
       if (stripShortPlainItalicHiTags) {
         text = this.stripShortPlainItalicHiTags(text);
       }
-      text = this.replaceStraightQuotesOutsideTags(text);
-
       if (encodeLineBreakTypes) {
         text = this.mapLbTags(text, tag => this.setLbBreakAttribute(tag, 'line'));
         text = this.fixLbEncoding(text);
       }
-    } else {
-      // Replace all double quotes only if not teiEncoded text
-      text = text.replaceAll('"', '”');
     }
 
     return text;
@@ -757,16 +765,22 @@ export class ExportService {
   }
 
   /**
-   * Replaces straight quotation marks and apostrophes only outside XML markup.
+   * Replaces straight quotation marks and apostrophes, preserving XML markup
+   * for TEI responses and treating non-TEI responses entirely as plain text.
    * i.e. transforms:  <p foo="bar">He said "hi"</p>
    * into:             <p foo="bar">He said ”hi”</p>
    * and transforms:   <p foo='bar'>It's 'quoted'</p>
    * into:             <p foo='bar'>It’s ’quoted’</p>
    */
-  private replaceStraightQuotesOutsideTags(input: string): string {
+  private replaceStraightQuotes(input: string, teiEncoded: boolean): string {
+    const replaceQuotes = (text: string) => text.replaceAll('"', '”').replaceAll("'", '’');
+
+    if (!teiEncoded) {
+      return replaceQuotes(input);
+    }
+
     let out = '';
     let lastIndex = 0;
-    const replaceQuotes = (text: string) => text.replaceAll('"', '”').replaceAll("'", '’');
 
     for (const match of input.matchAll(XML_MARKUP_PATTERN)) {
       out += replaceQuotes(input.slice(lastIndex, match.index)) + match[0];

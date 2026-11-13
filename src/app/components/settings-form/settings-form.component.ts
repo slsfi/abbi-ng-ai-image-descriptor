@@ -81,6 +81,14 @@ export class SettingsFormComponent {
     this.settings.updateEncodeLineBreakTypes(event.checked);
   }
 
+  setNormaliseCharacters(event: MatSlideToggleChange): void {
+    this.settings.updateNormaliseCharacters(event.checked);
+  }
+
+  setRepairParagraphBreaksAcrossPages(event: MatSlideToggleChange): void {
+    this.settings.updateRepairParagraphBreaksAcrossPages(event.checked);
+  }
+
   setStripShortPlainItalicHiTags(event: MatSlideToggleChange): void {
     this.settings.updateStripShortPlainItalicHiTags(event.checked);
   }
