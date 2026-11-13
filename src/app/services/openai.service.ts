@@ -317,10 +317,10 @@ export class OpenAiService {
     };
   }
 
-  /** Builds shared reasoning and temperature options for image and text requests. */
+  /** Builds shared storage, reasoning and temperature options for image and text requests. */
   private buildResponseRequestOptions(
     settings: RequestSettings
-  ): Pick<ResponseCreateParamsNonStreaming, 'reasoning' | 'temperature'> {
+  ): Pick<ResponseCreateParamsNonStreaming, 'store' | 'reasoning' | 'temperature'> {
     const reasoningEffort: ReasoningEffort = settings.reasoningEffort ?? settings.model.parameters?.reasoningEffort ?? null;
     const supportsTemperature = isTemperatureSupportedForModel(
       settings.model,
@@ -329,6 +329,7 @@ export class OpenAiService {
     );
 
     return {
+      store: false,
       ...(reasoningEffort ? { reasoning: { effort: reasoningEffort } } : {}),
       ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {})
     };

@@ -76,6 +76,7 @@ describe('OpenAiService', () => {
       expect(createSpy).toHaveBeenCalledWith({
         model: createSettings().model.id,
         input: 'Translate this text.',
+        store: false,
         reasoning: { effort: 'low' },
         temperature: 0.7,
       });
@@ -149,6 +150,7 @@ describe('OpenAiService', () => {
         await service.describeImage(createSettings({ reasoningEffort: 'none' }), 'Prompt', 'data:image/png;base64,AAAA');
 
         const payload = vi.mocked(createSpy).mock.lastCall![0];
+        expect(payload.store).toBe(false);
         expect(payload.temperature).toBe(0.7);
         expect(payload).not.toHaveProperty('max_output_tokens');
     });
@@ -253,6 +255,7 @@ describe('OpenAiService', () => {
         await service.describeImages(createSettings({ taskType: 'transcription' }), 'Prompt', ['data:image/png;base64,AAAA', 'data:image/png;base64,BBBB']);
 
         const payload = vi.mocked(createSpy).mock.lastCall![0];
+        expect(payload.store).toBe(false);
         expect(payload.input[0].content[0]).toEqual({
             type: 'input_text',
             text: 'Prompt',
@@ -283,6 +286,7 @@ describe('OpenAiService', () => {
         await service.describeImagesWithFilesApi(createSettings({ taskType: 'transcriptionBatchTei' }), 'Prompt', [image]);
 
         const uploadPayload = vi.mocked(uploadSpy).mock.lastCall![0];
+        expect(uploadPayload).not.toHaveProperty('store');
         expect(uploadPayload.purpose).toBe('user_data');
         expect(uploadPayload.expires_after).toEqual({
             anchor: 'created_at',
@@ -290,6 +294,7 @@ describe('OpenAiService', () => {
         });
 
         const responsePayload = vi.mocked(createSpy).mock.lastCall![0];
+        expect(responsePayload.store).toBe(false);
         expect(responsePayload.input[0].content[1]).toEqual({
             type: 'input_image',
             file_id: 'file-123',
