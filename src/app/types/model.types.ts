@@ -60,7 +60,7 @@ export type Models = Model[];
 
 export type OpenAiReasoningEffort = Exclude<ReasoningEffort, null>;
 export type OpenAiImageDetail = 'low' | 'high' | 'original' | 'auto';
-export type GeminiThinkingLevel = 'minimal' | 'low' | 'medium' | 'high';
+export type GeminiThinkingLevel = 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
 
 export interface ModelParameters {
   maxImageShortsidePx?: number | null;
