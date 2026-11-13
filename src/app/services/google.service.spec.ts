@@ -305,7 +305,7 @@ describe('GoogleService', () => {
     expect(createSpy).not.toHaveBeenCalled();
   });
 
-  it('uses a text-only Interaction with only the selected thinking level', async () => {
+  it('uses a text-only Interaction with the selected temperature and thinking level', async () => {
     const { service, createSpy, interaction } = mockInteraction({
       output_text: 'Translated text.',
       usage: { total_input_tokens: 3, total_output_tokens: 4, total_thought_tokens: 2 },
@@ -316,7 +316,7 @@ describe('GoogleService', () => {
     expect(createSpy).toHaveBeenCalledWith({
       model: createSettings().model.id,
       input: 'Translate this text.',
-      generation_config: { thinking_level: 'low' },
+      generation_config: { temperature: 0.4, thinking_level: 'low' },
       store: false,
     });
     expect(result).toEqual({
@@ -334,7 +334,25 @@ describe('GoogleService', () => {
       model: { ...createSettings().model, parameters: { thinkingLevel } },
     }), 'Prompt');
 
-    expect(createSpy.mock.lastCall![0].generation_config).toEqual(thinkingLevel ? { thinking_level: thinkingLevel } : {});
+    expect(createSpy.mock.lastCall![0].generation_config).toEqual({
+      temperature: 0.4,
+      ...(thinkingLevel ? { thinking_level: thinkingLevel } : {}),
+    });
+  });
+
+  it.each([
+    { reason: 'unset', temperature: null, parameters: {} },
+    { reason: 'sampling is unsupported', temperature: 0.4, parameters: { supportsTemperatureSampling: false } },
+    { reason: 'thinking disallows it', temperature: 0.4, parameters: { reasoningSupportsTemperature: false } },
+  ])('omits temperature from text requests when $reason', async ({ temperature, parameters }) => {
+    const { service, createSpy } = mockInteraction();
+
+    await service.responsesTextTask(createSettings({
+      temperature,
+      model: { ...createSettings().model, parameters },
+    }), 'Translate this text.');
+
+    expect(createSpy.mock.lastCall![0].generation_config).toEqual({ thinking_level: 'low' });
   });
 
   const migratedMethods = ['describeImages', 'describeImagesWithFilesApi', 'responsesTextTask'] as const;

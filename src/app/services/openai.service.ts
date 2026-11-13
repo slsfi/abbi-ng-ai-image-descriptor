@@ -225,13 +225,11 @@ export class OpenAiService {
       return { text: '', error: { code: 400, message: 'Missing prompt.' } };
     }
 
-    const reasoningEffort: ReasoningEffort = settings.reasoningEffort ?? settings.model.parameters?.reasoningEffort ?? null;
-
     const payload = {
       model: settings.model.id,
       input: prompt,
-      ...(reasoningEffort ? { reasoning: { effort: reasoningEffort } } : {})
-    };
+      ...this.buildResponseRequestOptions(settings)
+    } satisfies ResponseCreateParamsNonStreaming;
     // console.log(payload);
 
     try {
@@ -296,24 +294,12 @@ export class OpenAiService {
     }
   }
 
-  /**
-   * Builds a shared multimodal Responses API payload for one or more images.
-   *
-   * Keeps OpenAI-specific parameter handling in one place so single-image,
-   * inline-batch, and Files-API-batch requests stay behaviorally aligned.
-   */
+  /** Builds a text-first multimodal Responses API payload for one or more images. */
   private buildImageResponsePayload(
     settings: RequestSettings,
     prompt: string,
     imageInputs: ResponseInputMessageContentList
   ): ResponseCreateParamsNonStreaming {
-    const reasoningEffort: ReasoningEffort = settings.reasoningEffort ?? settings.model.parameters?.reasoningEffort ?? null;
-    const supportsTemperature = isTemperatureSupportedForModel(
-      settings.model,
-      settings.reasoningEffort,
-      settings.thinkingLevel
-    );
-
     return {
       model: settings.model.id,
       input: [{
@@ -327,6 +313,22 @@ export class OpenAiService {
           ...imageInputs
         ],
       }],
+      ...this.buildResponseRequestOptions(settings)
+    };
+  }
+
+  /** Builds shared reasoning and temperature options for image and text requests. */
+  private buildResponseRequestOptions(
+    settings: RequestSettings
+  ): Pick<ResponseCreateParamsNonStreaming, 'reasoning' | 'temperature'> {
+    const reasoningEffort: ReasoningEffort = settings.reasoningEffort ?? settings.model.parameters?.reasoningEffort ?? null;
+    const supportsTemperature = isTemperatureSupportedForModel(
+      settings.model,
+      settings.reasoningEffort,
+      settings.thinkingLevel
+    );
+
+    return {
       ...(reasoningEffort ? { reasoning: { effort: reasoningEffort } } : {}),
       ...(supportsTemperature && settings.temperature !== null ? { temperature: settings.temperature } : {})
     };
