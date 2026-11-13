@@ -17,10 +17,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 
-- Google: migrate image and text generation from `generateContent` to the Interactions API in the Google GenAI SDK.
+- Google: migrate image and text generation from `generateContent` to the Interactions API in the Google GenAI SDK. Set `store: false` on all Interactions API requests to disable response storage.
 - Alt text generation: remove explicit output-token caps from OpenAI and Google requests; alt text length remains controlled by the prompt.
 - Translations: use the selected temperature setting for both OpenAI and Google when supported by the model.
 - Model details: remove RPM.
+- OpenAI: set `store: false` on all Responses API requests to disable response storage.
 - Deps: update `@angular/core` to 22.2.6 and `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.7.
 - Deps: update `@google/genai` to 3.3.0.
 - Deps: update `openai` to 7.56.0.
