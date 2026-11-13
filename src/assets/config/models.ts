@@ -2,7 +2,7 @@ import { Model } from '../../app/types/model.types'
 import { TaskTypeId } from './prompts';
 
 export type ModelProvider = 'OpenAI' | 'Google';
-export type ModelId = 'gpt-4.1' | 'gpt-6.1-terra' | 'gpt-6.1-sol' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview' | 'gemini-4-argon' | 'gemini-4-carbon';
+export type ModelId = 'gpt-4.1' | 'gpt-6.1-terra' | 'gpt-6.1-sol' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview' | 'gemini-4-hydrogen' | 'gemini-4-argon' | 'gemini-4-carbon';
 
 // provider = name of model creator
 // name = display name of the model
@@ -130,12 +130,31 @@ export const MODELS: Model[] = [
   },
   {
     provider: 'Google',
+    name: 'Gemini 4 Hydrogen',
+    id: 'gemini-4-hydrogen',
+    description: 'A fast, cost-efficient Gemini 4 model with strong image understanding, suitable for alt text and transcription.',
+    inputPrice: 1.50,
+    outputPrice: 7.50,
+    rpm: 1000,
+    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
+    url: 'https://aistudio.google.com/docs/models/gemini-4-hydrogen',
+    parameters: {
+      thinkingLevel: 'high',
+      thinkingLevels: ['low', 'medium', 'high', 'xhigh'],
+      maxImageShortsidePx: null,
+      mediaResolution: 'high',
+      supportsTemperatureSampling: false
+    },
+    supportsFilesApi: true
+  },
+  {
+    provider: 'Google',
     name: 'Gemini 4 Argon',
     id: 'gemini-4-argon',
   description: 'A flagship-level model for the most accurate transcription tasks, excelling at handwritten text, and the best choice when transcription quality is critical.',
     inputPrice: 2.00,
     outputPrice: 10.00,
-    rpm: 25,
+    rpm: 1000,
     supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
     url: 'https://aistudio.google.com/docs/models/gemini-4-argon',
     parameters: {
@@ -154,7 +173,7 @@ export const MODELS: Model[] = [
   description: 'A flagship-level model that performs as well as or better than Gemini 4 Argon. It is slower and uses more thinking tokens than Argon.',
     inputPrice: 2.00,
     outputPrice: 10.00,
-    rpm: 25,
+    rpm: 1000,
     supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
     url: 'https://aistudio.google.com/docs/models/gemini-4-carbon',
     parameters: {
