@@ -39,6 +39,15 @@ export class GoogleService {
    */
   private readonly deleteByFileName = new Map<string, Promise<void>>();
 
+  /** Builds clients with the same SDK options for validation and generation. */
+  private createClient(apiKey: string): GoogleGenAI {
+    return new GoogleGenAI({
+      apiKey,
+      // Gemini 3.1 Pro Preview requires v1beta. Remove this override when that model is retired.
+      apiVersion: 'v1beta'
+    });
+  }
+
   /**
    * Updates (or initializes) the Google GenAI SDK client for the given API key.
    *
@@ -47,15 +56,7 @@ export class GoogleService {
   updateClient(apiKey: string): void {
     if (apiKey !== this.apiKey) {
       this.apiKey = apiKey;
-      this.client = new GoogleGenAI({
-        apiKey: apiKey,
-        // NOTE: Force apiVersion to 'v1beta'
-        // because Gemini 3.1 Pro Preview requires v1beta
-        // and does not work on the default 'v1'.
-        // Remove explicit apiVersion when Gemini 3.1 Pro Preview
-        // is removed from the app.
-        apiVersion: 'v1beta'
-      });
+      this.client = this.createClient(apiKey);
     }
   }
 
@@ -65,10 +66,7 @@ export class GoogleService {
    * Returns an Observable<boolean> which resolves to true if the key is accepted.
    */
   isValidApiKey(apiKey: string): Observable<boolean> {
-    const client = new GoogleGenAI({
-      apiKey: apiKey,
-      apiVersion: 'v1beta'
-    });
+    const client = this.createClient(apiKey);
 
     return from(
       client.models.list().then(
