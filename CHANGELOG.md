@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `@google/genai` to 3.3.0.
 - Deps: update `openai` to 7.56.0.
 - Deps (dev): update `jsdom` to 31.0.1.
+- Deps: update transitive dependencies.
 
 ### Fixed
 
