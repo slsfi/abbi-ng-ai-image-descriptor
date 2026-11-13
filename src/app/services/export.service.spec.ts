@@ -163,6 +163,14 @@ describe('ExportService', () => {
     expect(service.normaliseCharacters(input, true)).toBe(input);
   });
 
+  it.each([true, false])('preserves short italic highlighting when disabled independently of line break encoding (%s)', encode => {
+    const input = '<body><p>\n<lb/><hi rend="italics">"obs."</hi></p></body>';
+
+    expect(service.normaliseCharacters(input, true, encode, false)).toBe(
+      `<p><lb${encode ? ' break="line"' : ''}/><hi rend="italics">”obs.”</hi></p>`
+    );
+  });
+
   it('keeps hi italics tags when the text content is longer than 30 characters', () => {
     const input = '<p><hi rend="italics">detta är en ganska lång kursiv markering</hi></p>';
 

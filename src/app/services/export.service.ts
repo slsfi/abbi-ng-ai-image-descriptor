@@ -620,7 +620,12 @@ export class ExportService {
     return t.trim();
   }
 
-  normaliseCharacters(s: string, teiEncoded: boolean = false, encodeLineBreakTypes: boolean = true): string {
+  normaliseCharacters(
+    s: string,
+    teiEncoded: boolean = false,
+    encodeLineBreakTypes: boolean = true,
+    stripShortPlainItalicHiTags: boolean = true
+  ): string {
     // Remove all carriage returns
     let text = s.replaceAll('\r', '');
     // Remove soft hyphen (U+00AD; &shy;) (invisible in VS Code)
@@ -696,7 +701,9 @@ export class ExportService {
       text = this.tightenPbLb(text);
       text = this.tightenFootnoteSpacing(text);
       text = this.fixMisplacedParagraphBreaksAroundPb(text);
-      text = this.stripShortPlainItalicHiTags(text);
+      if (stripShortPlainItalicHiTags) {
+        text = this.stripShortPlainItalicHiTags(text);
+      }
       text = this.replaceStraightQuotesOutsideTags(text);
 
       if (encodeLineBreakTypes) {

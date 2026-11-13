@@ -29,6 +29,7 @@ export class SettingsService {
   readonly selectedThinkingLevel = signal<GeminiThinkingLevel | null>(null);
   readonly teiEncode = signal<boolean>(false);
   readonly encodeLineBreakTypes = signal<boolean>(true);
+  readonly stripShortPlainItalicHiTags = signal<boolean>(true);
 
   readonly batchSizeMin = signal<number>(BATCH_SIZE_MIN);
   readonly batchSizeMax = signal<number>(BATCH_SIZE_MAX);
@@ -178,6 +179,7 @@ export class SettingsService {
       includeFilename: this.includeFilename(),
       teiEncode: this.teiEncode(),
       encodeLineBreakTypes: this.encodeLineBreakTypes(),
+      stripShortPlainItalicHiTags: this.stripShortPlainItalicHiTags(),
       batchSize: this.batchSize(),
     };
   }
@@ -228,6 +230,10 @@ export class SettingsService {
 
   updateEncodeLineBreakTypes(value: boolean) {
     this.encodeLineBreakTypes.set(value);
+  }
+
+  updateStripShortPlainItalicHiTags(value: boolean) {
+    this.stripShortPlainItalicHiTags.set(value);
   }
 
   updateBatchSize(value: number) {

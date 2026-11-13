@@ -55,10 +55,6 @@ mat-slide-toggle.mat-mdc-slide-toggle {
   align-items: center;
   display: flex;
 
-  &.dependent-setting {
-    padding-inline-start: 1.5rem;
-  }
-
   mat-form-field {
     width: 100%;
   }
@@ -134,19 +130,22 @@ mat-slide-toggle.mat-mdc-slide-toggle {
 }
 
 .model-description,
-.model-details-wrapper {
+.model-details-wrapper,
+.p-petite {
   font-size: 0.875em;
   line-height: 1.65;
 }
 
+.parameters-wrapper,
 .model-details-wrapper {
-
   h4 {
     font-weight: 500;
     margin-top: 0;
     margin-bottom: 1em;
   }
+}
 
+.model-details-wrapper {
   table {
     border-spacing: 0;
   }
