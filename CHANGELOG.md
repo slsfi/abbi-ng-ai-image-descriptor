@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Google: migrate image and text generation from `generateContent` to the Interactions API in the Google GenAI SDK.
 - Alt text generation: remove explicit output-token caps from OpenAI and Google requests; alt text length remains controlled by the prompt.
 - Translations: use the selected temperature setting for both OpenAI and Google when supported by the model.
+- Model details: remove RPM.
 - Deps: update `@angular/core` to 22.2.6 and `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.2.7.
 - Deps: update `@google/genai` to 3.3.0.
 - Deps: update `openai` to 7.56.0.
