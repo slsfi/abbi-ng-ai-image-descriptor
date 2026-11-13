@@ -53,6 +53,83 @@ function createImage(overrides: Partial<ImageData> = {}): ImageData {
 }
 
 describe('OpenAiService', () => {
+  describe('text-only requests', () => {
+    function mockTextResponse() {
+      const service = new OpenAiService();
+      const response = {
+        output_text: 'Translated text.',
+        usage: { input_tokens: 3, output_tokens: 6 },
+      };
+      const createSpy = vi.fn().mockResolvedValue(response);
+      (service as any).client = { responses: { create: createSpy } };
+      return { service, createSpy, response };
+    }
+
+    it('sends the selected temperature and reasoning and maps the translation response', async () => {
+      const { service, createSpy, response } = mockTextResponse();
+
+      const result = await service.responsesTextTask(createSettings(), 'Translate this text.');
+
+      expect(createSpy).toHaveBeenCalledWith({
+        model: createSettings().model.id,
+        input: 'Translate this text.',
+        reasoning: { effort: 'low' },
+        temperature: 0.7,
+      });
+      expect(result).toEqual({
+        text: 'Translated text.',
+        usage: { inputTokens: 3, outputTokens: 6 },
+        raw: response,
+      });
+    });
+
+    it.each([
+      { reason: 'unset', overrides: { temperature: null } },
+      {
+        reason: 'sampling is unsupported',
+        overrides: {
+          model: { ...createSettings().model, parameters: { supportsTemperatureSampling: false } },
+        },
+      },
+      {
+        reason: 'reasoning disallows it',
+        overrides: {
+          model: { ...createSettings().model, parameters: { reasoningSupportsTemperature: false } },
+        },
+      },
+    ])('omits temperature when $reason', async ({ overrides }) => {
+      const { service, createSpy } = mockTextResponse();
+
+      await service.responsesTextTask(createSettings(overrides), 'Translate this text.');
+
+      expect(createSpy.mock.lastCall![0]).not.toHaveProperty('temperature');
+      expect(createSpy.mock.lastCall![0].reasoning).toEqual({ effort: 'low' });
+    });
+
+    it.each(['none', 'low'] as const)(
+      'uses the model reasoning default %s to determine temperature support', async reasoningEffort => {
+        const { service, createSpy } = mockTextResponse();
+        const settings = createSettings({
+          reasoningEffort: null,
+          model: {
+            ...createSettings().model,
+            parameters: { reasoningEffort, reasoningSupportsTemperature: false },
+          },
+        });
+
+        await service.responsesTextTask(settings, 'Translate this text.');
+
+        const payload = createSpy.mock.lastCall![0];
+        expect(payload.reasoning).toEqual({ effort: reasoningEffort });
+        if (reasoningEffort === 'none') {
+          expect(payload.temperature).toBe(0.7);
+        } else {
+          expect(payload).not.toHaveProperty('temperature');
+        }
+      }
+    );
+  });
+
     it('keeps temperature and omits the output token cap when reasoning is disabled', async () => {
         const service = new OpenAiService();
         const createSpy = vi.fn().mockResolvedValue({

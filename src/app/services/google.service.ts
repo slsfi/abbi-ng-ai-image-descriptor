@@ -108,8 +108,7 @@ export class GoogleService {
             ...(mediaResolution ? { resolution: mediaResolution } : {})
           },
         ],
-        generation_config: this.buildInteractionsGenerationConfig(settings),
-        store: false
+        ...this.buildInteractionsRequestOptions(settings)
       } satisfies Interactions.CreateModelInteractionParamsNonStreaming;
       // console.log(payload);
 
@@ -158,8 +157,7 @@ export class GoogleService {
       const payload = {
         model: settings.model.id,
         input,
-        generation_config: this.buildInteractionsGenerationConfig(settings),
-        store: false
+        ...this.buildInteractionsRequestOptions(settings)
       } satisfies Interactions.CreateModelInteractionParamsNonStreaming;
 
       const resp = await this.client.interactions.create(payload);
@@ -230,8 +228,7 @@ export class GoogleService {
       const payload = {
         model: settings.model.id,
         input,
-        generation_config: this.buildInteractionsGenerationConfig(settings),
-        store: false
+        ...this.buildInteractionsRequestOptions(settings)
       } satisfies Interactions.CreateModelInteractionParamsNonStreaming;
 
       const resp = await abortable(
@@ -258,15 +255,10 @@ export class GoogleService {
     }
 
     try {
-      const thinkingLevel = this.thinkingLevelFromSettings(settings);
-
       const payload = {
         model: settings.model.id,
         input: prompt,
-        generation_config: {
-          ...(thinkingLevel ? { thinking_level: thinkingLevel } : {})
-        },
-        store: false
+        ...this.buildInteractionsRequestOptions(settings)
       } satisfies Interactions.CreateModelInteractionParamsNonStreaming;
       // console.log(payload);
 
@@ -477,6 +469,16 @@ export class GoogleService {
       console.error('Failed to upload file via Google Files API:', e);
       return null;
     }
+  }
+
+  /** Builds shared request options for image and text requests. */
+  private buildInteractionsRequestOptions(
+    settings: RequestSettings
+  ): Pick<Interactions.CreateModelInteractionParamsNonStreaming, 'generation_config' | 'store'> {
+    return {
+      generation_config: this.buildInteractionsGenerationConfig(settings),
+      store: false
+    };
   }
 
   /**
