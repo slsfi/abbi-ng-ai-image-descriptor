@@ -25,6 +25,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `openai` to 7.56.0.
 - Deps (dev): update `jsdom` to 31.0.1.
 
+### Fixed
+
+- Settings: improve semantics and accessibility of the three column help buttons.
+
 
 
 ## [4.4.0] – 2026-11-10
