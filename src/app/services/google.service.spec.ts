@@ -31,6 +31,8 @@ function createSettings(overrides: Partial<RequestSettings> = {}): RequestSettin
     teiEncode: false,
     encodeLineBreakTypes: true,
     stripShortPlainItalicHiTags: true,
+    normaliseCharacters: true,
+    repairParagraphBreaksAcrossPages: true,
     batchSize: 10,
     ...overrides,
   };

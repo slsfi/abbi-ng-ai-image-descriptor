@@ -8,5 +8,7 @@ export type DescriptionData = {
   outputTokens: number;
   cost: number;
   teiEncoded?: boolean;
+  // Retain the generation-time choice for exports; older results default to true.
+  normaliseCharacters?: boolean;
   error?: string;
 }

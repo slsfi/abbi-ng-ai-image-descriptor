@@ -28,6 +28,8 @@ export class SettingsService {
   readonly selectedReasoningEffort = signal<OpenAiReasoningEffort | null>(null);
   readonly selectedThinkingLevel = signal<GeminiThinkingLevel | null>(null);
   readonly teiEncode = signal<boolean>(false);
+  readonly normaliseCharacters = signal<boolean>(true);
+  readonly repairParagraphBreaksAcrossPages = signal<boolean>(true);
   readonly encodeLineBreakTypes = signal<boolean>(true);
   readonly stripShortPlainItalicHiTags = signal<boolean>(true);
 
@@ -178,6 +180,8 @@ export class SettingsService {
       promptVariant: this.selectedVariant(),
       includeFilename: this.includeFilename(),
       teiEncode: this.teiEncode(),
+      normaliseCharacters: this.normaliseCharacters(),
+      repairParagraphBreaksAcrossPages: this.repairParagraphBreaksAcrossPages(),
       encodeLineBreakTypes: this.encodeLineBreakTypes(),
       stripShortPlainItalicHiTags: this.stripShortPlainItalicHiTags(),
       batchSize: this.batchSize(),
@@ -230,6 +234,14 @@ export class SettingsService {
 
   updateEncodeLineBreakTypes(value: boolean) {
     this.encodeLineBreakTypes.set(value);
+  }
+
+  updateNormaliseCharacters(value: boolean) {
+    this.normaliseCharacters.set(value);
+  }
+
+  updateRepairParagraphBreaksAcrossPages(value: boolean) {
+    this.repairParagraphBreaksAcrossPages.set(value);
   }
 
   updateStripShortPlainItalicHiTags(value: boolean) {

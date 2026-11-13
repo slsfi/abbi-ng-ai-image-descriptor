@@ -590,7 +590,7 @@ export class GenerateDescriptionsComponent implements OnInit {
 
         if (res) {
           const teiBody = this.exportService.normaliseCharacters(
-            res.text, true, settings.encodeLineBreakTypes, settings.stripShortPlainItalicHiTags
+            res.text, true, settings
           );
 
           this.batchResults.update(batchId, {
@@ -699,7 +699,7 @@ export class GenerateDescriptionsComponent implements OnInit {
 
       if (res) {
         const teiBody = this.exportService.normaliseCharacters(
-          res.text, true, settings.encodeLineBreakTypes, settings.stripShortPlainItalicHiTags
+          res.text, true, settings
         );
 
         this.batchResults.update(batchId, {
@@ -1344,14 +1344,15 @@ export class GenerateDescriptionsComponent implements OnInit {
   ): DescriptionData {
     return {
       description: this.exportService.normaliseCharacters(
-        text, teiEncoded, settings.encodeLineBreakTypes, settings.stripShortPlainItalicHiTags
+        text, teiEncoded, settings
       ),
       language,
       model: settings.model?.id ?? '',
       inputTokens: usage?.inputTokens ?? 0,
       outputTokens: usage?.outputTokens ?? 0,
       cost,
-      teiEncoded
+      teiEncoded,
+      normaliseCharacters: settings.normaliseCharacters
     };
   }
 
