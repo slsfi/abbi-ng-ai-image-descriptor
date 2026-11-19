@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- Support for the OpenAI [`gpt-6.2-sol`](https://developers.openai.com/api/docs/models/gpt-6.2-sol) model. It replaces `gpt-6.1-sol`.
+
 ### Changed
 
 - Update `nginx` to 1.30.7.
@@ -16,6 +20,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Deps: update `docx` to 9.16.0.
 - Deps: update `openai` to 7.60.0.
 - Deps (dev): update `vitest` to 5.1.1.
+
+### Removed
+
+- The `gpt-6.1-sol` model.
 
 
 
