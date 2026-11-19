@@ -2,7 +2,7 @@ import { Model } from '../../app/types/model.types'
 import { TaskTypeId } from './prompts';
 
 export type ModelProvider = 'OpenAI' | 'Google';
-export type ModelId = 'gpt-4.1' | 'gpt-6.1-terra' | 'gpt-6.1-sol' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview' | 'gemini-4-hydrogen' | 'gemini-4-argon' | 'gemini-4-carbon';
+export type ModelId = 'gpt-4.1' | 'gpt-6.1-terra' | 'gpt-6.2-sol' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview' | 'gemini-4-hydrogen' | 'gemini-4-argon' | 'gemini-4-carbon';
 
 // provider = name of model creator
 // name = display name of the model
@@ -74,14 +74,14 @@ export const MODELS: Model[] = [
   },
   {
     provider: 'OpenAI',
-    name: 'GPT-6.1 Sol',
-    id: 'gpt-6.1-sol',
+    name: 'GPT-6.2 Sol',
+    id: 'gpt-6.2-sol',
     description: 'The near-flagship model in the GPT-6 family, suitable for high-quality alt text and complex image understanding.',
     inputPrice: { tiers: [{ upToTokens: 272000, per1M: 2.00 }, { upToTokens: null, per1M: 4.00 }] },
     outputPrice: { tiers: [{ upToTokens: 272000, per1M: 10.00 }, { upToTokens: null, per1M: 15.00 }] },
     rpm: 5000,
     supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
-    url: 'https://developers.openai.com/api/docs/models/gpt-6.1-sol',
+    url: 'https://developers.openai.com/api/docs/models/gpt-6.2-sol',
     parameters: {
       imageDetail: 'original',
       maxImageShortsidePx: null,
