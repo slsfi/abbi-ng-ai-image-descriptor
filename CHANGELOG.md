@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 
+- Update `nginx` to 1.30.7.
 - Deps: update `@angular/core`, `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.3.0.
 
 
