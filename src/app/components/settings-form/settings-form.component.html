@@ -195,8 +195,8 @@
         <mat-slide-toggle
               [checked]="settings.stripShortPlainItalicHiTags()"
               (change)="setStripShortPlainItalicHiTags($event)"
-              matTooltip="When enabled, removes &lt;hi rend=&quot;italics&quot;&gt; tags around plain text of up to 30 characters. Longer spans and spans containing nested tags are preserved. When disabled, preserves any italic highlighting in the AI’s response. Changing this setting does not modify existing results."
-        >Remove short <code>&lt;hi rend=&quot;italics&quot;&gt;</code></mat-slide-toggle>
+              matTooltip="When enabled, removes &lt;hi rend=&quot;italics&quot;&gt; tags around plain text of up to 30 characters and keeps the enclosed text. Longer spans and spans containing nested tags are preserved. When disabled, preserves any italic highlighting in the AI’s response. Changing this setting does not modify existing results."
+        >Remove <code>&lt;hi rend=&quot;italics&quot;&gt;</code> tags around short text</mat-slide-toggle>
       </div>
     }
   </div>
