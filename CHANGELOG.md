@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Fixed
+
+- Clarify that the TEI setting removes `<hi rend="italics">` tags around short text and keeps the enclosed text.
+
 
 
 ## [4.6.0] – 2026-11-19

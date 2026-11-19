@@ -182,7 +182,8 @@ describe('SettingsFormComponent', () => {
 
   it('shows the shared italic cleanup toggle for TEI transcription and preserves its value across tasks', async () => {
     const findToggle = () => fixture.debugElement.queryAll(By.css('mat-slide-toggle'))
-      .find(toggle => toggle.nativeElement.textContent.replace(/\s+/g, ' ').trim() === 'Remove short <hi rend="italics">');
+      .find(toggle => toggle.nativeElement.textContent.replace(/\s+/g, ' ').trim() ===
+        'Remove <hi rend="italics"> tags around short text');
     const findSwitch = () => findToggle()?.nativeElement.querySelector('button[role="switch"]') as HTMLButtonElement | undefined;
 
     expect(findToggle()).toBeUndefined();
