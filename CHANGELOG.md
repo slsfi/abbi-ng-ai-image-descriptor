@@ -8,23 +8,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [4.6.0] – 2026-11-19
+
 ### Added
 
-- Support for the OpenAI [`gpt-6.2-sol`](https://developers.openai.com/api/docs/models/gpt-6.2-sol) model. It replaces `gpt-6.1-sol`.
+- Support for the OpenAI [`gpt-6.2-sol`](https://developers.openai.com/api/docs/models/gpt-6.2-sol) model. It replaces `gpt-6.1-sol`. ([cd89565](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/cd89565c02e27abe45caef5c58ca79af3fef9154))
 
 ### Changed
 
-- Update `nginx` to 1.30.7.
-- Deps: update `@angular/core`, `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.3.0.
-- Deps: update `@google/genai` to 3.6.1.
-- Deps: update `docx` to 9.16.0.
-- Deps: update `openai` to 7.60.0.
-- Deps (dev): update `vitest` to 5.1.1.
-- Deps: update transitive dependencies.
+- Update `nginx` to 1.30.7. ([3afdf3d](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/3afdf3d290736d770c3b69fc957b3eacb73036e0))
+- Deps: update `@angular/core`, `@angular/cdk`, `@angular/material`, and `@angular/cli` to 22.3.0. ([759fb8c](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/759fb8c20a6453951a6fc3ae935e27867e4e6d59))
+- Deps: update `@google/genai` to 3.6.1. ([e6c8690](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/e6c8690e05f87ceda84b69a4b5d4cd637870fcd9))
+- Deps: update `docx` to 9.16.0. ([4fac04f](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/4fac04f6aca9bb120487a92f659e65fb57c5425e))
+- Deps: update `openai` to 7.60.0. ([89aae8b](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/89aae8ba1d51e15f2f69237eb6b9d70f601ef3f8))
+- Deps (dev): update `vitest` to 5.1.1. ([847ce83](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/847ce83f1159cd6b5c436e6e26a664ed6062fd46))
+- Deps: update transitive dependencies. ([9a3e9ef](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/9a3e9ef5ab092124935481465c7d855ffebdd111))
 
 ### Removed
 
-- The `gpt-6.1-sol` model.
+- The `gpt-6.1-sol` model. ([cd89565](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/cd89565c02e27abe45caef5c58ca79af3fef9154))
 
 
 
@@ -690,7 +694,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.5.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.6.0...HEAD
+[4.6.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.5.0...4.6.0
 [4.5.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.4.0...4.5.0
 [4.4.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.3.0...4.4.0
 [4.3.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.2.1...4.3.0
