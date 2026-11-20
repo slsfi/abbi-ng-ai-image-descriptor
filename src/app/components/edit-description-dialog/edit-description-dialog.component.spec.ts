@@ -92,16 +92,17 @@ describe('EditDescriptionDialogComponent', () => {
     await render();
     const viewport: HTMLElement = fixture.nativeElement.querySelector('.img-viewport');
     const img: HTMLImageElement = viewport.querySelector('img')!;
-    vi.spyOn(img, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 250, 125));
+    vi.spyOn(img, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 220, 110));
     const viewportRect = vi.spyOn(viewport, 'getBoundingClientRect')
       .mockReturnValue(new DOMRect(0, 0, 200, 100));
     const zoomLabel: HTMLElement = fixture.nativeElement.querySelector('[aria-label="Zoom level"]');
     const zoomIn: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Zoom in"]');
+    const zoomOut: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Zoom out"]');
     const reset: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Reset zoom"]');
 
     zoomIn.click();
     await fixture.whenStable();
-    expect(zoomLabel.textContent).toBe('125%');
+    expect(zoomLabel.textContent).toBe('110%');
     expect(viewport.classList.contains('zoomed')).toBe(true);
     expect(reset.disabled).toBe(false);
 
@@ -109,16 +110,21 @@ describe('EditDescriptionDialogComponent', () => {
     viewport.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 10, clientY: 5 }));
     viewport.dispatchEvent(new MouseEvent('pointerup', { bubbles: true }));
     await fixture.whenStable();
-    expectTransform(img, 'translate(10px, 5px) scale(1.25)');
+    expectTransform(img, 'translate(10px, 5px) scale(1.1)');
 
-    viewportRect.mockReturnValue(new DOMRect(0, 0, 250, 125));
+    viewportRect.mockReturnValue(new DOMRect(0, 0, 220, 110));
     window.dispatchEvent(new Event('resize'));
     await fixture.whenStable();
-    expectTransform(img, 'translate(0px, 0px) scale(1.25)');
+    expectTransform(img, 'translate(0px, 0px) scale(1.1)');
 
     viewport.dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: -1 }));
     await fixture.whenStable();
-    expect(zoomLabel.textContent).toBe('150%');
+    expect(zoomLabel.textContent).toBe('120%');
+
+    zoomOut.click();
+    await fixture.whenStable();
+    expect(zoomLabel.textContent).toBe('110%');
+
     reset.click();
     await fixture.whenStable();
     expect(zoomLabel.textContent).toBe('100%');

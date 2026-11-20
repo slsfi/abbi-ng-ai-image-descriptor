@@ -87,7 +87,7 @@ export class EditDescriptionDialogComponent implements OnInit {
   readonly zoom = signal(1);
   readonly minZoom = 1;
   readonly maxZoom = 5;
-  readonly zoomStep = 0.25;
+  readonly zoomStep = 0.1;
 
   readonly panX = signal(0); // px
   readonly panY = signal(0); // px

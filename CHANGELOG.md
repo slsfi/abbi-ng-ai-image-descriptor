@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+
+- Edit description dialog: reduce image zoom steps from 25 to 10 percentage points.
+
 
 
 ## [4.7.0] – 2026-11-20
