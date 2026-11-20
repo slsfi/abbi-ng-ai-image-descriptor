@@ -69,6 +69,7 @@ mat-dialog-content.mat-mdc-dialog-content {
 
   .img-viewport {
     align-items: center;
+    container-type: size;
     display: flex;
     height: 100%;
     justify-content: center;
@@ -91,6 +92,7 @@ mat-dialog-content.mat-mdc-dialog-content {
   }
 
   img {
+    flex-shrink: 0;
     height: auto;
     max-height: 100%;
     max-width: 100%;
@@ -99,6 +101,11 @@ mat-dialog-content.mat-mdc-dialog-content {
     transform-origin: center center;
     will-change: transform;
     user-select: none;
+
+    &.sideways {
+      max-width: 100cqh;
+      max-height: 100cqw;
+    }
   }
   
   .dialog-actions {

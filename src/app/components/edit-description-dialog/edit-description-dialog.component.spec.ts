@@ -92,7 +92,8 @@ describe('EditDescriptionDialogComponent', () => {
     await render();
     const viewport: HTMLElement = fixture.nativeElement.querySelector('.img-viewport');
     const img: HTMLImageElement = viewport.querySelector('img')!;
-    vi.spyOn(img, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 220, 110));
+    vi.spyOn(img, 'offsetWidth', 'get').mockReturnValue(200);
+    vi.spyOn(img, 'offsetHeight', 'get').mockReturnValue(100);
     const viewportRect = vi.spyOn(viewport, 'getBoundingClientRect')
       .mockReturnValue(new DOMRect(0, 0, 200, 100));
     const zoomLabel: HTMLElement = fixture.nativeElement.querySelector('[aria-label="Zoom level"]');
@@ -110,12 +111,12 @@ describe('EditDescriptionDialogComponent', () => {
     viewport.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 10, clientY: 5 }));
     viewport.dispatchEvent(new MouseEvent('pointerup', { bubbles: true }));
     await fixture.whenStable();
-    expectTransform(img, 'translate(10px, 5px) scale(1.1)');
+    expectTransform(img, 'translate(10px, 5px) scale(1.1) rotate(0deg)');
 
-    viewportRect.mockReturnValue(new DOMRect(0, 0, 220, 110));
+    viewportRect.mockReturnValue(new DOMRect(0, 0, 240, 120));
     window.dispatchEvent(new Event('resize'));
     await fixture.whenStable();
-    expectTransform(img, 'translate(0px, 0px) scale(1.1)');
+    expectTransform(img, 'translate(0px, 0px) scale(1.1) rotate(0deg)');
 
     viewport.dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: -1 }));
     await fixture.whenStable();
@@ -128,9 +129,46 @@ describe('EditDescriptionDialogComponent', () => {
     reset.click();
     await fixture.whenStable();
     expect(zoomLabel.textContent).toBe('100%');
-    expectTransform(img, 'translate(0px, 0px) scale(1)');
+    expectTransform(img, 'translate(0px, 0px) scale(1) rotate(0deg)');
     expect(viewport.classList.contains('zoomed')).toBe(false);
     expect(reset.disabled).toBe(true);
+  });
+
+  it('rotates the image clockwise and keeps its orientation when zoom is reset', async () => {
+    await render();
+    const viewport: HTMLElement = fixture.nativeElement.querySelector('.img-viewport');
+    const img: HTMLImageElement = viewport.querySelector('img')!;
+    const zoomIn: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Zoom in"]');
+    const reset: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Reset zoom"]');
+    const rotate: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Rotate image clockwise"]');
+    vi.spyOn(img, 'offsetWidth', 'get').mockReturnValue(200);
+    vi.spyOn(img, 'offsetHeight', 'get').mockReturnValue(100);
+    vi.spyOn(viewport, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 200, 200));
+
+    expect(reset.nextElementSibling).toBe(rotate);
+    rotate.click();
+    await fixture.whenStable();
+    expectTransform(img, 'translate(0px, 0px) scale(1) rotate(90deg)');
+    expect(img.classList.contains('sideways')).toBe(true);
+
+    zoomIn.click();
+    await fixture.whenStable();
+    viewport.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, clientX: 0, clientY: 0 }));
+    viewport.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 10, clientY: 8 }));
+    viewport.dispatchEvent(new MouseEvent('pointerup', { bubbles: true }));
+    await fixture.whenStable();
+    expectTransform(img, 'translate(0px, 8px) scale(1.1) rotate(90deg)');
+
+    reset.click();
+    await fixture.whenStable();
+    expectTransform(img, 'translate(0px, 0px) scale(1) rotate(90deg)');
+
+    for (const angle of [180, 270, 0]) {
+      rotate.click();
+      await fixture.whenStable();
+      expectTransform(img, `translate(0px, 0px) scale(1) rotate(${angle}deg)`);
+      expect(img.classList.contains('sideways')).toBe(angle === 270);
+    }
   });
 
   it('cancels without returning the edited text', async () => {

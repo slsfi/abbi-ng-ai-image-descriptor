@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- Edit description dialog: a button for rotating the image preview 90° clockwise on each click.
+
 ### Changed
 
 - Edit description dialog: reduce image zoom steps from 25 to 10 percentage points.

@@ -89,12 +89,16 @@ export class EditDescriptionDialogComponent implements OnInit {
   readonly maxZoom = 5;
   readonly zoomStep = 0.1;
 
+  private readonly imageRotations = signal<Partial<Record<number, number>>>({});
+  readonly rotation = computed(() => this.imageRotations()[this.activeImage()] ?? 0);
+  readonly isSideways = computed(() => this.rotation() % 180 !== 0);
+
   readonly panX = signal(0); // px
   readonly panY = signal(0); // px
 
-  // Translate then scale; origin at center (set in CSS).
+  // Apply pan in viewport coordinates after rotating and scaling around the image center.
   readonly imageTransform = computed(() =>
-    `translate(${this.panX()}px, ${this.panY()}px) scale(${this.zoom()})`
+    `translate(${this.panX()}px, ${this.panY()}px) scale(${this.zoom()}) rotate(${this.rotation()}deg)`
   );
   readonly isZoomed = computed(() => this.zoom() > 1);
 
@@ -133,16 +137,22 @@ export class EditDescriptionDialogComponent implements OnInit {
 
   nextImage(): void {
     const currentIndex = this.activeImage();
-    this.activeImage.set(
+    this.setActiveImage(
       (currentIndex < (this.dialogImages.length - 1)) ? currentIndex + 1 : 0
     );
   }
 
   previousImage(): void {
     const currentIndex = this.activeImage();
-    this.activeImage.set(
+    this.setActiveImage(
       (currentIndex > 0) ? currentIndex - 1 : this.dialogImages.length - 1
     );
+  }
+
+  private setActiveImage(index: number): void {
+    const previousRotation = this.rotation();
+    this.activeImage.set(index);
+    if (this.rotation() !== previousRotation) this.centerImage();
   }
 
   zoomIn(): void {
@@ -155,6 +165,17 @@ export class EditDescriptionDialogComponent implements OnInit {
 
   resetZoom(): void {
     this.zoom.set(1);
+    this.centerImage();
+  }
+
+  rotateImage(): void {
+    const index = this.activeImage();
+    const rotation = (this.rotation() + 90) % 360;
+    this.imageRotations.update(rotations => ({ ...rotations, [index]: rotation }));
+    this.centerImage();
+  }
+
+  private centerImage(): void {
     this.panX.set(0);
     this.panY.set(0);
   }
@@ -164,13 +185,7 @@ export class EditDescriptionDialogComponent implements OnInit {
     if (clamped === this.zoom()) return;
 
     this.zoom.set(clamped);
-    if (clamped === 1) {
-      this.panX.set(0);
-      this.panY.set(0);
-    } else {
-      // keep pan within bounds after zoom changes
-      this.clampPan();
-    }
+    this.clampPan();
   }
 
   // Drag to pan
@@ -215,31 +230,20 @@ export class EditDescriptionDialogComponent implements OnInit {
   protected clampPan(): void {
     const zoom = this.zoom();
     if (zoom <= 1) {
-      this.panX.set(0);
-      this.panY.set(0);
+      this.centerImage();
       return;
     }
 
     const img = this.imgEl()?.nativeElement;
-    const vp  = this.imgViewport()?.nativeElement;
+    const vp = this.imgViewport()?.nativeElement;
     if (!img || !vp) return;
 
-    // Image size at zoom=1 (rendered)
-    const imgRect = img.getBoundingClientRect();
-    const baseW = imgRect.width / zoom;
-    const baseH = imgRect.height / zoom;
-
-    // Viewport size (visible window)
-    const vpRect = vp.getBoundingClientRect();
-    const vpW = vpRect.width;
-    const vpH = vpRect.height;
-
-    // How much bigger the scaled image is than the viewport
-    const scaledW = baseW * zoom;
-    const scaledH = baseH * zoom;
-
-    const maxX = Math.max(0, (scaledW - vpW) / 2);
-    const maxY = Math.max(0, (scaledH - vpH) / 2);
+    const { width: viewportWidth, height: viewportHeight } = vp.getBoundingClientRect();
+    const sideways = this.isSideways();
+    const imageWidth = sideways ? img.offsetHeight : img.offsetWidth;
+    const imageHeight = sideways ? img.offsetWidth : img.offsetHeight;
+    const maxX = Math.max(0, (imageWidth * zoom - viewportWidth) / 2);
+    const maxY = Math.max(0, (imageHeight * zoom - viewportHeight) / 2);
 
     this.panX.set(Math.min(maxX, Math.max(-maxX, this.panX())));
     this.panY.set(Math.min(maxY, Math.max(-maxY, this.panY())));
