@@ -56,6 +56,13 @@
           >
             <mat-icon>crop_free</mat-icon>
           </button>
+          <button matIconButton
+                (click)="rotateImage()"
+                aria-label="Rotate image clockwise"
+                matTooltip="Rotate image clockwise"
+          >
+            <mat-icon>rotate_right</mat-icon>
+          </button>
         </div>
       </div>
 
@@ -74,6 +81,7 @@
           [src]="dialogImages[imageIndex].base64Image"
           [height]="dialogImages[imageIndex].height"
           [width]="dialogImages[imageIndex].width"
+          [class.sideways]="isSideways()"
           [style.transform]="imageTransform()"
           alt="Image"
           draggable="false"
