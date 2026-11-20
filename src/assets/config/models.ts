@@ -2,7 +2,7 @@ import { Model } from '../../app/types/model.types'
 import { TaskTypeId } from './prompts';
 
 export type ModelProvider = 'OpenAI' | 'Google';
-export type ModelId = 'gpt-4.1' | 'gpt-6.1-terra' | 'gpt-6.2-sol' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview' | 'gemini-4-hydrogen' | 'gemini-4-argon' | 'gemini-4-carbon';
+export type ModelId = 'gpt-4.1' | 'gpt-6.1-terra' | 'gpt-6.2-sol' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview' | 'gemini-4-hydrogen' | 'gemini-4-neon' | 'gemini-4-argon' | 'gemini-4-carbon';
 
 // provider = name of model creator
 // name = display name of the model
@@ -138,6 +138,25 @@ export const MODELS: Model[] = [
     rpm: 1000,
     supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
     url: 'https://aistudio.google.com/docs/models/gemini-4-hydrogen',
+    parameters: {
+      thinkingLevel: 'high',
+      thinkingLevels: ['low', 'medium', 'high', 'xhigh'],
+      maxImageShortsidePx: null,
+      mediaResolution: 'high',
+      supportsTemperatureSampling: false
+    },
+    supportsFilesApi: true
+  },
+  {
+    provider: 'Google',
+    name: 'Gemini 4 Neon',
+    id: 'gemini-4-neon',
+    description: 'A fast, frontier-level Gemini 4 model with strong image understanding, suitable for alt text and transcription.',
+    inputPrice: 3.00,
+    outputPrice: 15.00,
+    rpm: 1000,
+    supportedTaskTypes: ['altText', 'transcription', 'transcriptionBatchTei'],
+    url: 'https://aistudio.google.com/docs/models/gemini-4-neon',
     parameters: {
       thinkingLevel: 'high',
       thinkingLevels: ['low', 'medium', 'high', 'xhigh'],
