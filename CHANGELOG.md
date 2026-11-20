@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Support for the Google [`gemini-4-neon`](https://aistudio.google.com/docs/models/gemini-4-neon) model.
 
+### Changed
+
+- Deps: update `openai` to 7.62.0.
+
 ### Fixed
 
 - Clarify that the TEI setting removes `<hi rend="italics">` tags around short text and keeps the enclosed text.
