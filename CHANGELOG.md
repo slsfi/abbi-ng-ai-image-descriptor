@@ -8,17 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+
+
+## [4.7.0] – 2026-11-20
+
 ### Added
 
-- Support for the Google [`gemini-4-neon`](https://aistudio.google.com/docs/models/gemini-4-neon) model.
+- Support for the Google [`gemini-4-neon`](https://aistudio.google.com/docs/models/gemini-4-neon) model. ([cfc43e7](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/cfc43e716db642e0864c2378f677c09afe6aa6f7))
 
 ### Changed
 
-- Deps: update `openai` to 7.62.0.
+- Deps: update `openai` to 7.62.0. ([b3703d7](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/b3703d7797a2c68f0f1309d2dda25d15d4471a80))
 
 ### Fixed
 
-- Clarify that the TEI setting removes `<hi rend="italics">` tags around short text and keeps the enclosed text.
+- Clarify that the TEI setting removes `<hi rend="italics">` tags around short text and keeps the enclosed text. ([2ea2c34](https://github.com/slsfi/abbi-ng-ai-image-descriptor/commit/2ea2c343b7c842d81f03fb20fffa8d22c7ae9737))
 
 
 
@@ -706,7 +710,8 @@ Initial release.
 
 
 
-[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.6.0...HEAD
+[unreleased]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.7.0...HEAD
+[4.7.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.6.0...4.7.0
 [4.6.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.5.0...4.6.0
 [4.5.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.4.0...4.5.0
 [4.4.0]: https://github.com/slsfi/abbi-ng-ai-image-descriptor/compare/4.3.0...4.4.0
