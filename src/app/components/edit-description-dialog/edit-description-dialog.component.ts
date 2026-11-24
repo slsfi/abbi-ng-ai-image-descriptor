@@ -156,13 +156,14 @@ export class EditDescriptionDialogComponent implements OnInit {
     this.setZoom(this.zoom() - this.zoomStep);
   }
 
-  resetZoom(): void {
-    this.zoom.set(1);
+  rotateImage(): void {
+    this.rotation.update(angle => (angle + 90) % 360);
     this.centerImage();
   }
 
-  rotateImage(): void {
-    this.rotation.update(angle => (angle + 90) % 360);
+  resetImageView(): void {
+    this.zoom.set(this.minZoom);
+    this.rotation.set(0);
     this.centerImage();
   }
 

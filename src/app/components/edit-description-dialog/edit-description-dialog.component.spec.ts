@@ -100,7 +100,7 @@ describe('EditDescriptionDialogComponent', () => {
     const zoomLabel: HTMLElement = fixture.nativeElement.querySelector('[aria-label="Zoom level"]');
     const zoomIn: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Zoom in"]');
     const zoomOut: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Zoom out"]');
-    const reset: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Reset zoom"]');
+    const reset: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Reset zoom and rotation"]');
 
     zoomIn.click();
     await fixture.whenStable();
@@ -135,23 +135,31 @@ describe('EditDescriptionDialogComponent', () => {
     expect(reset.disabled).toBe(true);
   });
 
-  it('rotates the image clockwise and keeps its orientation when zoom is reset', async () => {
+  it('rotates the image clockwise and resets both rotation and zoom', async () => {
     await render();
     const viewport: HTMLElement = fixture.nativeElement.querySelector('.img-viewport');
     const img: HTMLImageElement = viewport.querySelector('img')!;
     const zoomIn: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Zoom in"]');
-    const reset: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Reset zoom"]');
     const rotate: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Rotate image clockwise"]');
+    const reset: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Reset zoom and rotation"]');
     vi.spyOn(img, 'offsetWidth', 'get').mockReturnValue(200);
     vi.spyOn(img, 'offsetHeight', 'get').mockReturnValue(100);
     vi.spyOn(viewport, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 200, 200));
 
-    expect(reset.nextElementSibling).toBe(rotate);
+    expect(rotate.nextElementSibling).toBe(reset);
     rotate.click();
     await fixture.whenStable();
     expectTransform(img, 'translate(0px, 0px) scale(1) rotate(90deg)');
     expect(img.classList.contains('sideways')).toBe(true);
+    expect(reset.disabled).toBe(false);
 
+    reset.click();
+    await fixture.whenStable();
+    expectTransform(img, 'translate(0px, 0px) scale(1) rotate(0deg)');
+    expect(img.classList.contains('sideways')).toBe(false);
+    expect(reset.disabled).toBe(true);
+
+    rotate.click();
     zoomIn.click();
     await fixture.whenStable();
     viewport.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, clientX: 0, clientY: 0 }));
@@ -162,13 +170,13 @@ describe('EditDescriptionDialogComponent', () => {
 
     reset.click();
     await fixture.whenStable();
-    expectTransform(img, 'translate(0px, 0px) scale(1) rotate(90deg)');
+    expectTransform(img, 'translate(0px, 0px) scale(1) rotate(0deg)');
 
-    for (const angle of [180, 270, 0]) {
+    for (const angle of [90, 180, 270, 0]) {
       rotate.click();
       await fixture.whenStable();
       expectTransform(img, `translate(0px, 0px) scale(1) rotate(${angle}deg)`);
-      expect(img.classList.contains('sideways')).toBe(angle === 270);
+      expect(img.classList.contains('sideways')).toBe(angle % 180 !== 0);
     }
   });
 
