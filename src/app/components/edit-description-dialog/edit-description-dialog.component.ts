@@ -83,14 +83,13 @@ export class EditDescriptionDialogComponent implements OnInit {
     }
   });
 
-  // Zoom / pan
+  // Zoom, rotation, and pan
   readonly zoom = signal(1);
   readonly minZoom = 1;
   readonly maxZoom = 5;
   readonly zoomStep = 0.1;
 
-  private readonly imageRotations = signal<Partial<Record<number, number>>>({});
-  readonly rotation = computed(() => this.imageRotations()[this.activeImage()] ?? 0);
+  readonly rotation = signal(0);
   readonly isSideways = computed(() => this.rotation() % 180 !== 0);
 
   readonly panX = signal(0); // px
@@ -137,22 +136,16 @@ export class EditDescriptionDialogComponent implements OnInit {
 
   nextImage(): void {
     const currentIndex = this.activeImage();
-    this.setActiveImage(
+    this.activeImage.set(
       (currentIndex < (this.dialogImages.length - 1)) ? currentIndex + 1 : 0
     );
   }
 
   previousImage(): void {
     const currentIndex = this.activeImage();
-    this.setActiveImage(
+    this.activeImage.set(
       (currentIndex > 0) ? currentIndex - 1 : this.dialogImages.length - 1
     );
-  }
-
-  private setActiveImage(index: number): void {
-    const previousRotation = this.rotation();
-    this.activeImage.set(index);
-    if (this.rotation() !== previousRotation) this.centerImage();
   }
 
   zoomIn(): void {
@@ -169,9 +162,7 @@ export class EditDescriptionDialogComponent implements OnInit {
   }
 
   rotateImage(): void {
-    const index = this.activeImage();
-    const rotation = (this.rotation() + 90) % 360;
-    this.imageRotations.update(rotations => ({ ...rotations, [index]: rotation }));
+    this.rotation.update(angle => (angle + 90) % 360);
     this.centerImage();
   }
 
