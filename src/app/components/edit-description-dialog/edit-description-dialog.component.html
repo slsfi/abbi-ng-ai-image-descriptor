@@ -49,19 +49,19 @@
             <mat-icon>add</mat-icon>
           </button>
           <button matIconButton
-                (click)="resetZoom()"
-                [disabled]="zoom === 1"
-                aria-label="Reset zoom"
-                matTooltip="Reset zoom"
-          >
-            <mat-icon>crop_free</mat-icon>
-          </button>
-          <button matIconButton
                 (click)="rotateImage()"
                 aria-label="Rotate image clockwise"
                 matTooltip="Rotate image clockwise"
           >
             <mat-icon>rotate_right</mat-icon>
+          </button>
+          <button matIconButton
+                (click)="resetImageView()"
+                [disabled]="zoom === minZoom && rotation() === 0"
+                aria-label="Reset zoom and rotation"
+                matTooltip="Reset zoom and rotation"
+          >
+            <mat-icon>crop_free</mat-icon>
           </button>
         </div>
       </div>
