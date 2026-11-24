@@ -2,7 +2,8 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
-import { EditDescriptionDialogComponent } from './edit-description-dialog.component';
+import { EditDescriptionDialogComponent, EditDescriptionDialogData } from './edit-description-dialog.component';
+import { ImageListService } from '../../services/image-list.service';
 import { ImageData } from '../../types/image-data.types';
 
 describe('EditDescriptionDialogComponent', () => {
@@ -169,6 +170,43 @@ describe('EditDescriptionDialogComponent', () => {
       expectTransform(img, `translate(0px, 0px) scale(1) rotate(${angle}deg)`);
       expect(img.classList.contains('sideways')).toBe(angle === 270);
     }
+  });
+
+  it('shares rotation and zoom across images in a batch', async () => {
+    const secondImage: ImageData = {
+      ...image, id: 1, filename: 'second.png', base64Image: 'data:image/png;base64,AAAB'
+    };
+    const data: EditDescriptionDialogData = {
+      batchObj: {
+        id: 'batch',
+        createdAt: '2026-01-01T00:00:00Z',
+        taskType: 'transcriptionBatchTei',
+        imageIds: [image.id, secondImage.id],
+        status: 'success'
+      }
+    };
+    TestBed.overrideProvider(MAT_DIALOG_DATA, { useValue: data });
+    TestBed.inject(ImageListService).updateImageList([image, secondImage]);
+    await render();
+
+    const img: HTMLImageElement = fixture.nativeElement.querySelector('.img-viewport img');
+    const rotate: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Rotate image clockwise"]');
+    const zoomIn: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Zoom in"]');
+    const next: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Next image"]');
+    const previous: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Previous image"]');
+
+    zoomIn.click();
+    rotate.click();
+    next.click();
+    await fixture.whenStable();
+    expect(img.getAttribute('src')).toBe(secondImage.base64Image);
+    expectTransform(img, 'translate(0px, 0px) scale(1.1) rotate(90deg)');
+
+    rotate.click();
+    previous.click();
+    await fixture.whenStable();
+    expect(img.getAttribute('src')).toBe(image.base64Image);
+    expectTransform(img, 'translate(0px, 0px) scale(1.1) rotate(180deg)');
   });
 
   it('cancels without returning the edited text', async () => {
